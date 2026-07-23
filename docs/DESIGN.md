@@ -72,21 +72,59 @@ Sasiedzi = **sojusznicy** (2-kolorowe decki graja gladko), naprzeciw = **wrogowi
 mocniejszy payoff). Glowne osie starcia: **Zycie ↔ Smierc**, **Umysl ↔ Chaos**. To MTG-owe napiecie w
 budowaniu decka na pokerowym silniku, gdzie **flush = zaangazowanie w barwe**.
 
-## Keywordy per Aspekt (DRAFT startowy — do iteracji)
+## Keywordy per Aspekt (instalment 4)
 
-Kazdy Aspekt zahacza o silnik INNA dzwignia (Chips / Mult / HP / blok). Zestaw wyjsciowy, nie finalny.
+Kazdy Aspekt zahacza o silnik INNA dzwignia (Chips / Mult / HP / blok). Zestaw wyjsciowy, do strojenia;
+skladalny w edytorze (editor-first).
 
-| Aspekt | Sygnaturowe keywordy | Dzwignia silnika |
-|---|---|---|
-| **Porzadek/Zycie** (W) | Oslona (dodaj blok) · Opatrznosc (lecz HP) · Zastep (+wartosc za kazda karte Zycia w zagraniu) | blok + HP + nagroda za mono-kolor |
-| **Umysl** (U) | Wrozba (podejrzyj/uporzadkuj nastepne karty) · Dobor (dobierz/powieksz reke) · Echo (+Chips za kazde zagranie w walce) | Chips + kontrola informacji + skalowanie |
-| **Smierc** (B) | Gnicie (wrog traci HP co ture) · Ofiara (zniszcz wlasna karte -> zysk) · Zniwo (+Mult za karte w grobie) | DoT + Mult-za-poswiecenie |
-| **Chaos/Wola** (R) | Spalenie (natychmiastowe dmg poza scoringiem) · Furia (×Mult gdy grasz bez bloku) · Hazard (podbij Mult pod warunkiem) | ×Mult + burst + ryzyko |
-| **Natura/Wzrost** (G) | Wzrost (karta rosnie co ture) · Bujnosc (bonus przy >=N kart jednej barwy) · Symbioza (bonus za kolory-sojusznikow) | ramp + wielkie payoffy w czasie |
+**Porzadek/Zycie (W)** — przetrwanie, obrona, czystosc
+- **Oslona X** — dodaj X bloku (pochlania dmg w turze wroga)
+- **Opatrznosc X** — lecz X HP
+- **Zastep** — +chips za kazda karte Zycia w zagraniu (nagroda za mono)
+- **Swietosc** — chroni karte/Arkanum przed zniszczeniem (anty-Smierc/Wieza)
+- **Modlitwa** — jesli nie oberwales w tej turze -> +Mult / +lecz
+- *(dwor) Krol Zycia:* co ture darmowy blok bazowy
 
-Interakcje pentagramu: **sojusznicy** dostaja keywordy-mostki (Symbioza nagradza dolozenie sasiada);
-**wrogowie** sie gryza (Furia Chaosu karze blok — serce Zycia); **reguly pola bossow** moga tlumic wybrany
-kolor. Wszystko deterministyczne — nawet Hazard ma warunek, nie rzut koscia.
+**Umysl (U)** — informacja, skala, tempo
+- **Wrozba X** — podejrzyj/uporzadkuj X nastepnych kart (deterministyczna)
+- **Dobor X** — dobierz X kart / powieksz reke
+- **Echo** — +Chips za kazde zagranie w tej walce (skaluje)
+- **Zwloka** — opoznij intencje wroga o ture
+- **Kombinat** — powtorzysz ten sam typ ukladu -> +Mult
+- *(dwor) Krolowa Umyslu:* pierwsza Wrozba w walce mocniejsza/gratis
+
+**Smierc (B)** — poswiecenie, rozklad, grob
+- **Gnicie X** — wrog traci X HP na start kazdej swojej tury (DoT, stackuje)
+- **Ofiara** — zniszcz wlasna karte -> natychmiastowy zysk (Mult/Chips/☿)
+- **Zniwo** — +Mult za kazda karte w grobie (zniszczone)
+- **Klatwa** — wrog dostaje +% obrazen / -blok
+- **Pijawka** — czesc zadanych obrazen leczy Ciebie
+- *(dwor) Krol Smierci:* gdy karta ginie -> dobierz/zyskaj
+
+**Chaos/Wola (R)** — burst, ×Mult, ryzyko
+- **Spalenie X** — zadaj X natychmiast (poza scoringiem)
+- **Furia** — ×Mult, jesli w tej turze nie dodales bloku (karze gre Zycia)
+- **Hazard** — podbij Mult pod warunkiem deterministycznym (combo z Wrozba)
+- **Lawina** — dodatkowe uderzenie za kazda karte Chaosu w zagraniu
+- **Przeciazenie** — ogromny ×Mult, ale niszczy zagrane karty po turze
+- *(dwor) Rycerz Chaosu:* pierwszy atak w walce +Spalenie
+
+**Natura/Wzrost (G)** — ramp, wielkie payoffy, symbioza
+- **Wzrost X** — karta rosnie o +X wartosci co ture w rece
+- **Bujnosc** — >=N kart jednej barwy w zagraniu -> wielki flat bonus
+- **Symbioza** — +bonus za kazda karte koloru-sojusznika w zagraniu
+- **Korzenie** — blok/HP rosnie o X co ture (narastajacy sustain)
+- **Plon** — co N tur dobierz karte / zyskaj ☿
+- *(dwor) Krolowa Natury:* karty w rece dostaja Wzrost 1
+
+**Wspolne (ponad barwami):**
+- Statusy na wrogu: Gnicie, Klatwa · na Tobie: Blok
+- **Retrigger** (pieczec / relikt Maga) — powtorz efekt karty
+- **Enchanty ze sklepu** (warstwa edycji, nie koloru): Foil +chips, Holo +mult, Polichrom ×mult
+
+**Pentagram w keywordach:** Furia (R) karze Blok (W) -> wrogowie. Symbioza (G) i pary Kochankow nagradzaja
+sojusznikow. Hazard (R) + Wrozba (U) = combo dwoch barw (widzisz przyszlosc -> ryzyko przestaje byc
+ryzykiem). Wszystko deterministyczne i skladalne w edytorze.
 
 ## Talia i scoring (instalment 1)
 
@@ -240,7 +278,6 @@ podglady / mnoza cienie. **Kolo Fortuny** = jedyny sankcjonowany RNG (jak "RNG t
 ## Otwarte (do domkniecia)
 
 - **Wielkie Arkana — sub-decyzje** (rola JUZ ustalona: bossowie+relikty, Podroz Glupca): ile Arkanow na run vs 22 w puli (rozne runy = rozna droga); czy zawsze zabierasz pokonane Arkanum czy wybor 1-z-N; czy mozna ODRZUCIC pakt (Arkana dwustronne jak Diabel); **karty odwrocone (reversed)** jako lewar — Arkanum wprost = boon, odwrocone = mroczniejszy efekt / trudniejszy boss; Glupiec(0) i Swiat(21) jako specjalne.
-- **Slownik keywordow per Aspekt:** archetypy z tabeli -> konkretne keywordy (odpowiedniki Taunt/Deathrattle/Battlecry + efekty barw), skladalne w edytorze.
 - **Struktura talii:** 5 suitow × rangi (As–10 + figury: Paz/Rycerz/Krolowa/Krol?), rozmiar talii startowej, ktore uklady pokerowe liczymy.
 - **HP / obrona:** model bloku, jak intencje raniA, leczenie miedzy walkami.
 - **Warunek konca:** liczba regionow, finalny boss, tryb endless, tiery trudnosci (Ascension/Stakes).
