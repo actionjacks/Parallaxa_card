@@ -72,6 +72,22 @@ Sasiedzi = **sojusznicy** (2-kolorowe decki graja gladko), naprzeciw = **wrogowi
 mocniejszy payoff). Glowne osie starcia: **Zycie ↔ Smierc**, **Umysl ↔ Chaos**. To MTG-owe napiecie w
 budowaniu decka na pokerowym silniku, gdzie **flush = zaangazowanie w barwe**.
 
+## Keywordy per Aspekt (DRAFT startowy — do iteracji)
+
+Kazdy Aspekt zahacza o silnik INNA dzwignia (Chips / Mult / HP / blok). Zestaw wyjsciowy, nie finalny.
+
+| Aspekt | Sygnaturowe keywordy | Dzwignia silnika |
+|---|---|---|
+| **Porzadek/Zycie** (W) | Oslona (dodaj blok) · Opatrznosc (lecz HP) · Zastep (+wartosc za kazda karte Zycia w zagraniu) | blok + HP + nagroda za mono-kolor |
+| **Umysl** (U) | Wrozba (podejrzyj/uporzadkuj nastepne karty) · Dobor (dobierz/powieksz reke) · Echo (+Chips za kazde zagranie w walce) | Chips + kontrola informacji + skalowanie |
+| **Smierc** (B) | Gnicie (wrog traci HP co ture) · Ofiara (zniszcz wlasna karte -> zysk) · Zniwo (+Mult za karte w grobie) | DoT + Mult-za-poswiecenie |
+| **Chaos/Wola** (R) | Spalenie (natychmiastowe dmg poza scoringiem) · Furia (×Mult gdy grasz bez bloku) · Hazard (podbij Mult pod warunkiem) | ×Mult + burst + ryzyko |
+| **Natura/Wzrost** (G) | Wzrost (karta rosnie co ture) · Bujnosc (bonus przy >=N kart jednej barwy) · Symbioza (bonus za kolory-sojusznikow) | ramp + wielkie payoffy w czasie |
+
+Interakcje pentagramu: **sojusznicy** dostaja keywordy-mostki (Symbioza nagradza dolozenie sasiada);
+**wrogowie** sie gryza (Furia Chaosu karze blok — serce Zycia); **reguly pola bossow** moga tlumic wybrany
+kolor. Wszystko deterministyczne — nawet Hazard ma warunek, nie rzut koscia.
+
 ## Rdzen walki — przyklad
 
 Karta = ranga + Aspekt + keyword. Przyklad tury, zagrywasz Pare z dwoch `7` w kolorze **Smierci**:
