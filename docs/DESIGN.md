@@ -88,6 +88,44 @@ Interakcje pentagramu: **sojusznicy** dostaja keywordy-mostki (Symbioza nagradza
 **wrogowie** sie gryza (Furia Chaosu karze blok — serce Zycia); **reguly pola bossow** moga tlumic wybrany
 kolor. Wszystko deterministyczne — nawet Hazard ma warunek, nie rzut koscia.
 
+## Talia i scoring (instalment 1)
+
+**Talia = Male Arkana, 5 kolorow (Aspekty).** Rangi jak w tarocie: **As, 2-10, + 4 dwory: Paz, Rycerz,
+Krolowa, Krol** = 14 rang × 5 kolorow = **70 kart w puli**. Twoj deck to KUROWANY podzbior (start ~18
+kart, zwykle skrecony w 1-2 Aspekty; rosnie przez draft do ~25-30). Tarot daje o jeden dwor wiecej niz
+poker (Rycerz).
+
+Chipsy z karty (material):
+
+| Karta | Chipsy |
+|---|---|
+| 2-10 | nominal (2...10) |
+| As | 11 |
+| Paz / Rycerz / Krolowa / Krol | 10 kazdy |
+
+Dwory daja plaskie 10 chipsow, ale ROZNIA sie ranga dla streetow I niosa wrodzone keywordy zalezne od
+Aspektu (Krol Smierci != Krol Zycia) — tam siedzi tozsamosc koloru w samej karcie. Ranga dla streetow:
+As (1 lub high), 2..10, Paz (11), Rycerz (12), Krolowa (13), Krol (14).
+
+Bazowy scoring ukladow (Chips × Mult, kalibracja Balatro — do strojenia):
+
+| Uklad | Chips | Mult |
+|---|---|---|
+| Wysoka karta | 5 | 1 |
+| Para | 10 | 2 |
+| Dwie pary | 20 | 2 |
+| Trojka | 30 | 3 |
+| Street | 30 | 4 |
+| Kolor (flush) | 35 | 4 |
+| Full | 40 | 4 |
+| Kareta | 60 | 7 |
+| Poker (str. flush) | 100 | 8 |
+| Piec jednakowych | 120 | 12 |
+
+Sekretne uklady (Piec jednakowych, Flush house, Flush five) wchodza przy duplikatach/enchantach.
+**5 kolorow => flush RZADSZY** niz w 4-kolorowym pokerze => naturalnie nagradza mono-kolor (MTG color pie).
+Poziomowanie ukladow (czy Arkana podnosza baze danego ukladu jak Planety w Balatro) — do rozstrzygniecia.
+
 ## Rdzen walki — przyklad
 
 Karta = ranga + Aspekt + keyword. Przyklad tury, zagrywasz Pare z dwoch `7` w kolorze **Smierci**:
