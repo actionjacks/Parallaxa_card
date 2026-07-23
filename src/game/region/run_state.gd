@@ -5,7 +5,8 @@ extends Node
 
 signal changed
 
-const START_MAX_HP: int = 50
+const START_MAX_HP: int = 55
+const REST_HEAL: int = 18       ## HP recovered after each non-boss fight (a "rest")
 
 var player_hp: int = START_MAX_HP
 var player_max_hp: int = START_MAX_HP
@@ -44,6 +45,13 @@ func claim_relic(a: ArcanumData) -> void:
 	if a != null:
 		relics.append(a)
 		changed.emit()
+
+## Rest after a fight: heal REST_HEAL up to max. Returns the amount actually healed.
+func rest() -> int:
+	var before := player_hp
+	player_hp = mini(player_max_hp, player_hp + REST_HEAL)
+	changed.emit()
+	return player_hp - before
 
 func spend(cost: int) -> bool:
 	if rtec < cost:

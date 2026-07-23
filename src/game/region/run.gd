@@ -19,6 +19,7 @@ var _reward_panels: Array = []
 var _reward_cards: Array = []
 var _reward_pick: int = -1
 var _reward_take_btn: Button
+var _last_rest: int = 0
 
 func _ready() -> void:
 	RunState.begin(load(REGION_PATH))
@@ -137,7 +138,9 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 	if RunState.step >= RunState.region.fights.size():
 		RunState.claim_relic(RunState.region.boss_arcanum)
 		_show_complete()
-	elif RunState.step == 0:
+		return
+	_last_rest = RunState.rest()   # recover between fights so the run isn't a one-HP knife-edge
+	if RunState.step == 0:
 		_show_reward()
 	else:
 		_show_shop()
@@ -152,8 +155,12 @@ func _show_reward() -> void:
 	_reward_pick = -1
 	var pool := DeckLibrary.reward_pool()
 	var offset: int = (RunState.step * 3) % maxi(1, pool.size() - 2)
+	var rested := _last_rest
+	_last_rest = 0
 	var root := _screen_column()
 	root.add_child(_title(tr("REWARD_TITLE")))
+	if rested > 0:
+		root.add_child(_hint(tr("REST_HEALED") % rested))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
@@ -192,10 +199,14 @@ func _take_reward() -> void:
 func _show_shop() -> void:
 	_statusbar.visible = true
 	_update_status()
+	var rested := _last_rest
+	_last_rest = 0
 	var pool := DeckLibrary.reward_pool()
 	var offset := 5
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
+	if rested > 0:
+		root.add_child(_hint(tr("REST_HEALED") % rested))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)

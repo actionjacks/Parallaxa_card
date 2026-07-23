@@ -266,6 +266,7 @@ COMPLETE_HINT,You beat the Tower and now wear its power.,Pokonałeś Wieżę i p
 COMPLETE_NEW,New run,Nowy run
 DEFEAT_TITLE,DEFEAT,PORAŻKA
 DEFEAT_NEW,New run,Nowy run
+REST_HEALED,Rested: +%d HP,Odpoczynek: +%d HP
 COMBAT_TAG_BLOCK,+%d Block,+%d Blok
 COMBAT_TAG_HEAL,+%d HP,+%d HP
 COMBAT_TAG_GNICIE,Rot %d,Gnicie %d

@@ -7,3 +7,4 @@ script = ExtResource("1_6kd35")
 name_key = "ARCANUM_WIEZA"
 effect = 1
 effect_aspect = 3
+effect_mult = 1.4

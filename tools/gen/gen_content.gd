@@ -52,9 +52,9 @@ func _deck(id: String, name_key: String, cards: Array) -> void:
 # ---- enemies / arcana / region ----
 
 func _region() -> void:
-	var death := _arcanum("ARCANUM_SMIERCI", A.DEATH, 1.5)
+	var death := _arcanum("ARCANUM_SMIERCI", A.DEATH, 1.4)
 	ResourceSaver.save(death, ARCANA_DIR + "arcanum_death.tres")
-	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.5)
+	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
 
 	# HP tuned so a strong opening play does not one-shot: fights last ~2-3 turns, the boss ~4-5,
@@ -63,11 +63,11 @@ func _region() -> void:
 	# singletons, and the Death Arcanum makes that flush dominant. HP is tuned so fights end in ~2 turns
 	# (enemy survives the opener, so intents/attacks are seen) without a long grind. Real tuning is a
 	# gameplay pass -- likely: reward sustained plays, tone down the flush, or add rest/heal between fights.
-	var a := _enemy("ENEMY_KULTYSTA", 470, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
+	var a := _enemy("ENEMY_KULTYSTA", 460, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
-	var b := _enemy("ENEMY_CIEN", 490, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
+	var b := _enemy("ENEMY_CIEN", 500, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var boss := _enemy("ENEMY_WIEZA", 560, [11, 15, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
+	var boss := _enemy("ENEMY_WIEZA", 560, [11, 14, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
 	var region := RegionData.new()

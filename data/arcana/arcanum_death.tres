@@ -6,3 +6,4 @@
 script = ExtResource("1_tokxl")
 name_key = "ARCANUM_SMIERCI"
 effect = 1
+effect_mult = 1.4
