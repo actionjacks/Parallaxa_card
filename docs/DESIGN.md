@@ -166,12 +166,45 @@ REGION N -> [FINALNY BOSS] -> wygrana (potem ew. endless / tiery trudnosci)
 
 Losowosc siedzi w warstwie nagrod (sklep/drafty). Walki i reguly bossow sa deterministyczne/znane.
 
+## Ekonomia (instalment 2)
+
+Waluta = **Rtec** (alchemiczny Merkur, symbol **☿**) — NIE dolary. Klucz: run-definiujacy build (Wielkie
+Arkana) jest DARMOWY z bossow, wiec ☿ nie kupuje reliktow — ☿ **stroi pokerowy deck** (blizej sklepu StS).
+
+Zrodla ☿:
+- **Nagroda za walke:** ~4 ☿ zwykla, ~6 ☿ boss (+ boss daje Arkanum).
+- **Odsetki:** 1 ☿ za kazde 5 ☿ w banku, **cap 5 ☿** (przy 25 ☿). Silnik oszczedzaj-vs-wydawaj.
+- **Oszczednosc:** 1 ☿ za kazdy niewykorzystany odrzut na koniec walki.
+- **Sprzedaz:** odsprzedaj karte/enchant za drobne.
+
+| Bank (☿) | Odsetki/ture sklepu |
+|---|---|
+| 0-4 | 0 |
+| 5-9 | 1 |
+| 10-14 | 2 |
+| 15-19 | 3 |
+| 20-24 | 4 |
+| 25+ | 5 (cap) |
+
+Sklep (miedzy szczeblami = warstwa LOSOWA/nagroda):
+
+| Pozycja | Efekt | Cena start (do strojenia) |
+|---|---|---|
+| **Kup karte** | dodaj Male Arkanum do decka | ~4 ☿ |
+| **Enchant** | edycja/pieczec: Foil (+chips), Holo (+mult), Polichrom (×mult), pieczec (retrigger...) | ~5 ☿ |
+| **Usun karte** | thinning (kurowanie decka) | ~2 ☿, rosnie |
+| **Wrozba** | jednorazowe (podejrzyj przyszlosc / przeksztalc karte) | ~3 ☿ |
+| **Reroll** | odswiez oferte | 1 ☿, rosnie |
+
+**Wielkie Arkana NIE w sklepie** (rzadkosc, z bossow). Podzial: ☿ = spojny przyrostowy tuning decka;
+Arkana = wielkie skoki mocy z drogi. Napiecie: wydac teraz vs oszczedzac (odsetki) vs thinning. Losowosc
+tylko w ofercie sklepu; walka deterministyczna. Vouchers (stale blogoslawienstwo na region) — zaparkowane.
+
 ## Otwarte (do domkniecia)
 
 - **Wielkie Arkana — sub-decyzje** (rola JUZ ustalona: bossowie+relikty, Podroz Glupca): ile Arkanow na run vs 22 w puli (rozne runy = rozna droga); czy zawsze zabierasz pokonane Arkanum czy wybor 1-z-N; czy mozna ODRZUCIC pakt (Arkana dwustronne jak Diabel); **karty odwrocone (reversed)** jako lewar — Arkanum wprost = boon, odwrocone = mroczniejszy efekt / trudniejszy boss; Glupiec(0) i Swiat(21) jako specjalne.
 - **Slownik keywordow per Aspekt:** archetypy z tabeli -> konkretne keywordy (odpowiedniki Taunt/Deathrattle/Battlecry + efekty barw), skladalne w edytorze.
 - **Struktura talii:** 5 suitow × rangi (As–10 + figury: Paz/Rycerz/Krolowa/Krol?), rozmiar talii startowej, ktore uklady pokerowe liczymy.
-- **Ekonomia:** kasa, odsetki (Balatro), ceny, zawartosc sklepu; krzywa wydac-vs-oszczedzac.
 - **HP / obrona:** model bloku, jak intencje raniA, leczenie miedzy walkami.
 - **Warunek konca:** liczba regionow, finalny boss, tryb endless, tiery trudnosci (Ascension/Stakes).
 - **Determinizm doboru w walce (PILNOWAC):** seed + widoczne nastepne karty ALBO brak ukrytego dobierania. Inaczej hybryda zsuwa sie w "pelne Balatro" i lamie sim-preview.
