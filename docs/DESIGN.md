@@ -31,14 +31,22 @@ Odrzucamy z gier PvP: kolekcja / ladder / gacha, bluff-vs-czlowiek, RNG-fest.
 5. **Combo = uklady pokerowe** — para/kolor/street...; **flush (mono-kolor) = payoff jednego Aspektu**, mieszanie kolorow = splash (jak MTG).
 6. **Kolory = 5 ASPEKTOW w stylu MTG (NIE zywioly)** — kolor to filozofia + archetyp mechaniczny + kolo sojuszy/wrogosci. Piatka = pelne WUBRG = **pentagram** (pasuje do okultyzmu tarota).
 7. **Zasob tury = jedno zagranie + odrzuty** — 1 uklad scoringowy/ture (do 5 kart), keywordy zagranych kart odpalaja sie free, limit odrzutow; tury naprzemienne z wrogiem.
-8. **Build = keywordy kart + jokery/Arkana** — talia ROSNIE przez draft (nagrody); pasywne modyfikatory to warstwa Wielkich Arkanow (rola dokladna — patrz Otwarte).
-9. **Meta = liniowa drabinka regionow** — kazdy region konczy boss ze znana "regula pola"; miedzy szczeblami wybory (sklep / nagroda / skip-za-tag).
+8. **Build = keywordy kart + Wielkie Arkana** — talia (Male Arkana) ROSNIE przez draft (czeste, sklep/nagrody); pasywna warstwa buildu to **Wielkie Arkana zdobyte na bossach** (rzadkie, run-definiujace, jak relikty StS).
+9. **Meta = liniowa drabinka regionow (Podroz Glupca)** — boss regionu = Wielkie Arkanum ze znana "regula pola"; pokonanie -> mozesz zabrac je jako relikt; miedzy szczeblami wybory (sklep / nagroda / skip-za-tag). Glupiec(0)=start, Swiat(21)=finalny boss.
 
 ## Motyw i kolory: Tarot + 5 Aspektow
 
 Talia = tarot. **Male Arkana** to nasza talia-paliwo w **5 kolorach** (custom 5-suitowa talia; kazdy suit
 = jeden Aspekt). **Wielkie Arkana** (22 trumfy: Smierc, Wieza, Kolo Fortuny, Glupiec...) to warstwa
 Fatum/Ducha ponad kolorami, dostepna wszystkim.
+
+**Podroz Glupca (rola Wielkich Arkanow):** 22 trumfy to szkielet runu, czytany jako narracja 0 -> 21.
+Ty = **Glupiec (0)**; bossowie regionow SA konkretnymi Arkanami (Wieza = zaglada/reset, Smierc =
+transformacja, Diabel = pakt/moc-za-cene, Kolo Fortuny = usankcjonowana wariancja); **Swiat (21)** =
+finalny boss. **Pokonanie Arkanum-bossa pozwala zabrac je jako pasywny relikt** — ta sama karta jest
+przeciwnikiem I moca, ktora potem nosisz (Wieza-boss niszczy -> zabrana Wieza pozwala niszczyc Tobie).
+Laczy role bossa i jokera w jedno. Rzadkosc: Male Arkana czeste (sklep/draft), Wielkie Arkana rzadkie i
+run-definiujace (z bossow).
 
 Kolory to **Aspekty** — tozsamosci w stylu MTG, nie zywioly (przerezyserowane WUBRG):
 
@@ -106,7 +114,7 @@ Losowosc siedzi w warstwie nagrod (sklep/drafty). Walki i reguly bossow sa deter
 
 ## Otwarte (do domkniecia)
 
-- **Rola Wielkich Arkanow (22):** jokery/relikty (build) vs konsumowalne (model Balatro) vs bossowie/Fatum vs mix. Kierunek: **Arkana jako jokery + bossowie tematyzowani jako Arkana** (ta sama ikonografia pracuje dwa razy) — do potwierdzenia.
+- **Wielkie Arkana — sub-decyzje** (rola JUZ ustalona: bossowie+relikty, Podroz Glupca): ile Arkanow na run vs 22 w puli (rozne runy = rozna droga); czy zawsze zabierasz pokonane Arkanum czy wybor 1-z-N; czy mozna ODRZUCIC pakt (Arkana dwustronne jak Diabel); **karty odwrocone (reversed)** jako lewar — Arkanum wprost = boon, odwrocone = mroczniejszy efekt / trudniejszy boss; Glupiec(0) i Swiat(21) jako specjalne.
 - **Slownik keywordow per Aspekt:** archetypy z tabeli -> konkretne keywordy (odpowiedniki Taunt/Deathrattle/Battlecry + efekty barw), skladalne w edytorze.
 - **Struktura talii:** 5 suitow × rangi (As–10 + figury: Paz/Rycerz/Krolowa/Krol?), rozmiar talii startowej, ktore uklady pokerowe liczymy.
 - **Ekonomia:** kasa, odsetki (Balatro), ceny, zawartosc sklepu; krzywa wydac-vs-oszczedzac.
