@@ -16,6 +16,7 @@ static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> D
 	var gnicie: int = 0
 	var flat: int = 0
 	var has_furia: bool = false
+	var poly: float = 1.0
 
 	var aspect_counts: Dictionary = {}
 	for c in cards:
@@ -23,6 +24,13 @@ static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> D
 
 	for c in cards:
 		chips += c.chip_value()
+		match c.edition:
+			CardData.Edition.FOIL:
+				chips += 15
+			CardData.Edition.HOLO:
+				mult += 2.0
+			CardData.Edition.POLYCHROME:
+				poly *= 1.3
 		match c.keyword:
 			CardData.Keyword.OSLONA:
 				block += c.keyword_value
@@ -52,6 +60,8 @@ static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> D
 			if c.aspect == arcanum.effect_aspect:
 				mult *= arcanum.effect_mult
 				break
+
+	mult *= poly
 
 	return {
 		"hand": hand,

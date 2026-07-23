@@ -34,7 +34,18 @@ static func build(card: CardData) -> PanelContainer:
 		if card.keyword_value > 0:
 			txt += " " + str(card.keyword_value)
 		vb.add_child(_lbl(txt, 11, col))
+	if card.edition != CardData.Edition.NONE:
+		vb.add_child(_lbl("+ " + TranslationServer.translate(CardData.edition_name_key(card.edition)), 10, _ed_color(card.edition)))
+		sb.border_color = _ed_color(card.edition)   # editioned cards glow in their edition colour
+	panel.set_meta("border", sb.border_color)
 	return panel
+
+static func _ed_color(e: int) -> Color:
+	match e:
+		CardData.Edition.FOIL: return Color(0.55, 0.85, 1.0)
+		CardData.Edition.HOLO: return Color(1.0, 0.55, 0.85)
+		CardData.Edition.POLYCHROME: return Color(0.95, 0.82, 0.4)
+	return Color.WHITE
 
 static func set_selected(panel: PanelContainer, on: bool) -> void:
 	var sb: StyleBoxFlat = panel.get_meta("style")
@@ -43,7 +54,7 @@ static func set_selected(panel: PanelContainer, on: bool) -> void:
 		sb.bg_color = BG_SEL
 		sb.set_border_width_all(3)
 	else:
-		sb.border_color = Aspects.color(int(panel.get_meta("aspect")))
+		sb.border_color = panel.get_meta("border", Aspects.color(int(panel.get_meta("aspect"))))
 		sb.bg_color = BG
 		sb.set_border_width_all(2)
 
@@ -56,6 +67,8 @@ static func _tooltip(card: CardData) -> String:
 		var desc := TranslationServer.translate(desc_key)
 		if desc != "" and desc != desc_key:
 			t += "\n" + desc
+	if card.edition != CardData.Edition.NONE:
+		t += "\n+ " + TranslationServer.translate(CardData.edition_name_key(card.edition))
 	return t
 
 static func _lbl(text: String, size: int, color: Color) -> Label:

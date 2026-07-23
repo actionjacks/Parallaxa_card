@@ -259,7 +259,14 @@ SHOP_TITLE,Shop,Sklep
 SHOP_BUY,Buy (%d ☿),Kup (%d ☿)
 SHOP_THIN,Remove a card (%d ☿),Usuń kartę (%d ☿)
 SHOP_NEXT,Continue,Dalej
-SHOP_HINT,Buy cards with Mercury; remove one to sharpen your deck.,Kupuj karty za Rtęć; usuń jedną by wyostrzyć talię.
+SHOP_HINT,Buy or enchant cards; reroll; or remove one to sharpen your deck.,Kupuj lub ulepszaj karty; losuj oferty; albo usuń jedną by wyostrzyć talię.
+SHOP_ENCHANT,Enchant (%d ☿):,Ulepsz (%d ☿):
+SHOP_REROLL,Reroll (%d ☿),Losuj (%d ☿)
+ED_FOIL,Foil,Foil
+ED_HOLO,Holo,Holo
+ED_POLYCHROME,Polychrome,Polichrom
+PICK_ENCHANT,Pick a card to enchant,Wybierz kartę do ulepszenia
+PICK_REMOVE,Pick a card to remove,Wybierz kartę do usunięcia
 COMPLETE_TITLE,REGION CLEARED,REGION ZALICZONY
 COMPLETE_RELIC,Claimed Arcanum: %s,Zdobyte Arkanum: %s
 COMPLETE_HINT,You beat the Tower and now wear its power.,Pokonałeś Wieżę i przywdziałeś jej moc.

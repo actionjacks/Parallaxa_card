@@ -34,7 +34,7 @@ func active_relic() -> ArcanumData:
 
 func add_card(card: CardData) -> void:
 	if card != null:
-		deck.append(card)
+		deck.append(card.duplicate())  # run-local copy (independent editions)
 		changed.emit()
 
 func remove_card(card: CardData) -> void:

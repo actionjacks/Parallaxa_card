@@ -7,6 +7,10 @@ const REGION_PATH := "res://data/regions/region_01.tres"
 const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
 const BUY_COST := 4
 const THIN_COST := 3
+const ENCHANT_COST := 5
+
+var _shop_offset: int = 5
+var _shop_reroll_cost: int = 1
 
 var _stage: Control
 var _statusbar: PanelContainer
@@ -143,6 +147,8 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 	if RunState.step == 0:
 		_show_reward()
 	else:
+		_shop_offset = 5
+		_shop_reroll_cost = 1
 		_show_shop()
 
 # ---------------------------------------------------------------- REWARD
@@ -202,16 +208,17 @@ func _show_shop() -> void:
 	var rested := _last_rest
 	_last_rest = 0
 	var pool := DeckLibrary.reward_pool()
-	var offset := 5
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
 		root.add_child(_hint(tr("REST_HEALED") % rested))
+
+	# --- buy offers ---
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
 	for i in 3:
-		var card: CardData = pool[(offset + i) % pool.size()]
+		var card: CardData = pool[(_shop_offset + i) % pool.size()]
 		var item := VBoxContainer.new()
 		item.alignment = BoxContainer.ALIGNMENT_CENTER
 		item.add_theme_constant_override("separation", 6)
@@ -224,10 +231,27 @@ func _show_shop() -> void:
 		row.add_child(item)
 	root.add_child(row)
 
+	# --- enchant: apply an edition to a deck card ---
+	var ench := HBoxContainer.new()
+	ench.alignment = BoxContainer.ALIGNMENT_CENTER
+	ench.add_theme_constant_override("separation", 10)
+	ench.add_child(_label(tr("SHOP_ENCHANT") % ENCHANT_COST, 15, Color(0.72, 0.76, 0.86)))
+	var can_ench := RunState.rtec >= ENCHANT_COST and RunState.deck.size() > 0
+	for ed in [CardData.Edition.FOIL, CardData.Edition.HOLO, CardData.Edition.POLYCHROME]:
+		var eb := _button(tr(CardData.edition_name_key(ed)), _enchant.bind(ed))
+		eb.disabled = not can_ench
+		ench.add_child(eb)
+	root.add_child(ench)
+
 	root.add_child(_hint(tr("SHOP_HINT")))
+
+	# --- controls ---
 	var controls := HBoxContainer.new()
 	controls.alignment = BoxContainer.ALIGNMENT_CENTER
 	controls.add_theme_constant_override("separation", 12)
+	var reroll := _button(tr("SHOP_REROLL") % _shop_reroll_cost, _reroll_shop)
+	reroll.disabled = RunState.rtec < _shop_reroll_cost
+	controls.add_child(reroll)
 	var thin := _button(tr("SHOP_THIN") % THIN_COST, _thin_deck)
 	thin.disabled = RunState.rtec < THIN_COST or RunState.deck.size() <= 5
 	controls.add_child(thin)
@@ -241,18 +265,66 @@ func _buy(card: CardData) -> void:
 		_show_shop()  # refresh prices / affordability
 
 func _thin_deck() -> void:
-	# Simple thinning: drop the first plain (keyword-less) card, else the first card.
-	if not RunState.spend(THIN_COST):
+	if RunState.rtec < THIN_COST or RunState.deck.size() <= 5:
 		return
-	var target: CardData = null
-	for c in RunState.deck:
-		if c.keyword == CardData.Keyword.NONE:
-			target = c
-			break
-	if target == null and RunState.deck.size() > 0:
-		target = RunState.deck[0]
-	RunState.remove_card(target)
-	_show_shop()
+	var cb := func(card: CardData) -> void:
+		RunState.spend(THIN_COST)
+		RunState.remove_card(card)
+		_show_shop()
+	_open_deck_picker(tr("PICK_REMOVE"), cb)
+
+func _enchant(edition: int) -> void:
+	if RunState.rtec < ENCHANT_COST or RunState.deck.is_empty():
+		return
+	var cb := func(card: CardData) -> void:
+		card.edition = edition
+		RunState.spend(ENCHANT_COST)
+		RunState.changed.emit()
+		_show_shop()
+	_open_deck_picker(tr("PICK_ENCHANT"), cb)
+
+func _reroll_shop() -> void:
+	if RunState.spend(_shop_reroll_cost):
+		_shop_offset += 3
+		_shop_reroll_cost += 1
+		_show_shop()
+
+func _open_deck_picker(title: String, on_pick: Callable) -> void:
+	var overlay := Control.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(overlay)
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.0, 0.82)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(dim)
+	var col := VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 16)
+	overlay.add_child(col)
+	col.add_child(_title(title))
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(1120, 250)
+	scroll.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(scroll)
+	var grid := HFlowContainer.new()
+	grid.custom_minimum_size = Vector2(1120, 0)
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	scroll.add_child(grid)
+	for card in RunState.deck:
+		var panel := CardWidget.build(card)
+		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		panel.gui_input.connect(_on_picker_input.bind(card, overlay, on_pick))
+		grid.add_child(panel)
+	var wrap := CenterContainer.new()
+	wrap.add_child(_button(tr("COMMON_CANCEL"), overlay.queue_free))
+	col.add_child(wrap)
+
+func _on_picker_input(ev: InputEvent, card: CardData, overlay: Control, on_pick: Callable) -> void:
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+		overlay.queue_free()
+		on_pick.call(card)
 
 func _leave_shop() -> void:
 	RunState.step += 1

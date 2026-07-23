@@ -10,10 +10,14 @@ extends Resource
 ## Spalenie (flat direct damage). NATURE: Bujnosc (bonus chips if >=3 cards of one aspect).
 enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC }
 
+## Shop editions (bought with Rtec): Foil +chips, Holo +mult, Polychrome xmult.
+enum Edition { NONE, FOIL, HOLO, POLYCHROME }
+
 @export var rank: int = 2                  ## 1 = Ace, 2..10 pips, 11 Page, 12 Knight, 13 Queen, 14 King
 @export var aspect: Aspects.Id = Aspects.Id.LIFE
 @export var keyword: Keyword = Keyword.NONE
 @export var keyword_value: int = 0         ## magnitude for Gnicie X / Oslona X
+@export var edition: Edition = Edition.NONE
 
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
@@ -43,6 +47,13 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.SPALENIE: return "KW_SPALENIE"
 		Keyword.ECHO: return "KW_ECHO"
 		Keyword.BUJNOSC: return "KW_BUJNOSC"
+	return ""
+
+static func edition_name_key(e: int) -> String:
+	match e:
+		Edition.FOIL: return "ED_FOIL"
+		Edition.HOLO: return "ED_HOLO"
+		Edition.POLYCHROME: return "ED_POLYCHROME"
 	return ""
 
 static func keyword_desc_key(kw: int) -> String:

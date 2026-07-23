@@ -18,5 +18,5 @@ static func _cards(path: String) -> Array:
 		return []
 	var out: Array = []
 	for c in deck.cards:
-		out.append(c)
+		out.append(c.duplicate())  # run-local copies so editions never mutate the shared .tres
 	return out
