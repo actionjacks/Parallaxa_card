@@ -123,7 +123,7 @@ const DEFAULTS := {
 		"sfx": 1.0,
 	},
 	"game": {
-		"language": "en",
+		"language": "pl",
 	},
 	"input": {
 		"bindings": {},

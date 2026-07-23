@@ -256,6 +256,10 @@ MAP_GO,Enter,Rusz
 MAP_HINT,Enter the duel. HP and Mercury carry between fights.,HP i Rtęć zostają między walkami.
 REWARD_TITLE,Reward — draft a card,Nagroda — dobierz kartę
 REWARD_TAKE,Take card,Weź kartę
+REWARD_SKIP,Skip,Pomiń
+VIEW_DECK,Deck,Talia
+VIEW_DECK_TITLE,Your deck,Twoja talia
+ARCANUM_DESC_MULT,x%s Mult on %s cards,x%s Mult na kartach %s
 REWARD_HINT,Pick one card to add to your deck.,Wybierz jedną kartę do talii.
 SHOP_TITLE,Shop,Sklep
 SHOP_BUY,Buy (%d ☿),Kup (%d ☿)

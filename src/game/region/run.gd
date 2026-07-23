@@ -129,13 +129,41 @@ func _show_map() -> void:
 		ladder.add_child(chip)
 	root.add_child(ladder)
 
+	if RunState.relics.size() > 0:
+		var rr := HBoxContainer.new()
+		rr.alignment = BoxContainer.ALIGNMENT_CENTER
+		rr.add_theme_constant_override("separation", 8)
+		for a in RunState.relics:
+			rr.add_child(_relic_chip(a))
+		root.add_child(rr)
+
 	root.add_child(_hint(tr("MAP_HINT")))
+	var ctrls := HBoxContainer.new()
+	ctrls.alignment = BoxContainer.ALIGNMENT_CENTER
+	ctrls.add_theme_constant_override("separation", 12)
 	var go := _button(tr("MAP_GO"), _start_encounter)
-	go.custom_minimum_size = Vector2(180, 40)
-	var wrap := CenterContainer.new()
-	wrap.add_child(go)
-	root.add_child(wrap)
+	go.custom_minimum_size = Vector2(160, 40)
+	ctrls.add_child(go)
+	ctrls.add_child(_button(tr("VIEW_DECK"), _view_deck))
+	root.add_child(ctrls)
 	_mount(root)
+
+func _relic_chip(a: ArcanumData) -> Control:
+	var p := _panel(Color(0.11, 0.09, 0.14), Aspects.color(a.effect_aspect))
+	p.tooltip_text = tr(a.name_key) + "\n" + _arcanum_desc(a)
+	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var l := _label(tr(a.name_key), 14, Color(0.85, 0.8, 0.92))
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(l)
+	return p
+
+func _arcanum_desc(a: ArcanumData) -> String:
+	if a.effect == ArcanumData.Effect.MULT_IF_ASPECT:
+		return tr("ARCANUM_DESC_MULT") % [String.num(a.effect_mult, 1), tr(Aspects.name_key(a.effect_aspect))]
+	return ""
+
+func _view_deck() -> void:
+	_open_deck_picker(tr("VIEW_DECK_TITLE"), func(_card: CardData) -> void: pass)
 
 func _node_chip(text: String, current: bool, done: bool, is_boss: bool) -> PanelContainer:
 	var border := Color(0.9, 0.5, 0.3) if is_boss else Color(0.3, 0.35, 0.45)
@@ -212,9 +240,12 @@ func _show_reward() -> void:
 	root.add_child(_hint(tr("REWARD_HINT")))
 	_reward_take_btn = _button(tr("REWARD_TAKE"), _take_reward)
 	_reward_take_btn.disabled = true
-	var wrap := CenterContainer.new()
-	wrap.add_child(_reward_take_btn)
-	root.add_child(wrap)
+	var ctrls := HBoxContainer.new()
+	ctrls.alignment = BoxContainer.ALIGNMENT_CENTER
+	ctrls.add_theme_constant_override("separation", 12)
+	ctrls.add_child(_reward_take_btn)
+	ctrls.add_child(_button(tr("REWARD_SKIP"), _skip_reward))   # decline the card (keep the deck lean)
+	root.add_child(ctrls)
 	_mount(root)
 
 func _on_reward_input(event: InputEvent, index: int) -> void:
@@ -227,6 +258,10 @@ func _on_reward_input(event: InputEvent, index: int) -> void:
 func _take_reward() -> void:
 	if _reward_pick >= 0:
 		RunState.add_card(_reward_cards[_reward_pick])
+	RunState.step += 1
+	_show_map()
+
+func _skip_reward() -> void:
 	RunState.step += 1
 	_show_map()
 

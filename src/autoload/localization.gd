@@ -33,7 +33,7 @@ signal language_changed(code: String)
 const LANGUAGES := {"en": "English", "pl": "Polski"}
 
 ## Fallback whenever a stored or requested code is not in LANGUAGES.
-const DEFAULT_LANGUAGE := "en"
+const DEFAULT_LANGUAGE := "pl"
 
 ## Settings coordinates for the persisted language. Duplicated as constants rather than
 ## inlined so a rename shows up in one place and matches the architecture table.
