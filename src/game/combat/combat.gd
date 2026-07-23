@@ -15,7 +15,7 @@ var _max_hp: int = -1
 var controller: CombatController
 var _deck: Array = []
 var _enemy: EnemyData
-var _arcanum: ArcanumData
+var _relics: Array = []
 var _selected: Array[int] = []
 
 var _card_panels: Array = []
@@ -47,25 +47,25 @@ var _enemy_panel: PanelContainer
 var _fx: Control
 var _fx_index: int = 0
 
-func setup(deck: Array, enemy: EnemyData, relic: ArcanumData, start_hp: int, max_hp: int) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
-	_arcanum = relic
+	_relics = p_relics
 	_start_hp = start_hp
 	_max_hp = max_hp
 
 func _ready() -> void:
 	if standalone:
 		_enemy = load(DEF_ENEMY_PATH)
-		_arcanum = load(DEF_ARCANUM_PATH)
+		_relics = [load(DEF_ARCANUM_PATH)]
 		_deck = DeckLibrary.starter_deck()
 	_build_ui()
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
-	controller.start(_deck, _enemy, _arcanum, _start_hp, _max_hp)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp)
 
 # ---------------------------------------------------------------- UI construction
 
@@ -210,7 +210,13 @@ func _render() -> void:
 	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, _enemy.max_hp]
 	_intent_label.text = tr("COMBAT_INTENT") % controller.current_intent()
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
-	_relic_label.text = ("* " + tr(_arcanum.name_key)) if _arcanum != null else ""
+	if _relics.is_empty():
+		_relic_label.text = ""
+	else:
+		var names: Array = []
+		for r in _relics:
+			names.append(tr(r.name_key))
+		_relic_label.text = "* " + "    * ".join(names)
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
@@ -295,7 +301,7 @@ func _on_restart() -> void:
 	_log_lines.clear()
 	_log_label.text = ""
 	_overlay.visible = false
-	controller.start(_deck, _enemy, _arcanum)
+	controller.start(_deck, _enemy, _relics)
 
 func _on_message(text_key: String, args: Array) -> void:
 	_log_lines.append(tr(text_key) % args)

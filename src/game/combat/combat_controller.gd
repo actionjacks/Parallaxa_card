@@ -11,7 +11,7 @@ const HAND_SIZE: int = 8
 const START_DISCARDS: int = 3
 const PLAYER_MAX_HP: int = 50
 
-var arcanum: ArcanumData
+var relics: Array = []          ## Array[ArcanumData] applied to every play
 var enemy: EnemyData
 var hand: Array = []              ## Array[CardData] currently in hand
 var player_hp: int = PLAYER_MAX_HP
@@ -29,12 +29,12 @@ var _used: Array = []
 var _intent_index: int = 0
 var _plays: int = 0
 
-func start(deck: Array, p_enemy: EnemyData, p_arcanum: ArcanumData, start_hp: int = -1, max_hp: int = -1) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1) -> void:
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
 	enemy = p_enemy
-	arcanum = p_arcanum
+	relics = p_relics
 	enemy_hp = enemy.max_hp
 	player_max_hp = max_hp if max_hp > 0 else PLAYER_MAX_HP
 	player_hp = start_hp if start_hp > 0 else player_max_hp
@@ -55,12 +55,12 @@ func current_intent() -> int:
 	return enemy.intents[_intent_index % enemy.intents.size()]
 
 func preview(selected: Array) -> Dictionary:
-	return Scoring.score(_cards_from(selected), arcanum, _ctx())
+	return Scoring.score(_cards_from(selected), relics, _ctx())
 
 func play(selected: Array) -> void:
 	if phase != "player" or selected.is_empty():
 		return
-	var result: Dictionary = Scoring.score(_cards_from(selected), arcanum, _ctx())
+	var result: Dictionary = Scoring.score(_cards_from(selected), relics, _ctx())
 	last_score = result
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])

@@ -3,7 +3,7 @@ class_name Scoring
 ## Deterministic, so the UI can show the exact outcome before the player commits.
 ## ctx keys (optional): "grave" (cards in the used pile), "plays" (plays already made this fight).
 
-static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> Dictionary:
+static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictionary:
 	var grave: int = int(ctx.get("grave", 0))
 	var plays: int = int(ctx.get("plays", 0))
 
@@ -54,12 +54,13 @@ static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> D
 	if has_furia and block == 0:
 		mult *= 1.5
 
-	# Arcanum relic: xMult when the played hand contains its aspect.
-	if arcanum != null and arcanum.effect == ArcanumData.Effect.MULT_IF_ASPECT:
-		for c in cards:
-			if c.aspect == arcanum.effect_aspect:
-				mult *= arcanum.effect_mult
-				break
+	# Relics: each MULT_IF_ASPECT relic multiplies when the hand contains its aspect (they stack).
+	for relic in relics:
+		if relic != null and relic.effect == ArcanumData.Effect.MULT_IF_ASPECT:
+			for c in cards:
+				if c.aspect == relic.effect_aspect:
+					mult *= relic.effect_mult
+					break
 
 	mult *= poly
 

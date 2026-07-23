@@ -126,7 +126,7 @@ func _current_enemy() -> EnemyData:
 func _start_encounter() -> void:
 	_statusbar.visible = false
 	var combat: Node = load(COMBAT_SCENE).instantiate()
-	combat.setup(RunState.deck, _current_enemy(), RunState.active_relic(),
+	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
 		RunState.player_hp, RunState.player_max_hp)
 	combat.finished.connect(_on_combat_finished)
 	_clear_stage()
