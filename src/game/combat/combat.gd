@@ -3,11 +3,14 @@ extends Control
 ## parallaxa_orange theme (monogram font + custom cursors via CursorManager autoload).
 ## UI is built in code for the slice; scene authoring can come later.
 
-const ENEMY_PATH := "res://data/combat/enemy_kultysta.tres"
-const ARCANUM_PATH := "res://data/combat/arcanum_smierci.tres"
+signal finished(won: bool, remaining_hp: int)
 
-const CARD_BG := Color(0.09, 0.09, 0.13)
-const CARD_BG_SEL := Color(0.18, 0.18, 0.26)
+const DEF_ENEMY_PATH := "res://data/combat/enemy_a.tres"
+const DEF_ARCANUM_PATH := "res://data/arcana/arcanum_death.tres"
+
+var standalone: bool = true
+var _start_hp: int = -1
+var _max_hp: int = -1
 
 var controller: CombatController
 var _deck: Array = []
@@ -16,7 +19,6 @@ var _arcanum: ArcanumData
 var _selected: Array[int] = []
 
 var _card_panels: Array = []
-var _card_styles: Array = []
 var _log_lines: Array[String] = []
 
 # Node refs
@@ -26,6 +28,7 @@ var _enemy_hp_label: Label
 var _intent_label: Label
 var _gnicie_label: Label
 var _relic_label: Label
+var _rule_label: Label
 var _preview_label: Label
 var _log_label: Label
 var _player_hp_bar: ProgressBar
@@ -38,16 +41,25 @@ var _discard_btn: Button
 var _overlay: Control
 var _overlay_label: Label
 
+func setup(deck: Array, enemy: EnemyData, relic: ArcanumData, start_hp: int, max_hp: int) -> void:
+	standalone = false
+	_deck = deck
+	_enemy = enemy
+	_arcanum = relic
+	_start_hp = start_hp
+	_max_hp = max_hp
+
 func _ready() -> void:
-	_enemy = load(ENEMY_PATH)
-	_arcanum = load(ARCANUM_PATH)
-	_deck = DeckLibrary.starter_deck()
+	if standalone:
+		_enemy = load(DEF_ENEMY_PATH)
+		_arcanum = load(DEF_ARCANUM_PATH)
+		_deck = DeckLibrary.starter_deck()
 	_build_ui()
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
-	controller.start(_deck, _enemy, _arcanum)
+	controller.start(_deck, _enemy, _arcanum, _start_hp, _max_hp)
 
 # ---------------------------------------------------------------- UI construction
 
@@ -90,6 +102,8 @@ func _build_ui() -> void:
 	ehp.add_child(_enemy_hp_label)
 	_gnicie_label = _label("", 14, Aspects.color(Aspects.Id.DEATH))
 	ev.add_child(_gnicie_label)
+	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
+	ev.add_child(_rule_label)
 
 	# --- middle: relic + preview + log ---
 	var mid := VBoxContainer.new()
@@ -177,7 +191,8 @@ func _render() -> void:
 	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, _enemy.max_hp]
 	_intent_label.text = tr("COMBAT_INTENT") % controller.current_intent()
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
-	_relic_label.text = "* " + tr(_arcanum.name_key)
+	_relic_label.text = ("* " + tr(_arcanum.name_key)) if _arcanum != null else ""
+	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_player_hp_bar.value = controller.player_hp
 	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, controller.player_max_hp]
@@ -190,44 +205,15 @@ func _build_hand() -> void:
 	for ch in _hand_row.get_children():
 		ch.queue_free()
 	_card_panels.clear()
-	_card_styles.clear()
 	_selected.clear()
 	for i in controller.hand.size():
 		_hand_row.add_child(_make_card(controller.hand[i], i))
 
 func _make_card(card: CardData, index: int) -> Control:
-	var col := Aspects.color(card.aspect)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = CARD_BG
-	sb.set_border_width_all(2)
-	sb.border_color = col
-	sb.set_corner_radius_all(3)
-	for side in ["left", "top", "right", "bottom"]:
-		sb.set("content_margin_" + side, 6)
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", sb)
-	panel.custom_minimum_size = Vector2(80, 112)
+	var panel := CardWidget.build(card)
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	panel.gui_input.connect(_on_card_input.bind(index))
-	var vb := VBoxContainer.new()
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	panel.add_child(vb)
-	var rank := _label(card.rank_glyph(), 30, col)
-	rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vb.add_child(rank)
-	var asp := _label(tr(Aspects.name_key(card.aspect)), 12, Color(0.72, 0.72, 0.78))
-	asp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vb.add_child(asp)
-	if card.keyword != CardData.Keyword.NONE:
-		var txt := tr(CardData.keyword_name_key(card.keyword))
-		if card.keyword_value > 0:
-			txt += " " + str(card.keyword_value)
-		var kw := _label(txt, 11, col)
-		kw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		kw.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		vb.add_child(kw)
 	_card_panels.append(panel)
-	_card_styles.append(sb)
 	return panel
 
 # ---------------------------------------------------------------- interaction
@@ -245,15 +231,7 @@ func _on_card_input(event: InputEvent, index: int) -> void:
 
 func _refresh_card_styles() -> void:
 	for i in _card_panels.size():
-		var sb: StyleBoxFlat = _card_styles[i]
-		if _selected.has(i):
-			sb.border_color = Color.WHITE
-			sb.bg_color = CARD_BG_SEL
-			sb.set_border_width_all(3)
-		else:
-			sb.border_color = Aspects.color(controller.hand[i].aspect)
-			sb.bg_color = CARD_BG
-			sb.set_border_width_all(2)
+		CardWidget.set_selected(_card_panels[i], _selected.has(i))
 
 func _update_selection_ui() -> void:
 	var is_player := controller.phase == "player"
@@ -293,6 +271,9 @@ func _on_message(text_key: String, args: Array) -> void:
 	_log_label.text = "\n".join(_log_lines)
 
 func _on_ended(won: bool) -> void:
+	if not standalone:
+		finished.emit(won, controller.player_hp)
+		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")
 	_overlay_label.add_theme_color_override("font_color",
 		Color(0.6, 0.9, 0.55) if won else Color(0.9, 0.4, 0.4))

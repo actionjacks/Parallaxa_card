@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_gla68"]
+
+[resource]
+script = ExtResource("1_gla68")
+name_key = "ENEMY_KULTYSTA"
+max_hp = 120
+intents = PackedInt32Array(10, 14, 8)
+reward_rtec = 5

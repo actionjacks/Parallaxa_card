@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_enemy"]
-
-[resource]
-script = ExtResource("1_enemy")
-name_key = "ENEMY_KULTYSTA"
-max_hp = 150
-intents = PackedInt32Array(12, 18, 8)

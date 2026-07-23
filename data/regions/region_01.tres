@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Resource" path="res://data/combat/boss_tower.tres" id="1_8rx7a"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_tower.tres" id="2_e7dof"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_rbrj6"]
+[ext_resource type="Resource" path="res://data/combat/enemy_a.tres" id="4_0n1kg"]
+[ext_resource type="Resource" path="res://data/combat/enemy_b.tres" id="5_nrkxo"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="6_cnhqy"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_death.tres" id="7_y1rmi"]
+
+[resource]
+script = ExtResource("6_cnhqy")
+name_key = "REGION_01"
+fights = Array[ExtResource("3_rbrj6")]([ExtResource("4_0n1kg"), ExtResource("5_nrkxo")])
+boss = ExtResource("1_8rx7a")
+boss_arcanum = ExtResource("2_e7dof")
+starting_arcanum = ExtResource("7_y1rmi")

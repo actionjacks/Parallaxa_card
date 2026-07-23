@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Parallaxa_card"
 config/description="Parallaxa Card - Godot 4.7 clean infrastructure base derived from parallaxa_orange. Ships autoloads (settings, localization, save, audio, input, scene transition, screen effects, cursor), PhantomCamera + Dialogue Manager, the UI theme and localization, with no gameplay yet. Boots into the empty main scene. See docs/ARCHITECTURE.md."
-run/main_scene="res://src/game/combat/combat.tscn"
+run/main_scene="res://src/game/region/run.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -28,6 +28,7 @@ InputManager="*res://src/autoload/input_manager.gd"
 SceneTransition="*res://src/autoload/scene_transition.gd"
 ScreenEffects="*res://src/autoload/screen_effects.gd"
 CursorManager="*res://src/autoload/cursor_manager.gd"
+RunState="*res://src/game/region/run_state.gd"
 
 [display]
 

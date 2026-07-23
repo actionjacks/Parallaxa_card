@@ -239,3 +239,30 @@ COMBAT_RESTART,Again,Jeszcze raz
 LOG_PLAY,%s: %d dmg,%s: %d obr.
 LOG_GNICIE,Rot: -%d,Gnicie: -%d
 LOG_ATTACK,Enemy hits: -%d,Wróg uderza: -%d
+REGION_01,Region I — Ash,Region I — Popiół
+ENEMY_CIEN,Wandering Shade,Zbłąkany Cień
+ENEMY_WIEZA,The Tower,Wieża
+ARCANUM_WIEZA,Arcanum of the Tower,Arkanum Wieży
+RULE_TOWER,Tower: block does not protect (the walls fall),Wieża: blok nie chroni (walą się mury)
+RUN_HP,HP %d/%d,HP %d/%d
+RUN_RTEC,%d ☿,%d ☿
+RUN_DECK,Deck %d,Talia %d
+RUN_RELICS,Arcana %d,Arkana %d
+MAP_NODE_FIGHT,Fight %d,Walka %d
+MAP_NODE_BOSS,BOSS,BOSS
+MAP_GO,Enter,Rusz
+MAP_HINT,Enter the duel. HP and Mercury carry between fights.,HP i Rtęć zostają między walkami.
+REWARD_TITLE,Reward — draft a card,Nagroda — dobierz kartę
+REWARD_TAKE,Take card,Weź kartę
+REWARD_HINT,Pick one card to add to your deck.,Wybierz jedną kartę do talii.
+SHOP_TITLE,Shop,Sklep
+SHOP_BUY,Buy (%d ☿),Kup (%d ☿)
+SHOP_THIN,Remove a card (%d ☿),Usuń kartę (%d ☿)
+SHOP_NEXT,Continue,Dalej
+SHOP_HINT,Buy cards with Mercury; remove one to sharpen your deck.,Kupuj karty za Rtęć; usuń jedną by wyostrzyć talię.
+COMPLETE_TITLE,REGION CLEARED,REGION ZALICZONY
+COMPLETE_RELIC,Claimed Arcanum: %s,Zdobyte Arkanum: %s
+COMPLETE_HINT,You beat the Tower and now wear its power.,Pokonałeś Wieżę i przywdziałeś jej moc.
+COMPLETE_NEW,New run,Nowy run
+DEFEAT_TITLE,DEFEAT,PORAŻKA
+DEFEAT_NEW,New run,Nowy run

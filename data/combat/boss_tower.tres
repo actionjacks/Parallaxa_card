@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_xiddo"]
+
+[resource]
+script = ExtResource("1_xiddo")
+name_key = "ENEMY_WIEZA"
+max_hp = 240
+intents = PackedInt32Array(16, 22, 14)
+reward_rtec = 12
+is_boss = true
+rule = 1
+rule_key = "RULE_TOWER"

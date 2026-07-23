@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="1_tokxl"]
+
+[resource]
+script = ExtResource("1_tokxl")
+name_key = "ARCANUM_SMIERCI"
+effect = 1
