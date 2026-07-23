@@ -197,3 +197,38 @@ HUD_SLOT_TAG_AREA,area,obszar
 HUD_THREAT_CLOSING,%d closing,zbliża się: %d
 HUD_THREAT_IN_REACH,%d IN REACH,w zasięgu: %d
 HUD_THREAT_CLEAR,clear,czysto
+ASPECT_LIFE,Life,Życie
+ASPECT_MIND,Mind,Umysł
+ASPECT_DEATH,Death,Śmierć
+ASPECT_CHAOS,Chaos,Chaos
+ASPECT_NATURE,Nature,Natura
+KW_GNICIE,Rot,Gnicie
+KW_FURIA,Fury,Furia
+KW_OSLONA,Ward,Osłona
+HAND_HIGH_CARD,High Card,Wysoka karta
+HAND_PAIR,Pair,Para
+HAND_TWO_PAIR,Two Pair,Dwie pary
+HAND_THREE,Three of a Kind,Trójka
+HAND_STRAIGHT,Straight,Street
+HAND_FLUSH,Flush,Kolor
+HAND_FULL_HOUSE,Full House,Full
+HAND_FOUR,Four of a Kind,Kareta
+HAND_STRAIGHT_FLUSH,Straight Flush,Poker
+HAND_FIVE,Five of a Kind,Pięć jednakowych
+ENEMY_KULTYSTA,Rotting Cultist,Gnijący Kultysta
+ARCANUM_SMIERCI,Arcanum of Death,Arkanum Śmierci
+COMBAT_PLAY,Play,Zagraj
+COMBAT_DISCARD,Discard (%d),Odrzuć (%d)
+COMBAT_TURN,Turn %d,Tura %d
+COMBAT_HP,%d / %d,%d / %d
+COMBAT_BLOCK,Block %d,Blok %d
+COMBAT_INTENT,Hits for %d,Uderzy za %d
+COMBAT_GNICIE,Rot %d,Gnicie %d
+COMBAT_PREVIEW,%s   %d x %.1f = %d,%s   %d x %.1f = %d
+COMBAT_SELECT_HINT,Select cards, then Play,Zaznacz karty i Zagraj
+COMBAT_WON,VICTORY,ZWYCIĘSTWO
+COMBAT_LOST,DEFEAT,PORAŻKA
+COMBAT_RESTART,Again,Jeszcze raz
+LOG_PLAY,%s: %d dmg,%s: %d obr.
+LOG_GNICIE,Rot: -%d,Gnicie: -%d
+LOG_ATTACK,Enemy hits: -%d,Wróg uderza: -%d
