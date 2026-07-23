@@ -200,6 +200,43 @@ Sklep (miedzy szczeblami = warstwa LOSOWA/nagroda):
 Arkana = wielkie skoki mocy z drogi. Napiecie: wydac teraz vs oszczedzac (odsetki) vs thinning. Losowosc
 tylko w ofercie sklepu; walka deterministyczna. Vouchers (stale blogoslawienstwo na region) — zaparkowane.
 
+## Wielkie Arkana — bossowie i relikty (instalment 3)
+
+**Zasada:** regula pola bossa = znaczenie karty wykrzywiajace Twoj silnik; relikt po pokonaniu = Twoja
+wersja tej mocy (symetria: Wieza niszczy -> zabrana Wieza daje niszczyc Tobie). Odwrocenia (reversed =
+trudniejszy/mroczniejszy boss) — lewar zaparkowany.
+
+**Struktura:** Glupiec (0) = Ty (start), Swiat (21) = final, 20 w srodku = wspinaczka (na run wchodzi
+PODZBIOR -> rozne runy = rozna Podroz Glupca).
+
+| # | Arkanum | Boss: regula pola | Relikt po pokonaniu |
+|---|---|---|---|
+| 0 | Glupiec | — (to Ty) | start: 1. karta dowolnego koloru (wildcard) |
+| 1 | Mag | kopiuje Twoj ostatni uklad | raz/walke powtorz (retrigger) zagranie |
+| 2 | Kaplanka | blokuje Wrozbe/podglady (nie chowa info) | +Wrozba: widzisz dalej w przyszlosc |
+| 3 | Cesarzowa | rosnie w sile co ture (Wzrost) | Twoje karty Natury dostaja Wzrost |
+| 4 | Cesarz | tylko uklady >= Trojka licza | bonus za wysokie uklady |
+| 5 | Hierofant | karze odejscie od jednej barwy | mono-kolorowy bonus (czystosc decka) |
+| 6 | Kochankowie | wymusza dwa kolory | bonus za sojusznicze pary kolorow |
+| 7 | Rydwan | atakuje 2x (ped) | dodatkowa akcja/odrzut na ture |
+| 8 | Sila | wielkie HP, tlumi burst | +Mult gdy grasz czysto (bez burstu) |
+| 9 | Pustelnik | mala reka (izolacja) | +wartosc samotnych/nielicznych kart |
+| 10 | Kolo Fortuny | losowo zmienia regule co ture (jedyny RNG) | kontrolowany hazard: przerzut z zyskiem |
+| 11 | Sprawiedliwosc | oddaje tyle ile zadajesz (odbicie) | czesc obrazen wraca jako blok/lecz |
+| 12 | Wisielec | inwersja: niskie karty licza jak wysokie | raz/walke zamien slabosc w atut |
+| 13 | Smierc | niszczy/zmienia Twoje karty co ture | gdy karta ginie -> zysk (Zniwo) |
+| 14 | Umiarkowanie | karze skrajnosc (za duzo Chips lub Mult) | bonus gdy Chips ~ Mult (balans) |
+| 15 | Diabel | pakt: moc za trwaly koszt | potezny modyfikator z cena (dwustronny) |
+| 16 | Wieza | niszczy Twoj blok/bufory (zaglada) | wielki burst kosztem karty/struktury |
+| 17 | Gwiazda | leczy sie (nadzieja) | regeneracja HP miedzy turami |
+| 18 | Ksiezyc | cienie: dodatkowi wrogowie-kopie (nie falsz) | tworzy echa/kopie kart |
+| 19 | Slonce | potezne jawne ataki wprost | wielki flat bonus do Chips |
+| 20 | Sad | martwe/slabe karty rania (osad decka) | odrodzenie: przywroc zniszczona karte/Arkanum |
+| 21 | Swiat | final: laczy reguly wczesniejszych Arkanow | zwyciestwo = domkniecie kregu |
+
+Determinizm: **Kaplanka** i **Ksiezyc** nie chowaja informacji (SimPodglad nie klamie) — blokuja Twoje
+podglady / mnoza cienie. **Kolo Fortuny** = jedyny sankcjonowany RNG (jak "RNG tylko w mutagenach").
+
 ## Otwarte (do domkniecia)
 
 - **Wielkie Arkana — sub-decyzje** (rola JUZ ustalona: bossowie+relikty, Podroz Glupca): ile Arkanow na run vs 22 w puli (rozne runy = rozna droga); czy zawsze zabierasz pokonane Arkanum czy wybor 1-z-N; czy mozna ODRZUCIC pakt (Arkana dwustronne jak Diabel); **karty odwrocone (reversed)** jako lewar — Arkanum wprost = boon, odwrocone = mroczniejszy efekt / trudniejszy boss; Glupiec(0) i Swiat(21) jako specjalne.
