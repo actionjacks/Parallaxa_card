@@ -87,7 +87,7 @@ func _show_map() -> void:
 	for i in total:
 		var is_boss := i == RunState.region.fights.size()
 		var label := tr("MAP_NODE_BOSS") if is_boss else (tr("MAP_NODE_FIGHT") % (i + 1))
-		var mark := "v " if i < RunState.step else ("> " if i == RunState.step else "  ")
+		var mark := "✓ " if i < RunState.step else ("> " if i == RunState.step else "  ")
 		var chip := _node_chip(mark + label, i == RunState.step, i < RunState.step, is_boss)
 		ladder.add_child(chip)
 	root.add_child(ladder)

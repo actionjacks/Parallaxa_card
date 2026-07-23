@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_64vk3")
-rank = 11
+rank = 13
 aspect = 1
 keyword = 7
-keyword_value = 6
+keyword_value = 8

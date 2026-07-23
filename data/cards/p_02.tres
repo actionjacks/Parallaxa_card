@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1_iuelv")
-rank = 13
-aspect = 2
-keyword = 4
-keyword_value = 2
+rank = 5
+keyword = 1
+keyword_value = 7

@@ -57,11 +57,17 @@ func _region() -> void:
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.5)
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
 
-	var a := _enemy("ENEMY_KULTYSTA", 120, [10, 14, 8], 5, false, EnemyData.Rule.NONE, "")
+	# HP tuned so a strong opening play does not one-shot: fights last ~2-3 turns, the boss ~4-5,
+	# so enemy intents, block, heal, DoT stacking and the Tower rule all actually come into play.
+	# NOTE(balance): the starter deck front-loads one big Death flush (~440) then falls off to weak
+	# singletons, and the Death Arcanum makes that flush dominant. HP is tuned so fights end in ~2 turns
+	# (enemy survives the opener, so intents/attacks are seen) without a long grind. Real tuning is a
+	# gameplay pass -- likely: reward sustained plays, tone down the flush, or add rest/heal between fights.
+	var a := _enemy("ENEMY_KULTYSTA", 470, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
-	var b := _enemy("ENEMY_CIEN", 150, [12, 16, 10], 6, false, EnemyData.Rule.NONE, "")
+	var b := _enemy("ENEMY_CIEN", 490, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var boss := _enemy("ENEMY_WIEZA", 240, [16, 22, 14], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
+	var boss := _enemy("ENEMY_WIEZA", 560, [11, 15, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
 	var region := RegionData.new()
@@ -108,10 +114,10 @@ func _starter() -> Array:
 	]
 
 func _pool() -> Array:
+	# Interleaved by Aspect so any 3 consecutive offers show variety, not three of one colour.
 	return [
-		[10, A.DEATH, KW.ZNIWO, 1], [8, A.DEATH, KW.GNICIE, 4], [13, A.DEATH, KW.ZNIWO, 2],
-		[6, A.CHAOS, KW.SPALENIE, 8], [10, A.CHAOS, KW.FURIA, 0], [6, A.CHAOS, KW.SPALENIE, 10],
-		[5, A.LIFE, KW.OSLONA, 7], [9, A.LIFE, KW.OPATRZNOSC, 6],
-		[11, A.MIND, KW.ECHO, 6], [13, A.MIND, KW.ECHO, 8],
-		[7, A.NATURE, KW.BUJNOSC, 25], [10, A.NATURE, KW.BUJNOSC, 30],
+		[10, A.DEATH, KW.ZNIWO, 1], [6, A.CHAOS, KW.SPALENIE, 8], [5, A.LIFE, KW.OSLONA, 7],
+		[11, A.MIND, KW.ECHO, 6], [7, A.NATURE, KW.BUJNOSC, 25], [8, A.DEATH, KW.GNICIE, 4],
+		[10, A.CHAOS, KW.FURIA, 0], [9, A.LIFE, KW.OPATRZNOSC, 6], [13, A.MIND, KW.ECHO, 8],
+		[10, A.NATURE, KW.BUJNOSC, 30], [13, A.DEATH, KW.ZNIWO, 2], [6, A.CHAOS, KW.SPALENIE, 10],
 	]

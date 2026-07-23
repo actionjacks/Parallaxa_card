@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_gitpx")
-rank = 6
-aspect = 3
-keyword = 6
-keyword_value = 10
+rank = 8
+aspect = 2
+keyword = 3
+keyword_value = 4

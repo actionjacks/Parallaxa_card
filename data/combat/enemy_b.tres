@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_0w773")
 name_key = "ENEMY_CIEN"
-intents = PackedInt32Array(12, 16, 10)
+max_hp = 490
+intents = PackedInt32Array(9, 12, 7)

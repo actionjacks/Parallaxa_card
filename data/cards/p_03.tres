@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_dluj3")
-rank = 6
-aspect = 3
-keyword = 6
-keyword_value = 8
+rank = 11
+aspect = 1
+keyword = 7
+keyword_value = 6

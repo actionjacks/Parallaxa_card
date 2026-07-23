@@ -9,6 +9,11 @@ func _initialize() -> void:
 	failures += _check_flush_detect()
 	failures += _check_straight_detect()
 	failures += _check_furia_blocked_by_oslona()
+	failures += _check_spalenie()
+	failures += _check_echo()
+	failures += _check_zniwo()
+	failures += _check_bujnosc()
+	failures += _check_opatrznosc()
 	if failures == 0:
 		print("test_scoring: PASS")
 		quit(0)
@@ -83,3 +88,32 @@ func _check_furia_blocked_by_oslona() -> int:
 	# Pair (both rank 5): base 10 + 10 chips = 20, mult stays 2.0 (no Furia because block=6).
 	return _expect("furia-cancelled", r["hand"] == Poker.Hand.PAIR and is_equal_approx(r["mult"], 2.0) \
 		and r["block"] == 6)
+
+# Spalenie: high card 5 + 10 (court) = 15 chips x1, plus 6 flat -> 21 damage.
+func _check_spalenie() -> int:
+	var r: Dictionary = Scoring.score([_c(12, Aspects.Id.CHAOS, CardData.Keyword.SPALENIE, 6)], null)
+	return _expect("spalenie 21", r["hand"] == Poker.Hand.HIGH_CARD and r["chips"] == 15 \
+		and r["flat"] == 6 and r["damage"] == 21)
+
+# Echo: +value per prior play. 5 + 7 + 4*3 = 24 chips.
+func _check_echo() -> int:
+	var r: Dictionary = Scoring.score([_c(7, Aspects.Id.MIND, CardData.Keyword.ECHO, 4)], null, {"plays": 3})
+	return _expect("echo 24", r["chips"] == 24 and r["damage"] == 24)
+
+# Zniwo: +value*grave to Mult. high-card mult 1 + 1*5 = 6; chips 15 -> 90 damage.
+func _check_zniwo() -> int:
+	var r: Dictionary = Scoring.score([_c(10, Aspects.Id.DEATH, CardData.Keyword.ZNIWO, 1)], null, {"grave": 5})
+	return _expect("zniwo mult6", is_equal_approx(r["mult"], 6.0) and r["chips"] == 15 and r["damage"] == 90)
+
+# Bujnosc: 3 cards share Nature -> +20 chips. 5 + (8+5+3) + 20 = 41.
+func _check_bujnosc() -> int:
+	var r: Dictionary = Scoring.score([
+		_c(8, Aspects.Id.NATURE, CardData.Keyword.BUJNOSC, 20),
+		_c(5, Aspects.Id.NATURE), _c(3, Aspects.Id.NATURE),
+	], null)
+	return _expect("bujnosc 41", r["chips"] == 41 and r["damage"] == 41)
+
+# Opatrznosc: returns heal.
+func _check_opatrznosc() -> int:
+	var r: Dictionary = Scoring.score([_c(6, Aspects.Id.LIFE, CardData.Keyword.OPATRZNOSC, 5)], null)
+	return _expect("opatrznosc heal5", r["heal"] == 5)

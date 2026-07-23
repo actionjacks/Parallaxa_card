@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_gla68")
 name_key = "ENEMY_KULTYSTA"
-max_hp = 120
-intents = PackedInt32Array(10, 14, 8)
+max_hp = 470
+intents = PackedInt32Array(8, 10, 6)
 reward_rtec = 5
