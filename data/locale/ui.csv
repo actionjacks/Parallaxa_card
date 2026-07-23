@@ -205,6 +205,13 @@ ASPECT_NATURE,Nature,Natura
 KW_GNICIE,Rot,Gnicie
 KW_FURIA,Fury,Furia
 KW_OSLONA,Ward,Osłona
+KW_OPATRZNOSC,Mend,Opatrzność
+KW_ZNIWO,Harvest,Żniwo
+KW_SPALENIE,Scorch,Spalenie
+KW_ECHO,Echo,Echo
+KW_BUJNOSC,Bloom,Bujność
+DECK_STARTER,Starter deck,Talia startowa
+DECK_REWARD_POOL,Reward pool,Pula nagród
 HAND_HIGH_CARD,High Card,Wysoka karta
 HAND_PAIR,Pair,Para
 HAND_TWO_PAIR,Two Pair,Dwie pary

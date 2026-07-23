@@ -15,6 +15,7 @@ var arcanum: ArcanumData
 var enemy: EnemyData
 var hand: Array = []              ## Array[CardData] currently in hand
 var player_hp: int = PLAYER_MAX_HP
+var player_max_hp: int = PLAYER_MAX_HP
 var player_block: int = 0
 var enemy_hp: int = 0
 var enemy_gnicie: int = 0         ## stacking DoT applied at the start of each enemy turn
@@ -26,20 +27,23 @@ var last_score: Dictionary = {}
 var _draw: Array = []
 var _used: Array = []
 var _intent_index: int = 0
+var _plays: int = 0
 
-func start(deck: Array, p_enemy: EnemyData, p_arcanum: ArcanumData) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_arcanum: ArcanumData, start_hp: int = -1, max_hp: int = -1) -> void:
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
 	enemy = p_enemy
 	arcanum = p_arcanum
 	enemy_hp = enemy.max_hp
-	player_hp = PLAYER_MAX_HP
+	player_max_hp = max_hp if max_hp > 0 else PLAYER_MAX_HP
+	player_hp = start_hp if start_hp > 0 else player_max_hp
 	player_block = 0
 	enemy_gnicie = 0
 	discards_left = START_DISCARDS
 	turn = 1
 	_intent_index = 0
+	_plays = 0
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -51,16 +55,19 @@ func current_intent() -> int:
 	return enemy.intents[_intent_index % enemy.intents.size()]
 
 func preview(selected: Array) -> Dictionary:
-	return Scoring.score(_cards_from(selected), arcanum)
+	return Scoring.score(_cards_from(selected), arcanum, _ctx())
 
 func play(selected: Array) -> void:
 	if phase != "player" or selected.is_empty():
 		return
-	var result: Dictionary = Scoring.score(_cards_from(selected), arcanum)
+	var result: Dictionary = Scoring.score(_cards_from(selected), arcanum, _ctx())
 	last_score = result
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
 	enemy_hp -= int(result["damage"])
+	if int(result["heal"]) > 0:
+		player_hp = mini(player_max_hp, player_hp + int(result["heal"]))
+	_plays += 1
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), int(result["damage"])])
 	_move_to_used(selected)
 	_refill()
@@ -107,6 +114,9 @@ func _finish(won: bool) -> void:
 	phase = "ended"
 	state_changed.emit()
 	ended.emit(won)
+
+func _ctx() -> Dictionary:
+	return {"grave": _used.size(), "plays": _plays}
 
 func _cards_from(selected: Array) -> Array:
 	var out: Array = []

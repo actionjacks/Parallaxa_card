@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_c80xj"]
+
+[resource]
+script = ExtResource("1_c80xj")
+rank = 7
+keyword = 1
+keyword_value = 6

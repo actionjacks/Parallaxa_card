@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="DeckData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_2eha5"]
+[ext_resource type="Resource" path="res://data/cards/s_00.tres" id="2_0u22u"]
+[ext_resource type="Resource" path="res://data/cards/s_01.tres" id="3_eio3x"]
+[ext_resource type="Resource" path="res://data/cards/s_02.tres" id="4_cutdi"]
+[ext_resource type="Resource" path="res://data/cards/s_03.tres" id="5_2qvec"]
+[ext_resource type="Resource" path="res://data/cards/s_04.tres" id="6_ic0yr"]
+[ext_resource type="Resource" path="res://data/cards/s_05.tres" id="7_m2hk7"]
+[ext_resource type="Resource" path="res://data/cards/s_06.tres" id="8_ioejx"]
+[ext_resource type="Resource" path="res://data/cards/s_07.tres" id="9_pp7en"]
+[ext_resource type="Resource" path="res://data/cards/s_08.tres" id="10_hn1kp"]
+[ext_resource type="Resource" path="res://data/cards/s_09.tres" id="11_4umdm"]
+[ext_resource type="Resource" path="res://data/cards/s_10.tres" id="12_l51ej"]
+[ext_resource type="Resource" path="res://data/cards/s_11.tres" id="13_kv12j"]
+[ext_resource type="Resource" path="res://data/cards/s_12.tres" id="14_kqcot"]
+[ext_resource type="Resource" path="res://data/cards/s_13.tres" id="15_lj2yj"]
+[ext_resource type="Resource" path="res://data/cards/s_14.tres" id="16_ql03g"]
+[ext_resource type="Resource" path="res://data/cards/s_15.tres" id="17_g1b54"]
+[ext_resource type="Script" path="res://src/game/cards/deck_data.gd" id="18_mms55"]
+
+[resource]
+script = ExtResource("18_mms55")
+name_key = "DECK_STARTER"
+cards = Array[ExtResource("1_2eha5")]([ExtResource("2_0u22u"), ExtResource("3_eio3x"), ExtResource("4_cutdi"), ExtResource("5_2qvec"), ExtResource("6_ic0yr"), ExtResource("7_m2hk7"), ExtResource("8_ioejx"), ExtResource("9_pp7en"), ExtResource("10_hn1kp"), ExtResource("11_4umdm"), ExtResource("12_l51ej"), ExtResource("13_kv12j"), ExtResource("14_kqcot"), ExtResource("15_lj2yj"), ExtResource("16_ql03g"), ExtResource("17_g1b54")])

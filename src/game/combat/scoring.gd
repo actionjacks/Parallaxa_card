@@ -1,24 +1,44 @@
 class_name Scoring
-## Pure scoring: selected cards + relic -> Chips x Mult and side effects. Deterministic,
-## so the UI can show the exact outcome before the player commits ("the cards don't lie").
+## Pure scoring: selected cards + relic + light combat context -> Chips x Mult and side effects.
+## Deterministic, so the UI can show the exact outcome before the player commits.
+## ctx keys (optional): "grave" (cards in the used pile), "plays" (plays already made this fight).
 
-## Returns a dictionary: hand, chips (int), mult (float), damage (int), block (int), gnicie (int).
-static func score(cards: Array, arcanum: ArcanumData) -> Dictionary:
+static func score(cards: Array, arcanum: ArcanumData, ctx: Dictionary = {}) -> Dictionary:
+	var grave: int = int(ctx.get("grave", 0))
+	var plays: int = int(ctx.get("plays", 0))
+
 	var hand: int = Poker.evaluate(cards)
 	var base: Array = Poker.BASE[hand]
 	var chips: int = int(base[0])
 	var mult: float = float(base[1])
 	var block: int = 0
+	var heal: int = 0
 	var gnicie: int = 0
+	var flat: int = 0
 	var has_furia: bool = false
+
+	var aspect_counts: Dictionary = {}
+	for c in cards:
+		aspect_counts[c.aspect] = int(aspect_counts.get(c.aspect, 0)) + 1
 
 	for c in cards:
 		chips += c.chip_value()
 		match c.keyword:
 			CardData.Keyword.OSLONA:
 				block += c.keyword_value
+			CardData.Keyword.OPATRZNOSC:
+				heal += c.keyword_value
 			CardData.Keyword.GNICIE:
 				gnicie += c.keyword_value
+			CardData.Keyword.SPALENIE:
+				flat += c.keyword_value
+			CardData.Keyword.ECHO:
+				chips += c.keyword_value * plays
+			CardData.Keyword.ZNIWO:
+				mult += float(c.keyword_value * grave)
+			CardData.Keyword.BUJNOSC:
+				if int(aspect_counts[c.aspect]) >= 3:
+					chips += c.keyword_value
 			CardData.Keyword.FURIA:
 				has_furia = true
 
@@ -37,7 +57,9 @@ static func score(cards: Array, arcanum: ArcanumData) -> Dictionary:
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,
-		"damage": int(round(chips * mult)),
+		"damage": int(round(chips * mult)) + flat,
 		"block": block,
+		"heal": heal,
 		"gnicie": gnicie,
+		"flat": flat,
 	}

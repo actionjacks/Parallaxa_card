@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DeckData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_7mfqm"]
+[ext_resource type="Resource" path="res://data/cards/p_00.tres" id="2_rpx21"]
+[ext_resource type="Resource" path="res://data/cards/p_01.tres" id="3_oqdj4"]
+[ext_resource type="Resource" path="res://data/cards/p_02.tres" id="4_nr6jx"]
+[ext_resource type="Resource" path="res://data/cards/p_03.tres" id="5_bajvd"]
+[ext_resource type="Resource" path="res://data/cards/p_04.tres" id="6_75gex"]
+[ext_resource type="Resource" path="res://data/cards/p_05.tres" id="7_i7eh2"]
+[ext_resource type="Resource" path="res://data/cards/p_06.tres" id="8_cqo7g"]
+[ext_resource type="Resource" path="res://data/cards/p_07.tres" id="9_ntsv6"]
+[ext_resource type="Resource" path="res://data/cards/p_08.tres" id="10_s3uom"]
+[ext_resource type="Resource" path="res://data/cards/p_09.tres" id="11_shjhe"]
+[ext_resource type="Resource" path="res://data/cards/p_10.tres" id="12_iohwb"]
+[ext_resource type="Resource" path="res://data/cards/p_11.tres" id="13_r7gb6"]
+[ext_resource type="Script" path="res://src/game/cards/deck_data.gd" id="14_ew634"]
+
+[resource]
+script = ExtResource("14_ew634")
+name_key = "DECK_REWARD_POOL"
+cards = Array[ExtResource("1_7mfqm")]([ExtResource("2_rpx21"), ExtResource("3_oqdj4"), ExtResource("4_nr6jx"), ExtResource("5_bajvd"), ExtResource("6_75gex"), ExtResource("7_i7eh2"), ExtResource("8_cqo7g"), ExtResource("9_ntsv6"), ExtResource("10_s3uom"), ExtResource("11_shjhe"), ExtResource("12_iohwb"), ExtResource("13_r7gb6")])

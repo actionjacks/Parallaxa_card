@@ -178,9 +178,9 @@ func _render() -> void:
 	_intent_label.text = tr("COMBAT_INTENT") % controller.current_intent()
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
 	_relic_label.text = "* " + tr(_arcanum.name_key)
-	_player_hp_bar.max_value = CombatController.PLAYER_MAX_HP
+	_player_hp_bar.max_value = controller.player_max_hp
 	_player_hp_bar.value = controller.player_hp
-	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, CombatController.PLAYER_MAX_HP]
+	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, controller.player_max_hp]
 	_block_label.text = tr("COMBAT_BLOCK") % controller.player_block
 	_turn_label.text = tr("COMBAT_TURN") % controller.turn
 	_build_hand()
