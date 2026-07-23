@@ -1,7 +1,6 @@
 extends SceneTree
-## Dev tool: drive the combat scene (select two Death 7s -> preview -> play) and screenshot
-## the preview, a mid-animation frame (damage popup), and the settled state.
-## Run: tools/dev/run_hidden.sh -s res://tools/dev/capture_combat_flow.gd
+## Dev tool: screenshot the card preview (hover), the selection, cards mid-flight to the enemy on
+## play, and the settled state. Run: tools/dev/run_hidden.sh -s res://tools/dev/capture_combat_flow.gd
 
 const SCENE := "res://src/game/combat/combat.tscn"
 
@@ -21,16 +20,21 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 
+	# Large card preview (as if hovering the first card).
+	scene._show_card_preview(scene.controller.hand[0])
+	await _shoot("preview", 4)
+	scene._hide_card_preview()
+
+	# Select two cards and play them; capture the cards mid-flight to the enemy.
 	scene._selected.clear()
-	scene._selected.append(0)
-	scene._selected.append(1)
+	scene._selected.append(scene.controller.hand[0])
+	scene._selected.append(scene.controller.hand[1])
 	scene._refresh_card_styles()
 	scene._update_selection_ui()
-	await _shoot("preview", 3)
-
+	await _shoot("selected", 4)
 	scene._on_play()
-	await _shoot("fx", 6)       # mid-animation: damage popup rising
-	await _shoot("after", 40)   # settled
+	await _shoot("fly", 8)       # cards mid-flight to the enemy
+	await _shoot("after", 55)    # settled after the paused enemy turn
 
 	print("capture_flow: done")
 	quit(0)

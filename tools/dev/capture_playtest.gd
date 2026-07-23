@@ -54,7 +54,7 @@ func _best(hand: Array) -> Array:
 func _do_play(combat: Node, sel: Array) -> void:
 	combat._selected.clear()
 	for idx in sel:
-		combat._selected.append(idx)
+		combat._selected.append(combat.controller.hand[idx])   # selection is now CardData instances
 	combat._refresh_card_styles()
 	combat._update_selection_ui()
 
@@ -78,6 +78,11 @@ func _win_fight(tag: String) -> void:
 			return
 		var c = combat.controller
 		if c.phase == "ended" or c.enemy_hp <= 0:
+			# wait out the death beat + finished handoff + screen swap (combat gets freed by run)
+			for w in 50:
+				if not is_instance_valid(combat):
+					break
+				await _frames(3)
 			return
 		if c.phase != "player":
 			await _frames(2)

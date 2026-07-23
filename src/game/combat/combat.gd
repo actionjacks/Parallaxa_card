@@ -16,9 +16,9 @@ var controller: CombatController
 var _deck: Array = []
 var _enemy: EnemyData
 var _relics: Array = []
-var _selected: Array[int] = []
+var _selected: Array = []          ## selected CardData instances (not indices)
 
-var _card_panels: Array = []
+var _widgets: Dictionary = {}      ## CardData -> its card panel in the hand
 var _log_lines: Array[String] = []
 
 # Node refs
@@ -46,6 +46,9 @@ var _help_label: Label
 var _enemy_panel: PanelContainer
 var _fx: Control
 var _fx_index: int = 0
+var _preview_node: Control = null
+var _prev_intent: int = -999
+var _prev_gnicie: int = 0
 
 func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int) -> void:
 	standalone = false
@@ -209,8 +212,15 @@ func _render() -> void:
 	_enemy_hp_bar.max_value = _enemy.max_hp
 	_set_bar(_enemy_hp_bar, controller.enemy_hp)
 	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, _enemy.max_hp]
-	_intent_label.text = tr("COMBAT_INTENT") % controller.current_intent()
+	var intent := controller.current_intent()
+	_intent_label.text = tr("COMBAT_INTENT") % intent
+	if _prev_intent != -999 and intent != _prev_intent:
+		_pulse(_intent_label)
+	_prev_intent = intent
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
+	if controller.enemy_gnicie > _prev_gnicie:
+		_pulse(_gnicie_label)
+	_prev_gnicie = controller.enemy_gnicie
 	if _relics.is_empty():
 		_relic_label.text = ""
 	else:
@@ -225,42 +235,86 @@ func _render() -> void:
 	_block_label.text = tr("COMBAT_BLOCK") % controller.player_block
 	_turn_label.text = tr("COMBAT_TURN") % controller.turn
 	_counters_label.text = tr("COMBAT_PILES") % [controller.draw_count(), controller.grave_count()]
-	_build_hand()
+	_reconcile_hand()
 	_update_selection_ui()
 
-func _build_hand() -> void:
+## Reconcile the hand instead of nuking it: keep existing widgets (keyed by the CardData instance),
+## deal in freshly drawn cards, and reorder to match. Played/discarded widgets are flown out
+## separately (see _on_play/_on_discard) so they animate away instead of vanishing.
+func _reconcile_hand() -> void:
+	var want: Array = controller.hand
+	for card in _widgets.keys():
+		if not want.has(card):
+			_widgets.erase(card)   # already flying (played/discarded)
+	for card in want:
+		if not _widgets.has(card):
+			var panel := _make_card(card)
+			_hand_row.add_child(panel)
+			_widgets[card] = panel
+			_animate_draw(panel)
+	for i in want.size():
+		_hand_row.move_child(_widgets[want[i]], i)
+	for card in _selected.duplicate():
+		if not want.has(card):
+			_selected.erase(card)
+	_refresh_card_styles()
+
+func _make_card(card: CardData) -> Control:
+	var panel := CardWidget.build(card)
+	panel.gui_input.connect(_on_card_input.bind(card))
+	panel.mouse_entered.connect(_show_card_preview.bind(card))
+	panel.mouse_exited.connect(_hide_card_preview)
+	return panel
+
+func _animate_draw(panel: Control) -> void:
+	panel.modulate.a = 0.0
+	panel.scale = Vector2(0.82, 0.82)
+	var tw := create_tween()
+	tw.tween_property(panel, "modulate:a", 1.0, 0.20)
+	tw.parallel().tween_property(panel, "scale", Vector2.ONE, 0.20).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _reset_hand() -> void:
 	for ch in _hand_row.get_children():
 		ch.queue_free()
-	_card_panels.clear()
+	_widgets.clear()
 	_selected.clear()
-	for i in controller.hand.size():
-		_hand_row.add_child(_make_card(controller.hand[i], i))
 
-func _make_card(card: CardData, index: int) -> Control:
-	var panel := CardWidget.build(card)
-	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	panel.gui_input.connect(_on_card_input.bind(index))
-	_card_panels.append(panel)
-	return panel
+func _show_card_preview(card: CardData) -> void:
+	_hide_card_preview()
+	var p := CardWidget.build_preview(card)
+	p.position = Vector2(1016, 118)
+	_fx.add_child(p)
+	_preview_node = p
+
+func _hide_card_preview() -> void:
+	if _preview_node != null and is_instance_valid(_preview_node):
+		_preview_node.queue_free()
+	_preview_node = null
 
 # ---------------------------------------------------------------- interaction
 
-func _on_card_input(event: InputEvent, index: int) -> void:
+func _on_card_input(event: InputEvent, card: CardData) -> void:
 	if controller.phase != "player":
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if _selected.has(index):
-			_selected.erase(index)
+		if _selected.has(card):
+			_selected.erase(card)
 		elif _selected.size() < 5:
-			_selected.append(index)
+			_selected.append(card)
 		_refresh_card_styles()
 		_update_selection_ui()
 
 func _refresh_card_styles() -> void:
-	for i in _card_panels.size():
-		var on := _selected.has(i)
-		CardWidget.set_selected(_card_panels[i], on)
-		_card_panels[i].scale = Vector2(1.08, 1.08) if on else Vector2.ONE
+	for card in _widgets:
+		CardWidget.set_selected(_widgets[card], _selected.has(card))
+
+func _selected_indices() -> Array:
+	var out: Array = []
+	for card in _selected:
+		var i: int = controller.hand.find(card)
+		if i >= 0:
+			out.append(i)
+	return out
 
 func _update_selection_ui() -> void:
 	var is_player := controller.phase == "player"
@@ -273,7 +327,7 @@ func _update_selection_ui() -> void:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
 		_preview_extra.text = ""
 		return
-	var r := controller.preview(_selected)
+	var r := controller.preview(_selected_indices())
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
 		tr(Poker.name_key(int(r["hand"]))), int(r["chips"]), float(r["mult"]), int(r["damage"]),
 	]
@@ -289,19 +343,43 @@ func _update_selection_ui() -> void:
 func _on_play() -> void:
 	if _selected.is_empty():
 		return
+	var idx := _selected_indices()
+	_hide_card_preview()
+	for card in _selected:
+		if _widgets.has(card):
+			_fly_card(_widgets[card], _enemy_fx_pos())
+			_widgets.erase(card)
+	_selected.clear()
 	_fx_index = 0
-	_flash(_enemy_panel)
-	controller.play(_selected.duplicate())
+	controller.play(idx)
 
 func _on_discard() -> void:
 	if _selected.is_empty():
 		return
-	controller.discard(_selected.duplicate())
+	var idx := _selected_indices()
+	_hide_card_preview()
+	for card in _selected:
+		if _widgets.has(card):
+			_fly_card(_widgets[card], _grave_fx_pos())
+			_widgets.erase(card)
+	_selected.clear()
+	controller.discard(idx)
+
+## Fly a played/discarded card out of the hand toward a target, then free it.
+func _fly_card(panel: Control, target: Vector2) -> void:
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.reparent(_fx, true)   # keep global position; leave the hand container
+	var tw := create_tween()
+	tw.tween_property(panel, "global_position", target, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(panel, "scale", Vector2(0.35, 0.35), 0.32)
+	tw.parallel().tween_property(panel, "modulate:a", 0.0, 0.32)
+	tw.tween_callback(panel.queue_free)
 
 func _on_restart() -> void:
 	_log_lines.clear()
 	_log_label.text = ""
 	_overlay.visible = false
+	_reset_hand()
 	controller.start(_deck, _enemy, _relics)
 
 func _on_message(text_key: String, args: Array) -> void:
@@ -314,25 +392,47 @@ func _on_message(text_key: String, args: Array) -> void:
 			_popup("-" + str(int(args[1])), Color(1.0, 0.5, 0.4), _enemy_fx_pos())
 		"LOG_GNICIE":
 			_popup("-" + str(int(args[0])), Aspects.color(Aspects.Id.DEATH), _enemy_fx_pos())
+		"LOG_BLOCK":
+			_popup("+" + str(int(args[0])), Color(0.6, 0.8, 1.0), _block_fx_pos())
+			_pulse(_block_label)
+		"LOG_HEAL":
+			_popup("+" + str(int(args[0])), Color(0.6, 0.9, 0.55), _player_fx_pos())
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
+				_hit_flash()
 
 ## After the player's play resolves and animates, pause a beat, then let the enemy act.
 func _on_awaiting_enemy() -> void:
 	_fx_index = 0
-	await get_tree().create_timer(0.55).timeout
+	await get_tree().create_timer(0.35).timeout
+	if controller == null or controller.phase != "enemy":
+		return
+	# wind-up: the enemy tenses (scale + reddish flash) so its attack has a visible cause
+	_enemy_panel.pivot_offset = _enemy_panel.size * 0.5
+	var tw := create_tween()
+	tw.tween_property(_enemy_panel, "scale", Vector2(1.03, 1.03), 0.12)
+	tw.parallel().tween_property(_enemy_panel, "modulate", Color(1.5, 0.85, 0.85), 0.12)
+	tw.tween_property(_enemy_panel, "scale", Vector2.ONE, 0.12)
+	tw.parallel().tween_property(_enemy_panel, "modulate", Color.WHITE, 0.12)
+	await tw.finished
 	if controller != null and controller.phase == "enemy":
 		controller.resolve_enemy_turn()
 
 func _on_ended(won: bool) -> void:
+	if won:
+		_enemy_panel.pivot_offset = _enemy_panel.size * 0.5
+		create_tween().tween_property(_enemy_panel, "modulate", Color(0.4, 0.12, 0.12, 0.25), 0.45)
+	await get_tree().create_timer(0.6).timeout   # let the HP bar finish draining + a death beat
 	if not standalone:
 		finished.emit(won, controller.player_hp)
 		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")
 	_overlay_label.add_theme_color_override("font_color",
 		Color(0.6, 0.9, 0.55) if won else Color(0.9, 0.4, 0.4))
+	_overlay.modulate.a = 0.0
 	_overlay.visible = true
+	create_tween().tween_property(_overlay, "modulate:a", 1.0, 0.4)
 
 # ---------------------------------------------------------------- helpers
 
@@ -358,6 +458,29 @@ func _enemy_fx_pos() -> Vector2:
 
 func _player_fx_pos() -> Vector2:
 	return _player_hp_label.global_position + Vector2(20, -34)
+
+func _grave_fx_pos() -> Vector2:
+	return _counters_label.global_position + Vector2(30, 0)
+
+func _block_fx_pos() -> Vector2:
+	return _block_label.global_position + Vector2(0, -28)
+
+func _pulse(node: Control) -> void:
+	if node == null:
+		return
+	node.pivot_offset = node.size * 0.5
+	node.scale = Vector2(1.3, 1.3)
+	create_tween().tween_property(node, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _hit_flash() -> void:
+	var r := ColorRect.new()
+	r.color = Color(0.85, 0.12, 0.12, 0.30)
+	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fx.add_child(r)
+	var tw := create_tween()
+	tw.tween_property(r, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(r.queue_free)
 
 func _popup(text: String, color: Color, at: Vector2) -> void:
 	var l := _label(text, 26, color)

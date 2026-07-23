@@ -70,6 +70,10 @@ func play(selected: Array) -> void:
 		player_hp = mini(player_max_hp, player_hp + int(result["heal"]))
 	_plays += 1
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), int(result["damage"])])
+	if int(result["block"]) > 0:
+		message.emit("LOG_BLOCK", [int(result["block"])])
+	if int(result["heal"]) > 0:
+		message.emit("LOG_HEAL", [int(result["heal"])])
 	_move_to_used(selected)
 	_refill()
 	if enemy_hp <= 0:

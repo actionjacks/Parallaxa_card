@@ -239,6 +239,8 @@ COMBAT_RESTART,Again,Jeszcze raz
 LOG_PLAY,%s: %d dmg,%s: %d obr.
 LOG_GNICIE,Rot: -%d,Gnicie: -%d
 LOG_ATTACK,Enemy hits: -%d,Wróg uderza: -%d
+LOG_BLOCK,Block: +%d,Blok: +%d
+LOG_HEAL,Heal: +%d,Leczenie: +%d
 REGION_01,Region I — Ash,Region I — Popiół
 ENEMY_CIEN,Wandering Shade,Zbłąkany Cień
 ENEMY_WIEZA,The Tower,Wieża
