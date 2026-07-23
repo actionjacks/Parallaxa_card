@@ -24,6 +24,10 @@ var _reward_cards: Array = []
 var _reward_pick: int = -1
 var _reward_take_btn: Button
 var _last_rest: int = 0
+var _prev_hp: int = -1
+var _prev_rtec: int = -1
+var _prev_deck: int = -1
+var _prev_relics: int = -1
 
 func _ready() -> void:
 	RunState.begin(load(REGION_PATH))
@@ -67,15 +71,43 @@ func _update_status() -> void:
 	_rtec_label.text = tr("RUN_RTEC") % RunState.rtec
 	_deck_label.text = tr("RUN_DECK") % RunState.deck.size()
 	_relics_label.text = tr("RUN_RELICS") % RunState.relics.size()
+	if _prev_hp != -1:   # pulse whatever changed (green up / red down) so the player sees why
+		if RunState.player_hp != _prev_hp:
+			_pulse_stat(_hp_label, RunState.player_hp > _prev_hp)
+		if RunState.rtec != _prev_rtec:
+			_pulse_stat(_rtec_label, RunState.rtec > _prev_rtec)
+		if RunState.deck.size() != _prev_deck:
+			_pulse_stat(_deck_label, RunState.deck.size() > _prev_deck)
+		if RunState.relics.size() != _prev_relics:
+			_pulse_stat(_relics_label, true)
+	_prev_hp = RunState.player_hp
+	_prev_rtec = RunState.rtec
+	_prev_deck = RunState.deck.size()
+	_prev_relics = RunState.relics.size()
+
+func _pulse_stat(l: Label, good: bool) -> void:
+	l.pivot_offset = l.size * 0.5
+	l.scale = Vector2(1.35, 1.35)
+	l.modulate = Color(0.6, 1.4, 0.7) if good else Color(1.5, 0.5, 0.5)
+	var tw := create_tween()
+	tw.tween_property(l, "scale", Vector2.ONE, 0.30).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(l, "modulate", Color.WHITE, 0.30)
 
 func _clear_stage() -> void:
 	for ch in _stage.get_children():
 		ch.queue_free()
 
 func _mount(screen: Control) -> void:
-	_clear_stage()
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	screen.modulate.a = 0.0
 	_stage.add_child(screen)
+	for ch in _stage.get_children():   # crossfade: fade out & free the outgoing screen(s)
+		if ch == screen:
+			continue
+		var out := create_tween()
+		out.tween_property(ch, "modulate:a", 0.0, 0.18)
+		out.tween_callback(ch.queue_free)
+	create_tween().tween_property(screen, "modulate:a", 1.0, 0.18)
 
 # ---------------------------------------------------------------- MAP
 
@@ -129,9 +161,7 @@ func _start_encounter() -> void:
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
 		RunState.player_hp, RunState.player_max_hp)
 	combat.finished.connect(_on_combat_finished)
-	_clear_stage()
-	combat.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_stage.add_child(combat)
+	_mount(combat)   # crossfade into the fight
 
 func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 	if not won:
@@ -292,7 +322,9 @@ func _reroll_shop() -> void:
 func _open_deck_picker(title: String, on_pick: Callable) -> void:
 	var overlay := Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.modulate.a = 0.0
 	add_child(overlay)
+	create_tween().tween_property(overlay, "modulate:a", 1.0, 0.15)
 	var dim := ColorRect.new()
 	dim.color = Color(0.0, 0.0, 0.0, 0.82)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -318,13 +350,19 @@ func _open_deck_picker(title: String, on_pick: Callable) -> void:
 		panel.gui_input.connect(_on_picker_input.bind(card, overlay, on_pick))
 		grid.add_child(panel)
 	var wrap := CenterContainer.new()
-	wrap.add_child(_button(tr("COMMON_CANCEL"), overlay.queue_free))
+	wrap.add_child(_button(tr("COMMON_CANCEL"), _close_overlay.bind(overlay)))
 	col.add_child(wrap)
 
 func _on_picker_input(ev: InputEvent, card: CardData, overlay: Control, on_pick: Callable) -> void:
 	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
-		overlay.queue_free()
-		on_pick.call(card)
+		_close_overlay(overlay, on_pick.bind(card))
+
+func _close_overlay(overlay: Control, after := Callable()) -> void:
+	var tw := create_tween()
+	tw.tween_property(overlay, "modulate:a", 0.0, 0.15)
+	tw.tween_callback(overlay.queue_free)
+	if after.is_valid():
+		tw.tween_callback(after)
 
 func _leave_shop() -> void:
 	RunState.step += 1
