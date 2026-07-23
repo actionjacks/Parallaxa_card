@@ -72,7 +72,7 @@ func _win_fight(tag: String) -> void:
 	var shot_play := false
 	var shot_t2 := false
 	var guard := 0
-	while guard < 80:
+	while guard < 250:
 		guard += 1
 		if not is_instance_valid(combat):
 			return

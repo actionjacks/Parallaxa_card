@@ -6,6 +6,7 @@ extends RefCounted
 signal state_changed
 signal message(text_key: String, args: Array)
 signal ended(won: bool)
+signal awaiting_enemy      ## player's play resolved; the scene pauses, then calls resolve_enemy_turn()
 
 const HAND_SIZE: int = 8
 const START_DISCARDS: int = 3
@@ -75,7 +76,9 @@ func play(selected: Array) -> void:
 		enemy_hp = 0
 		_finish(true)
 		return
-	_enemy_turn()
+	phase = "enemy"
+	state_changed.emit()
+	awaiting_enemy.emit()   # the scene pauses for a beat, then calls resolve_enemy_turn()
 
 func discard(selected: Array) -> void:
 	if phase != "player" or selected.is_empty() or discards_left <= 0:
@@ -85,9 +88,9 @@ func discard(selected: Array) -> void:
 	_refill()
 	state_changed.emit()
 
-func _enemy_turn() -> void:
-	phase = "enemy"
-	state_changed.emit()
+func resolve_enemy_turn() -> void:
+	if phase != "enemy":
+		return
 	if enemy_gnicie > 0:
 		enemy_hp -= enemy_gnicie
 		message.emit("LOG_GNICIE", [enemy_gnicie])
@@ -96,7 +99,9 @@ func _enemy_turn() -> void:
 			_finish(true)
 			return
 	var incoming: int = current_intent()
-	var taken: int = maxi(0, incoming - player_block)
+	# The Tower's field-rule ignores block, so defence can't save you against it.
+	var ignores_block: bool = enemy != null and enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK
+	var taken: int = maxi(0, incoming - (0 if ignores_block else player_block))
 	player_hp -= taken
 	player_block = 0
 	message.emit("LOG_ATTACK", [taken])

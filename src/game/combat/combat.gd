@@ -65,6 +65,7 @@ func _ready() -> void:
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
+	controller.awaiting_enemy.connect(_on_awaiting_enemy)
 	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp)
 
 # ---------------------------------------------------------------- UI construction
@@ -316,6 +317,13 @@ func _on_message(text_key: String, args: Array) -> void:
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
+
+## After the player's play resolves and animates, pause a beat, then let the enemy act.
+func _on_awaiting_enemy() -> void:
+	_fx_index = 0
+	await get_tree().create_timer(0.55).timeout
+	if controller != null and controller.phase == "enemy":
+		controller.resolve_enemy_turn()
 
 func _on_ended(won: bool) -> void:
 	if not standalone:
