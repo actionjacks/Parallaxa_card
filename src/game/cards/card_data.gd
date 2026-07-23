@@ -45,6 +45,18 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.BUJNOSC: return "KW_BUJNOSC"
 	return ""
 
+static func keyword_desc_key(kw: int) -> String:
+	match kw:
+		Keyword.OSLONA: return "KWD_OSLONA"
+		Keyword.OPATRZNOSC: return "KWD_OPATRZNOSC"
+		Keyword.GNICIE: return "KWD_GNICIE"
+		Keyword.ZNIWO: return "KWD_ZNIWO"
+		Keyword.FURIA: return "KWD_FURIA"
+		Keyword.SPALENIE: return "KWD_SPALENIE"
+		Keyword.ECHO: return "KWD_ECHO"
+		Keyword.BUJNOSC: return "KWD_BUJNOSC"
+	return ""
+
 ## Aspect that a keyword thematically belongs to (for generated content / tinting).
 static func keyword_aspect(kw: int) -> int:
 	match kw:

@@ -20,6 +20,8 @@ static func build(card: CardData) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", sb)
 	panel.custom_minimum_size = CARD_SIZE
+	panel.pivot_offset = CARD_SIZE * 0.5
+	panel.tooltip_text = _tooltip(card)
 	panel.set_meta("style", sb)
 	panel.set_meta("aspect", card.aspect)
 	var vb := VBoxContainer.new()
@@ -44,6 +46,17 @@ static func set_selected(panel: PanelContainer, on: bool) -> void:
 		sb.border_color = Aspects.color(int(panel.get_meta("aspect")))
 		sb.bg_color = BG
 		sb.set_border_width_all(2)
+
+static func _tooltip(card: CardData) -> String:
+	var t := TranslationServer.translate(Aspects.name_key(card.aspect))
+	if card.keyword != CardData.Keyword.NONE:
+		var kw_key := CardData.keyword_name_key(card.keyword)
+		t += " - " + TranslationServer.translate(kw_key)
+		var desc_key := CardData.keyword_desc_key(card.keyword)
+		var desc := TranslationServer.translate(desc_key)
+		if desc != "" and desc != desc_key:
+			t += "\n" + desc
+	return t
 
 static func _lbl(text: String, size: int, color: Color) -> Label:
 	var l := Label.new()

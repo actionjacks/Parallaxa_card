@@ -118,6 +118,12 @@ func _finish(won: bool) -> void:
 func _ctx() -> Dictionary:
 	return {"grave": _used.size(), "plays": _plays}
 
+func draw_count() -> int:
+	return _draw.size()
+
+func grave_count() -> int:
+	return _used.size()
+
 func _cards_from(selected: Array) -> Array:
 	var out: Array = []
 	for i in selected:

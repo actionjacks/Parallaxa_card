@@ -266,3 +266,16 @@ COMPLETE_HINT,You beat the Tower and now wear its power.,Pokonałeś Wieżę i p
 COMPLETE_NEW,New run,Nowy run
 DEFEAT_TITLE,DEFEAT,PORAŻKA
 DEFEAT_NEW,New run,Nowy run
+COMBAT_TAG_BLOCK,+%d Block,+%d Blok
+COMBAT_TAG_HEAL,+%d HP,+%d HP
+COMBAT_TAG_GNICIE,Rot %d,Gnicie %d
+COMBAT_PILES,Deck %d  Grave %d,Talia %d  Grób %d
+COMBAT_HELP,Select cards of one poker hand and Play. Discard to swap your hand.,Zaznacz karty jednego układu i Zagraj. Odrzuć by wymienić rękę.
+KWD_OSLONA,Adds block; absorbs the enemy's next hit.,Daje blok; pochłania następne uderzenie wroga.
+KWD_OPATRZNOSC,Heals your HP.,Leczy twoje HP.
+KWD_GNICIE,Enemy loses HP at the start of each of its turns.,Wróg traci HP na początku każdej swojej tury.
+KWD_ZNIWO,+Mult for each card in the grave.,+Mult za każdą kartę w grobie.
+KWD_FURIA,x1.5 Mult if you add no block this play.,x1.5 Mult jeśli nie dodasz bloku w tym zagraniu.
+KWD_SPALENIE,Flat damage on top of the score.,Obrażenia wprost ponad wynik.
+KWD_ECHO,+Chips for each play made this fight.,+Chips za każde zagranie w tej walce.
+KWD_BUJNOSC,Bonus Chips when 3+ cards share an Aspect.,Bonus Chips gdy 3+ karty jednej barwy.

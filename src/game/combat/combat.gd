@@ -40,6 +40,12 @@ var _play_btn: Button
 var _discard_btn: Button
 var _overlay: Control
 var _overlay_label: Label
+var _preview_extra: Label
+var _counters_label: Label
+var _help_label: Label
+var _enemy_panel: PanelContainer
+var _fx: Control
+var _fx_index: int = 0
 
 func setup(deck: Array, enemy: EnemyData, relic: ArcanumData, start_hp: int, max_hp: int) -> void:
 	standalone = false
@@ -81,7 +87,8 @@ func _build_ui() -> void:
 	margin.add_child(root)
 
 	# --- enemy panel ---
-	var enemy_panel := _panel(Color(0.11, 0.07, 0.09), Color(0.5, 0.2, 0.24))
+	_enemy_panel = _panel(Color(0.11, 0.07, 0.09), Color(0.5, 0.2, 0.24))
+	var enemy_panel := _enemy_panel
 	root.add_child(enemy_panel)
 	var ev := VBoxContainer.new()
 	ev.add_theme_constant_override("separation", 4)
@@ -118,6 +125,9 @@ func _build_ui() -> void:
 	_preview_label = _label("", 24, Color(0.98, 0.95, 0.8))
 	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_label)
+	_preview_extra = _label("", 16, Color(0.7, 0.85, 0.95))
+	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mid.add_child(_preview_extra)
 	_log_label = _label("", 13, Color(0.6, 0.6, 0.66))
 	_log_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_log_label)
@@ -135,6 +145,8 @@ func _build_ui() -> void:
 	prow.add_child(_block_label)
 	_turn_label = _label("", 16, Color(0.8, 0.8, 0.85))
 	prow.add_child(_turn_label)
+	_counters_label = _label("", 16, Color(0.62, 0.66, 0.74))
+	prow.add_child(_counters_label)
 
 	# --- hand ---
 	_hand_row = HBoxContainer.new()
@@ -154,6 +166,13 @@ func _build_ui() -> void:
 	_discard_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_discard_btn.pressed.connect(_on_discard)
 	crow.add_child(_discard_btn)
+	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
+	crow.add_child(_help_label)
+
+	_fx = Control.new()
+	_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fx)
 
 	_build_overlay()
 
@@ -187,17 +206,18 @@ func _build_overlay() -> void:
 func _render() -> void:
 	_enemy_name.text = tr(_enemy.name_key)
 	_enemy_hp_bar.max_value = _enemy.max_hp
-	_enemy_hp_bar.value = controller.enemy_hp
+	_set_bar(_enemy_hp_bar, controller.enemy_hp)
 	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, _enemy.max_hp]
 	_intent_label.text = tr("COMBAT_INTENT") % controller.current_intent()
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
 	_relic_label.text = ("* " + tr(_arcanum.name_key)) if _arcanum != null else ""
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_player_hp_bar.max_value = controller.player_max_hp
-	_player_hp_bar.value = controller.player_hp
+	_set_bar(_player_hp_bar, controller.player_hp)
 	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, controller.player_max_hp]
 	_block_label.text = tr("COMBAT_BLOCK") % controller.player_block
 	_turn_label.text = tr("COMBAT_TURN") % controller.turn
+	_counters_label.text = tr("COMBAT_PILES") % [controller.draw_count(), controller.grave_count()]
 	_build_hand()
 	_update_selection_ui()
 
@@ -231,7 +251,9 @@ func _on_card_input(event: InputEvent, index: int) -> void:
 
 func _refresh_card_styles() -> void:
 	for i in _card_panels.size():
-		CardWidget.set_selected(_card_panels[i], _selected.has(i))
+		var on := _selected.has(i)
+		CardWidget.set_selected(_card_panels[i], on)
+		_card_panels[i].scale = Vector2(1.08, 1.08) if on else Vector2.ONE
 
 func _update_selection_ui() -> void:
 	var is_player := controller.phase == "player"
@@ -242,15 +264,26 @@ func _update_selection_ui() -> void:
 	_discard_btn.disabled = not (is_player and has_sel and controller.discards_left > 0)
 	if not has_sel:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
+		_preview_extra.text = ""
 		return
 	var r := controller.preview(_selected)
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
 		tr(Poker.name_key(int(r["hand"]))), int(r["chips"]), float(r["mult"]), int(r["damage"]),
 	]
+	var parts: Array = []
+	if int(r["block"]) > 0:
+		parts.append(tr("COMBAT_TAG_BLOCK") % int(r["block"]))
+	if int(r["heal"]) > 0:
+		parts.append(tr("COMBAT_TAG_HEAL") % int(r["heal"]))
+	if int(r["gnicie"]) > 0:
+		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
+	_preview_extra.text = "    ".join(parts)
 
 func _on_play() -> void:
 	if _selected.is_empty():
 		return
+	_fx_index = 0
+	_flash(_enemy_panel)
 	controller.play(_selected.duplicate())
 
 func _on_discard() -> void:
@@ -269,6 +302,14 @@ func _on_message(text_key: String, args: Array) -> void:
 	while _log_lines.size() > 4:
 		_log_lines.pop_front()
 	_log_label.text = "\n".join(_log_lines)
+	match text_key:
+		"LOG_PLAY":
+			_popup("-" + str(int(args[1])), Color(1.0, 0.5, 0.4), _enemy_fx_pos())
+		"LOG_GNICIE":
+			_popup("-" + str(int(args[0])), Aspects.color(Aspects.Id.DEATH), _enemy_fx_pos())
+		"LOG_ATTACK":
+			if int(args[0]) > 0:
+				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
 
 func _on_ended(won: bool) -> void:
 	if not standalone:
@@ -287,6 +328,35 @@ func _label(text: String, size: int, color: Color) -> Label:
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	return l
+
+func _set_bar(bar: ProgressBar, value: float) -> void:
+	var tw := create_tween()
+	tw.tween_property(bar, "value", value, 0.35).set_trans(Tween.TRANS_QUAD)
+
+func _flash(node: Control) -> void:
+	if node == null:
+		return
+	node.modulate = Color(1.6, 1.6, 1.6)
+	create_tween().tween_property(node, "modulate", Color.WHITE, 0.35)
+
+func _enemy_fx_pos() -> Vector2:
+	return _enemy_hp_label.global_position + Vector2(70, -6)
+
+func _player_fx_pos() -> Vector2:
+	return _player_hp_label.global_position + Vector2(20, -34)
+
+func _popup(text: String, color: Color, at: Vector2) -> void:
+	var l := _label(text, 26, color)
+	l.position = at
+	_fx.add_child(l)
+	var delay: float = _fx_index * 0.16
+	_fx_index += 1
+	var tw := create_tween()
+	if delay > 0.0:
+		tw.tween_interval(delay)
+	tw.tween_property(l, "position:y", at.y - 46.0, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.7)
+	tw.tween_callback(l.queue_free)
 
 func _panel(bg: Color, border: Color) -> PanelContainer:
 	var sb := StyleBoxFlat.new()
