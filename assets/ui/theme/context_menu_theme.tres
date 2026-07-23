@@ -1,0 +1,171 @@
+[gd_resource type="Theme" format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/monogram-extended.ttf" id="2_font"]
+[ext_resource type="Texture2D" path="res://assets/ui/theme/transparent_1px.tres" id="3_empty"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0.85, 0.95, 0.08)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.09, 0.09, 0.13, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.15, 0.15, 0.22, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview_bg"]
+bg_color = Color(0.06, 0.06, 0.09, 1)
+border_width_right = 1
+border_color = Color(0.2, 0.2, 0.32, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_titlebar"]
+bg_color = Color(0.12, 0.12, 0.17, 1)
+border_width_bottom = 1
+border_color = Color(0.2, 0.2, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll_grabber"]
+content_margin_left = 1.0
+content_margin_top = 2.0
+content_margin_right = 1.0
+content_margin_bottom = 2.0
+bg_color = Color(0.32, 0.34, 0.42, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.47, 0.55, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll_grabber_hl"]
+content_margin_left = 1.0
+content_margin_top = 2.0
+content_margin_right = 1.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0.35, 0.42, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.75, 0.88, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll_grabber_pr"]
+content_margin_left = 1.0
+content_margin_top = 2.0
+content_margin_right = 1.0
+content_margin_bottom = 2.0
+bg_color = Color(0, 0.55, 0.65, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.9, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll_track"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.08, 0.08, 0.11, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.18, 0.26, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sep"]
+bg_color = Color(0.2, 0.2, 0.32, 0.7)
+
+[resource]
+default_font = ExtResource("2_font")
+default_font_size = 10
+Button/colors/font_color = Color(0.75, 0.75, 0.82, 1)
+Button/colors/font_focus_color = Color(0.75, 0.75, 0.82, 1)
+Button/colors/font_hover_color = Color(0, 0.85, 0.95, 1)
+Button/colors/font_pressed_color = Color(0, 0.85, 0.95, 1)
+Button/styles/focus = SubResource("StyleBoxEmpty_focus")
+Button/styles/hover = SubResource("StyleBoxFlat_btn_hover")
+Button/styles/normal = SubResource("StyleBoxFlat_btn_normal")
+Button/styles/pressed = SubResource("StyleBoxFlat_btn_hover")
+CheckBox/colors/font_color = Color(0.4, 0.4, 0.5, 1)
+CheckBox/colors/font_hover_color = Color(0, 0.85, 0.95, 0.7)
+CheckBox/colors/font_pressed_color = Color(0, 0.85, 0.95, 1)
+CheckBox/icons/checked = ExtResource("3_empty")
+CheckBox/icons/checked_disabled = ExtResource("3_empty")
+CheckBox/icons/unchecked = ExtResource("3_empty")
+CheckBox/icons/unchecked_disabled = ExtResource("3_empty")
+CheckBox/styles/focus = SubResource("StyleBoxEmpty_focus")
+CheckBox/styles/hover = SubResource("StyleBoxEmpty_focus")
+CheckBox/styles/normal = SubResource("StyleBoxEmpty_focus")
+CheckBox/styles/pressed = SubResource("StyleBoxEmpty_focus")
+ContextMenuBg/base_type = &"Panel"
+ContextMenuBg/styles/panel = SubResource("StyleBoxFlat_bg")
+ContextMenuBodyMargin/base_type = &"MarginContainer"
+ContextMenuBodyMargin/constants/margin_bottom = 8
+ContextMenuBodyMargin/constants/margin_left = 10
+ContextMenuBodyMargin/constants/margin_right = 10
+ContextMenuBodyMargin/constants/margin_top = 8
+ContextMenuCloseButton/base_type = &"Button"
+ContextMenuCloseButton/colors/font_color = Color(0.28, 0.28, 0.42, 1)
+ContextMenuCloseButton/colors/font_focus_color = Color(0.28, 0.28, 0.42, 1)
+ContextMenuCloseButton/colors/font_hover_color = Color(0.75, 0.75, 0.82, 1)
+ContextMenuCloseButton/colors/font_pressed_color = Color(0.75, 0.75, 0.82, 1)
+ContextMenuCloseButton/styles/focus = SubResource("StyleBoxEmpty_focus")
+ContextMenuCloseButton/styles/hover = SubResource("StyleBoxEmpty_focus")
+ContextMenuCloseButton/styles/normal = SubResource("StyleBoxEmpty_focus")
+ContextMenuCloseButton/styles/pressed = SubResource("StyleBoxEmpty_focus")
+ContextMenuCloseMargin/base_type = &"MarginContainer"
+ContextMenuCloseMargin/constants/margin_bottom = 2
+ContextMenuCloseMargin/constants/margin_left = 2
+ContextMenuCloseMargin/constants/margin_right = 6
+ContextMenuCloseMargin/constants/margin_top = 2
+ContextMenuContentBox/base_type = &"VBoxContainer"
+ContextMenuContentBox/constants/separation = 4
+ContextMenuPreviewPanel/base_type = &"PanelContainer"
+ContextMenuPreviewPanel/styles/panel = SubResource("StyleBoxFlat_preview_bg")
+ContextMenuTitleBar/base_type = &"PanelContainer"
+ContextMenuTitleBar/styles/panel = SubResource("StyleBoxFlat_titlebar")
+ContextMenuTitleLabel/base_type = &"RichTextLabel"
+ContextMenuTitleLabel/colors/default_color = Color(0, 0.85, 0.95, 1)
+ContextMenuTitleMargin/base_type = &"MarginContainer"
+ContextMenuTitleMargin/constants/margin_bottom = 4
+ContextMenuTitleMargin/constants/margin_left = 8
+ContextMenuTitleMargin/constants/margin_right = 4
+ContextMenuTitleMargin/constants/margin_top = 4
+HBoxContainer/constants/separation = 0
+HScrollBar/constants/minimum_grabber_size = 12
+HScrollBar/styles/grabber = SubResource("StyleBoxFlat_scroll_grabber")
+HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scroll_grabber_hl")
+HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scroll_grabber_pr")
+HScrollBar/styles/scroll = SubResource("StyleBoxFlat_scroll_track")
+HScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_scroll_track")
+HSeparator/constants/separation = 1
+HSeparator/styles/separator = SubResource("StyleBoxFlat_sep")
+RichTextLabel/colors/default_color = Color(0.75, 0.75, 0.82, 1)
+VBoxContainer/constants/separation = 0
+VScrollBar/constants/minimum_grabber_size = 12
+VScrollBar/styles/grabber = SubResource("StyleBoxFlat_scroll_grabber")
+VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scroll_grabber_hl")
+VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scroll_grabber_pr")
+VScrollBar/styles/scroll = SubResource("StyleBoxFlat_scroll_track")
+VScrollBar/styles/scroll_focus = SubResource("StyleBoxFlat_scroll_track")

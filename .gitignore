@@ -1,0 +1,28 @@
+# Godot 4 — import/cache (regenerowane przy otwarciu projektu)
+.godot/
+
+# Eksporty / buildy
+/build/
+/exports/
+*.zip
+export_presets.cfg
+
+# Mono / .NET (nieuzywane)
+.mono/
+data_*/
+
+# System / edytor
+.DS_Store
+Thumbs.db
+*~
+
+# Zrzuty dev (regenerowalne; nie sa czescia gry)
+/screenshots/
+!/screenshots/.gdignore
+
+# Strefa zrzutu plikow roboczych — NIGDY do commitu
+/temp/
+tools/gen/__pycache__/
+
+# worktree agentow (izolowane kopie repo) — NIGDY do commitu
+.claude/worktrees/

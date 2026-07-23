@@ -1,0 +1,199 @@
+keys,en,pl
+COMMON_YES,Yes,Tak
+COMMON_NO,No,Nie
+COMMON_ON,On,Wł.
+COMMON_OFF,Off,Wył.
+COMMON_BACK,Back,Wstecz
+COMMON_OK,OK,OK
+COMMON_CANCEL,Cancel,Anuluj
+COMMON_CONFIRM,Confirm,Potwierdź
+COMMON_APPLY,Apply,Zastosuj
+COMMON_CLOSE,Close,Zamknij
+COMMON_SAVE,Save,Zapisz
+COMMON_LOAD,Load,Wczytaj
+COMMON_DELETE,Delete,Usuń
+COMMON_RESET,Reset,Przywróć
+COMMON_DEFAULT,Default,Domyślne
+COMMON_NONE,None,Brak
+COMMON_AUTO,Auto,Auto
+COMMON_ENABLED,Enabled,Włączone
+COMMON_DISABLED,Disabled,Wyłączone
+COMMON_UNKNOWN,Unknown,Nieznane
+COMMON_EMPTY,Empty,Puste
+COMMON_QUALITY_OFF,Off,Wyłączone
+COMMON_QUALITY_LOW,Low,Niska
+COMMON_QUALITY_MEDIUM,Medium,Średnia
+COMMON_QUALITY_HIGH,High,Wysoka
+COMMON_QUALITY_ULTRA,Ultra,Ultra
+COMMON_PERCENT,%d%%,%d%%
+COMMON_UNSAVED_CHANGES,Unsaved changes,Niezapisane zmiany
+SETTINGS_TITLE,Settings,Ustawienia
+SETTINGS_TAB_VIDEO,Video,Obraz
+SETTINGS_TAB_AUDIO,Audio,Dźwięk
+SETTINGS_TAB_CONTROLS,Controls,Sterowanie
+SETTINGS_TAB_GAME,Game,Gra
+SETTINGS_APPLY,Apply,Zastosuj
+SETTINGS_RESET,Restore defaults,Przywróć domyślne
+SETTINGS_RESET_CONFIRM,Restore all settings to defaults?,Przywrócić wszystkie ustawienia domyślne?
+SETTINGS_CLOSE,Close,Zamknij
+SETTINGS_VIDEO_RESOLUTION,Resolution,Rozdzielczość
+SETTINGS_VIDEO_RESOLUTION_INTEGER_SCALE,integer scale,skala całkowita
+SETTINGS_VIDEO_WINDOW_MODE,Window mode,Tryb okna
+SETTINGS_VIDEO_WINDOW_MODE_WINDOWED,Windowed,W oknie
+SETTINGS_VIDEO_WINDOW_MODE_BORDERLESS,Borderless,Bez ramki
+SETTINGS_VIDEO_WINDOW_MODE_FULLSCREEN,Fullscreen,Pełny ekran
+SETTINGS_VIDEO_VSYNC,V-Sync,Synchronizacja pionowa
+SETTINGS_VIDEO_VSYNC_DISABLED,Disabled,Wyłączona
+SETTINGS_VIDEO_VSYNC_ENABLED,Enabled,Włączona
+SETTINGS_VIDEO_VSYNC_ADAPTIVE,Adaptive,Adaptacyjna
+SETTINGS_VIDEO_VSYNC_MAILBOX,Mailbox,Mailbox
+SETTINGS_VIDEO_MAX_FPS,FPS limit,Limit FPS
+SETTINGS_VIDEO_MAX_FPS_UNCAPPED,Uncapped,Bez limitu
+SETTINGS_VIDEO_MSAA,Anti-aliasing (MSAA),Wygładzanie krawędzi (MSAA)
+SETTINGS_VIDEO_MSAA_OFF,Off,Wyłączone
+SETTINGS_VIDEO_MSAA_2X,2x,2x
+SETTINGS_VIDEO_MSAA_4X,4x,4x
+SETTINGS_VIDEO_MSAA_8X,8x,8x
+SETTINGS_VIDEO_SHADOW_QUALITY,Shadow quality,Jakość cieni
+SETTINGS_VIDEO_SHADOW_QUALITY_OFF,Off,Wyłączone
+SETTINGS_VIDEO_SHADOW_QUALITY_LOW,Low,Niska
+SETTINGS_VIDEO_SHADOW_QUALITY_MEDIUM,Medium,Średnia
+SETTINGS_VIDEO_SHADOW_QUALITY_HIGH,High,Wysoka
+SETTINGS_VIDEO_RENDER_SCALE,Render scale,Skala renderowania
+SETTINGS_VIDEO_RESTART_REQUIRED,Applies after restart,Działa po ponownym uruchomieniu
+SETTINGS_AUDIO_MASTER,Master volume,Głośność główna
+SETTINGS_AUDIO_MUSIC,Music volume,Głośność muzyki
+SETTINGS_AUDIO_SFX,Effects volume,Głośność efektów
+SETTINGS_AUDIO_MUTE,Mute,Wycisz
+SETTINGS_AUDIO_TEST,Test sound,Dźwięk testowy
+SETTINGS_CONTROLS_ACTION,Action,Akcja
+SETTINGS_CONTROLS_BINDING,Binding,Przypisanie
+SETTINGS_CONTROLS_REBIND,Rebind,Zmień
+SETTINGS_CONTROLS_REBIND_PROMPT,Press a key or button,Naciśnij klawisz lub przycisk
+SETTINGS_CONTROLS_REBIND_CANCEL,Escape cancels,Escape anuluje
+SETTINGS_CONTROLS_CONFLICT,Already bound to %s,Już przypisane do %s
+SETTINGS_CONTROLS_RESET,Restore default bindings,Przywróć domyślne przypisania
+SETTINGS_CONTROLS_UNBOUND,Unbound,Nieprzypisane
+SETTINGS_CONTROLS_DEVICE_KEYBOARD,Keyboard,Klawiatura
+SETTINGS_CONTROLS_DEVICE_GAMEPAD,Gamepad,Kontroler
+SETTINGS_GAME_LANGUAGE,Language,Język
+SETTINGS_GAME_LANGUAGE_EN,English,English
+SETTINGS_GAME_LANGUAGE_PL,Polski,Polski
+ACTION_MOVE_UP,Move up,Ruch w górę
+ACTION_MOVE_DOWN,Move down,Ruch w dół
+ACTION_MOVE_LEFT,Move left,Ruch w lewo
+ACTION_MOVE_RIGHT,Move right,Ruch w prawo
+ACTION_MOVE_UP_LEFT,Move up-left,Ruch w górę-lewo
+ACTION_MOVE_UP_RIGHT,Move up-right,Ruch w górę-prawo
+ACTION_MOVE_DOWN_LEFT,Move down-left,Ruch w dół-lewo
+ACTION_MOVE_DOWN_RIGHT,Move down-right,Ruch w dół-prawo
+ACTION_INTERACT,Interact,Interakcja
+ACTION_WAIT,Wait,Czekaj
+ACTION_CAMERA_ROTATE_LEFT,Rotate camera left,Obrót kamery w lewo
+ACTION_CAMERA_ROTATE_RIGHT,Rotate camera right,Obrót kamery w prawo
+ACTION_CAMERA_ZOOM_IN,Zoom in,Przybliżenie
+ACTION_CAMERA_ZOOM_OUT,Zoom out,Oddalenie
+ACTION_UI_SETTINGS,Open settings,Otwórz ustawienia
+LOADING_LABEL,Loading,Wczytywanie
+LOADING_PROGRESS,%d%%,%d%%
+LOADING_SCENE,Loading %s,Wczytywanie %s
+LOADING_FAILED,Failed to load %s,Nie udało się wczytać %s
+LOADING_CANCELLED,Load cancelled,Wczytywanie przerwane
+HUD_HEALTH,Health,Zdrowie
+HUD_STAMINA,Stamina,Wytrzymałość
+HUD_INTERACT_PROMPT,%s Interact,%s Interakcja
+HUD_WAIT_PROMPT,%s Wait,%s Czekaj
+HUD_SETTINGS_PROMPT,%s Settings,%s Ustawienia
+HUD_FPS,FPS %d,FPS %d
+HUD_POSITION,X %d Y %d Z %d,X %d Y %d Z %d
+HUD_LEVEL,Level %s,Poziom %s
+HUD_TURN,Turn %d,Tura %d
+HUD_PAUSED,Paused,Pauza
+HUD_SAVING,Saving,Zapisywanie
+HUD_SAVED,Saved,Zapisano
+HUD_SAVE_FAILED,Save failed: %s,Zapis nieudany: %s
+HUD_AUTOSAVE,Autosave,Autozapis
+SAVE_SLOT,Slot %d,Slot %d
+SAVE_SLOT_EMPTY,Empty slot,Pusty slot
+SAVE_SLOT_INFO,%s - %s,%s - %s
+SAVE_DELETE_CONFIRM,Delete save in slot %d?,Usunąć zapis w slocie %d?
+SAVE_VERSION_TOO_NEW,Save was made by a newer version,Zapis pochodzi z nowszej wersji
+SETTINGS_ACTION_MOVE_UP,Move up,Ruch w gore
+SETTINGS_ACTION_MOVE_DOWN,Move down,Ruch w dol
+SETTINGS_ACTION_MOVE_LEFT,Move left,Ruch w lewo
+SETTINGS_ACTION_MOVE_RIGHT,Move right,Ruch w prawo
+SETTINGS_ACTION_MOVE_UP_LEFT,Move up-left,Ruch w gore-lewo
+SETTINGS_ACTION_MOVE_UP_RIGHT,Move up-right,Ruch w gore-prawo
+SETTINGS_ACTION_MOVE_DOWN_LEFT,Move down-left,Ruch w dol-lewo
+SETTINGS_ACTION_MOVE_DOWN_RIGHT,Move down-right,Ruch w dol-prawo
+SETTINGS_ACTION_INTERACT,Interact,Interakcja
+SETTINGS_ACTION_WAIT,Wait,Czekaj
+SETTINGS_ACTION_CAMERA_ROTATE_LEFT,Rotate camera left,Obrot kamery w lewo
+SETTINGS_ACTION_CAMERA_ROTATE_RIGHT,Rotate camera right,Obrot kamery w prawo
+SETTINGS_ACTION_CAMERA_ZOOM_IN,Zoom in,Przyblizenie
+SETTINGS_ACTION_CAMERA_ZOOM_OUT,Zoom out,Oddalenie
+SETTINGS_CONTROLS_PRESS_KEY,Press a key...,Nacisnij klawisz...
+SETTINGS_CONTROLS_UNAVAILABLE,No rebindable actions,Brak akcji do przypisania
+SETTINGS_UNSAVED,You have unsaved changes,Masz niezapisane zmiany
+SETTINGS_VIDEO_INTEGER_SCALE_HINT,Marked resolutions are whole-number multiples of the 640x360 pixel-art target.,Oznaczone rozdzielczosci sa calkowita wielokrotnoscia bazy pixel-art 640x360.
+SETTINGS_VIDEO_INTEGER_SCALE_SUFFIX,(%dx),(%dx)
+SETTINGS_VIDEO_SHADOW_OFF,Off,Wylaczone
+SETTINGS_VIDEO_SHADOW_LOW,Low,Niska
+SETTINGS_VIDEO_SHADOW_MEDIUM,Medium,Srednia
+SETTINGS_VIDEO_SHADOW_HIGH,High,Wysoka
+SETTINGS_ACTION_CAMERA_ORBIT,Orbit camera,Obrot kamery (mysz)
+SETTINGS_SECTION_DISPLAY,DISPLAY,EKRAN
+SETTINGS_SECTION_QUALITY,QUALITY,JAKOSC
+SETTINGS_SECTION_CRT,CRT,CRT
+SETTINGS_SECTION_COLOR,COLOR,KOLOR
+SETTINGS_VIDEO_SHARPEN,Sharpening,Wyostrzanie
+SETTINGS_VIDEO_SSAO,Ambient occlusion,Okluzja otoczenia
+SETTINGS_VIDEO_BLOOM,Bloom,Poswiata
+SETTINGS_VIDEO_BLOOM_STRENGTH,Bloom strength,Sila poswiaty
+SETTINGS_VIDEO_FOG,Fog,Mgla
+SETTINGS_VIDEO_CRT_ENABLED,CRT effect,Efekt CRT
+SETTINGS_VIDEO_CRT_SCANLINES,Scanlines,Linie skanowania
+SETTINGS_VIDEO_CRT_ABERRATION,Chromatic aberration,Aberracja chromatyczna
+SETTINGS_VIDEO_CRT_VIGNETTE,Vignette,Winieta
+SETTINGS_VIDEO_CRT_MASK,Aperture mask,Maska aperturowa
+SETTINGS_VIDEO_CRT_FLICKER,Flicker,Migotanie
+SETTINGS_VIDEO_BRIGHTNESS,Brightness,Jasnosc
+SETTINGS_VIDEO_CONTRAST,Contrast,Kontrast
+SETTINGS_VIDEO_SATURATION,Saturation,Nasycenie
+SETTINGS_STATUS_HINT,ESC: close   ENTER: apply,ESC: zamknij   ENTER: zastosuj
+SETTINGS_STATUS_CLEAN,no changes,brak zmian
+SETTINGS_STATUS_MODIFIED,%d changed,zmienionych: %d
+TURN_ACTION_UNKNOWN,action,akcja
+TURN_ACTION_STEP,step,krok
+TURN_ACTION_WAIT,wait,czekanie
+TURN_ACTION_CAST,cast,rzucanie
+HUD_ACTION_STEP,step,krok
+HUD_ACTION_WAIT,wait,czekanie
+HUD_ACTION_CAST,cast,rzucanie
+HUD_TURN_STATE_WAITING,awaiting input,czekam na ruch
+HUD_TURN_STATE_RESOLVING,resolving,wykonuje ruch
+HUD_TURN_ACTION_IDLE,idle,bezczynny
+HUD_TURN_TICKS_LEFT,%d left,zostało: %d
+HUD_TURN_WAIT_BANNER,THE WORLD IS WAITING FOR YOU,ŚWIAT CZEKA NA CIEBIE
+ABILITY_JAB,Jab,Szybki cios
+ABILITY_JAB_DESC,Cheap. Bleeds. Lets you act again sooner.,Tani. Powoduje krwawienie. Pozwala zadziałać szybciej.
+ABILITY_HEAVY,Heavy,Mocny cios
+ABILITY_HEAVY_DESC,Winds up: the world acts before it lands. Knocks back.,Nakręca się: świat zdąży zadziałać. Odpycha.
+ABILITY_THROW,Throw,Rzut
+ABILITY_THROW_DESC,Needs a crate nearby. Hits three cells.,Wymaga skrzyni obok. Trafia trzy pola.
+ABILITY_LINE_BLAST,Line Blast,Salwa liniowa
+ABILITY_LINE_BLAST_DESC,"Aims where you face. Two-tick cast, then hits everything in a 6-cell line. Cooldown.","Celuje tam, gdzie patrzysz. Rzut 2 tiki, potem trafia wszystko w linii 6 pol. Odnowienie."
+HUD_REFUSED_NO_TARGET,no target in range,brak celu w zasięgu
+HUD_REFUSED_BUSY,resolving...,świat się rozlicza...
+HUD_REFUSED_COOLDOWN,on cooldown,jeszcze sie odnawia
+COMBAT_REFUSED_COOLDOWN,cooldown,odnowienie
+HUD_REFUSED_NEEDS_OBJECT,nothing to pick up,nie ma czego podnieść
+HUD_REFUSED_NO_SLOT,empty slot,pusty slot
+HUD_HINT_ARENA,WSAD: move   1-3: attack (auto-targets)   ESC: settings,WSAD: ruch   1-3: atak (sam wybiera cel)   ESC: ustawienia
+HUD_SLOT_EMPTY,empty,pusty
+HUD_SLOT_COST,%d e / %d dmg,%d e / %d obr.
+HUD_SLOT_TAG_WINDUP,windup,nakręcanie
+HUD_SLOT_TAG_AREA,area,obszar
+HUD_THREAT_CLOSING,%d closing,zbliża się: %d
+HUD_THREAT_IN_REACH,%d IN REACH,w zasięgu: %d
+HUD_THREAT_CLEAR,clear,czysto
