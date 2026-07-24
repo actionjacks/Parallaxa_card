@@ -4,4 +4,6 @@
 
 [resource]
 script = ExtResource("1_od12w")
-rank = 3
+rank = 6
+keyword = 2
+keyword_value = 5

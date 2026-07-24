@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1_gtlnb")
-rank = 12
-aspect = 3
-keyword = 6
+rank = 7
+keyword = 1
 keyword_value = 6

@@ -15,6 +15,7 @@ var deck: Array = []              ## Array[CardData]
 var relics: Array = []            ## Array[ArcanumData]
 var region: RegionData
 var step: int = 0                 ## index into the region ladder (0..fights, last = boss)
+var fights_won: int = 0
 
 func begin(p_region: RegionData) -> void:
 	region = p_region
@@ -26,6 +27,7 @@ func begin(p_region: RegionData) -> void:
 	if region != null and region.starting_arcanum != null:
 		relics.append(region.starting_arcanum)
 	step = 0
+	fights_won = 0
 	changed.emit()
 
 ## The relic whose effect combat applies (slice: the first claimed Arcanum).

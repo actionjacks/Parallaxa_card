@@ -63,11 +63,11 @@ func _region() -> void:
 	# singletons, and the Death Arcanum makes that flush dominant. HP is tuned so fights end in ~2 turns
 	# (enemy survives the opener, so intents/attacks are seen) without a long grind. Real tuning is a
 	# gameplay pass -- likely: reward sustained plays, tone down the flush, or add rest/heal between fights.
-	var a := _enemy("ENEMY_KULTYSTA", 460, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
+	var a := _enemy("ENEMY_KULTYSTA", 340, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
-	var b := _enemy("ENEMY_CIEN", 500, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
+	var b := _enemy("ENEMY_CIEN", 400, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var boss := _enemy("ENEMY_WIEZA", 560, [11, 14, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
+	var boss := _enemy("ENEMY_WIEZA", 520, [11, 14, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
 	var region := RegionData.new()
@@ -102,15 +102,18 @@ func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: boo
 
 # ---- specs ----
 
+## Balanced starter (5 Death / 4 Chaos / 3 Life / 2 Mind / 2 Nature). Death still leans (theme +
+## Death Arcanum), but no longer auto-flushes every hand -> the player picks pairs / trips / mixed
+## hands, and drafts toward a colour. Four 7s (one per aspect) enable cross-colour sets.
 func _starter() -> Array:
 	return [
 		[7, A.DEATH, KW.GNICIE, 3], [7, A.DEATH, KW.NONE, 0], [9, A.DEATH, KW.GNICIE, 4],
-		[4, A.DEATH, KW.NONE, 0], [14, A.DEATH, KW.GNICIE, 5], [2, A.DEATH, KW.NONE, 0],
+		[14, A.DEATH, KW.GNICIE, 5], [2, A.DEATH, KW.NONE, 0],
 		[7, A.CHAOS, KW.NONE, 0], [5, A.CHAOS, KW.FURIA, 0], [9, A.CHAOS, KW.FURIA, 0],
 		[12, A.CHAOS, KW.SPALENIE, 6],
-		[7, A.LIFE, KW.OSLONA, 6], [3, A.LIFE, KW.NONE, 0], [14, A.LIFE, KW.OSLONA, 8],
-		[6, A.LIFE, KW.OPATRZNOSC, 5],
-		[7, A.MIND, KW.ECHO, 4], [8, A.NATURE, KW.BUJNOSC, 20],
+		[7, A.LIFE, KW.OSLONA, 6], [14, A.LIFE, KW.OSLONA, 8], [6, A.LIFE, KW.OPATRZNOSC, 5],
+		[7, A.MIND, KW.ECHO, 4], [10, A.MIND, KW.ECHO, 6],
+		[8, A.NATURE, KW.BUJNOSC, 20], [6, A.NATURE, KW.NONE, 0],
 	]
 
 func _pool() -> Array:

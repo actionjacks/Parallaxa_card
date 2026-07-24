@@ -120,8 +120,9 @@ func _show_map() -> void:
 	for i in total:
 		var is_boss := i == RunState.region.fights.size()
 		var label := tr("MAP_NODE_BOSS") if is_boss else (tr("MAP_NODE_FIGHT") % (i + 1))
-		var mark := "✓ " if i < RunState.step else ("> " if i == RunState.step else "  ")
-		var chip := _node_chip(mark + label, i == RunState.step, i < RunState.step, is_boss)
+		var mark := "✓ " if i < RunState.step else ""
+		var enemy: EnemyData = RunState.region.boss if is_boss else RunState.region.fights[i]
+		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
 		ladder.add_child(chip)
 	root.add_child(ladder)
 
@@ -161,15 +162,30 @@ func _arcanum_desc(a: ArcanumData) -> String:
 func _view_deck() -> void:
 	_open_deck_picker(tr("VIEW_DECK_TITLE"), func(_card: CardData) -> void: pass)
 
-func _node_chip(text: String, current: bool, done: bool, is_boss: bool) -> PanelContainer:
+func _edition_desc(ed: int) -> String:
+	match ed:
+		CardData.Edition.FOIL: return tr("ED_FOIL_DESC")
+		CardData.Edition.HOLO: return tr("ED_HOLO_DESC")
+		CardData.Edition.POLYCHROME: return tr("ED_POLYCHROME_DESC")
+	return ""
+
+func _node_chip(text: String, subtitle: String, current: bool, done: bool, is_boss: bool) -> PanelContainer:
 	var border := Color(0.9, 0.5, 0.3) if is_boss else Color(0.3, 0.35, 0.45)
 	if current:
 		border = Color(0.98, 0.92, 0.6)
 	var p := _panel(Color(0.1, 0.1, 0.14), border)
-	p.custom_minimum_size = Vector2(150, 60)
+	p.custom_minimum_size = Vector2(164, 66)
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	p.add_child(vb)
 	var l := _label(text, 18, Color(0.6, 0.62, 0.7) if done else Color(0.92, 0.9, 0.85))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	p.add_child(l)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_child(l)
+	var s := _label(subtitle, 12, Color(0.58, 0.54, 0.58) if done else Color(0.74, 0.68, 0.72))
+	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_child(s)
 	return p
 
 # ---------------------------------------------------------------- COMBAT
@@ -193,6 +209,7 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 		return
 	RunState.player_hp = remaining_hp
 	RunState.rtec += _current_enemy().reward_rtec
+	RunState.fights_won += 1
 	if RunState.step >= RunState.region.fights.size():
 		RunState.claim_relic(RunState.region.boss_arcanum)
 		_show_complete()
@@ -300,6 +317,7 @@ func _show_shop() -> void:
 	var can_ench := RunState.rtec >= ENCHANT_COST and RunState.deck.size() > 0
 	for ed in [CardData.Edition.FOIL, CardData.Edition.HOLO, CardData.Edition.POLYCHROME]:
 		var eb := _button(tr(CardData.edition_name_key(ed)), _enchant.bind(ed))
+		eb.tooltip_text = _edition_desc(ed)
 		eb.disabled = not can_ench
 		ench.add_child(eb)
 	root.add_child(ench)
@@ -410,6 +428,7 @@ func _show_complete() -> void:
 	if relic != null:
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
 	root.add_child(_hint(tr("COMPLETE_HINT")))
+	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
 	var wrap := CenterContainer.new()
 	wrap.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
 	root.add_child(wrap)
@@ -420,6 +439,7 @@ func _show_defeat() -> void:
 	_update_status()
 	var root := _screen_column()
 	root.add_child(_big(tr("DEFEAT_TITLE"), Color(0.9, 0.4, 0.4)))
+	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
 	var wrap := CenterContainer.new()
 	wrap.add_child(_button(tr("DEFEAT_NEW"), _restart_run))
 	root.add_child(wrap)

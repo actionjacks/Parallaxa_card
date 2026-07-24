@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_uflwp")
-rank = 7
-aspect = 1
-keyword = 7
-keyword_value = 4
+rank = 8
+aspect = 4
+keyword = 8
+keyword_value = 20

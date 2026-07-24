@@ -4,4 +4,5 @@
 
 [resource]
 script = ExtResource("1_rquc5")
-aspect = 2
+rank = 7
+aspect = 3

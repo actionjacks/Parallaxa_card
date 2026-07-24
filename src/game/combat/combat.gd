@@ -44,6 +44,7 @@ var _discard_btn: Button
 var _overlay: Control
 var _overlay_label: Label
 var _preview_extra: Label
+var _breakdown_label: Label
 var _counters_label: Label
 var _help_label: Label
 var _enemy_panel: PanelContainer
@@ -136,6 +137,9 @@ func _build_ui() -> void:
 	_preview_extra = _label("", 16, Color(0.7, 0.85, 0.95))
 	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_extra)
+	_breakdown_label = _label("", 13, Color(0.66, 0.72, 0.62))
+	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mid.add_child(_breakdown_label)
 	_log_label = _label("", 13, Color(0.6, 0.6, 0.66))
 	_log_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_log_label)
@@ -333,6 +337,7 @@ func _update_selection_ui() -> void:
 	if not has_sel:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
 		_preview_extra.text = ""
+		_breakdown_label.text = ""
 		return
 	var r := controller.preview(_selected_indices())
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
@@ -346,6 +351,28 @@ func _update_selection_ui() -> void:
 	if int(r["gnicie"]) > 0:
 		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
 	_preview_extra.text = "    ".join(parts)
+	_breakdown_label.text = _mult_breakdown(int(r["hand"]), int(r["block"]))
+
+## Human-readable "why is the mult that value": base hand x + each relic / Furia / Polychrome factor.
+func _mult_breakdown(hand: int, block: int) -> String:
+	var mods: Array = ["%s x%d" % [tr(Poker.name_key(hand)), int(Poker.BASE[hand][1])]]
+	var aspects := {}
+	var has_furia := false
+	var polys := 0
+	for c in _selected:
+		aspects[c.aspect] = true
+		if c.keyword == CardData.Keyword.FURIA:
+			has_furia = true
+		if c.edition == CardData.Edition.POLYCHROME:
+			polys += 1
+	if has_furia and block == 0:
+		mods.append("%s x1.5" % tr("KW_FURIA"))
+	for relic in _relics:
+		if relic.effect == ArcanumData.Effect.MULT_IF_ASPECT and aspects.has(relic.effect_aspect):
+			mods.append("%s x%s" % [tr(relic.name_key), String.num(relic.effect_mult, 1)])
+	if polys > 0:
+		mods.append("%s x%s" % [tr("ED_POLYCHROME"), String.num(pow(1.3, polys), 1)])
+	return "Mult:  " + "   ".join(mods)
 
 func _on_play() -> void:
 	if _selected.is_empty():
