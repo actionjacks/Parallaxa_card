@@ -41,7 +41,7 @@ eksporty (build do dystrybucji).
 
 ## MAPA DROGOWA (kolejnosc = dzwignia na „najlepszy w kategorii")
 
-### M1 — „Pelna Podroz" (NAJWIEKSZY skok: z demo w GRE)
+### M1 — „Pelna Podroz" — ✅ ZROBIONE (commit 8e4d45d)
 Run przez 3 regiony az do finalu. To zamienia 5-minutowy slice w ~20-30 min run z prawdziwym lukiem.
 - Region II „Zgliszcza" i Region III „Szczyt": nowi wrogowie (skalowani), nowe reguly pol.
 - Bossowie z gotowych artow: **Diabel (XV)** — pakt: co ture zabiera karte z reki?; **Ksiezyc (XVIII)**
@@ -52,6 +52,7 @@ Run przez 3 regiony az do finalu. To zamienia 5-minutowy slice w ~20-30 min run 
 - Warunek wygranej: Swiat pokonany = RUN WYGRANY (ekran zwyciestwa z pelnym rozkladem kart runu).
 
 ### M2 — „Silnik wzrostu" (moc musi rosnac szybciej niz proga)
+- ✅ Odsetki ☿ (1/5, cap 5) + 1 ☿ za niewykorzystany odrzut — ZROBIONE razem z M1 (8e4d45d).
 - **Poziomowanie ukladow**: konsumowalne „Gwiazdy" (odpowiednik Planet; tarotowo: Gwiazda XVII juz jest
   omenem — uzyc motywu konstelacji) podnoszace baze Chips/Mult konkretnego ukladu; w sklepie i nagrodach.
 - **Odsetki ☿** (1/5, cap 5) + **1 ☿ za niewykorzystany odrzut** — dwie brakujace nogi ekonomii z designu.
