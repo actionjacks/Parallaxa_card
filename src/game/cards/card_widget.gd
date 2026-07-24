@@ -48,8 +48,9 @@ static func build(card: CardData) -> PanelContainer:
 	return panel
 
 static func _on_hover(panel: PanelContainer, entering: bool) -> void:
-	if entering:
-		panel.move_to_front()   # draw above neighbours so the grown card isn't clipped
+	# Draw above neighbours WITHOUT reordering the container. move_to_front() would move the card
+	# to the end of the HBox, so it jumps out from under the cursor -> exit -> back -> flicker.
+	panel.z_index = 1 if entering else 0
 	var target: Vector2 = panel.get_meta("base_scale") * (1.15 if entering else 1.0)
 	var t := panel.create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	t.tween_property(panel, "scale", target, 0.10)
