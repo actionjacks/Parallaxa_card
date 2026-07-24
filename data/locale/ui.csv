@@ -232,7 +232,7 @@ COMBAT_BLOCK,Block %d,Blok %d
 COMBAT_INTENT,Hits for %d,Uderzy za %d
 COMBAT_GNICIE,Rot %d,Gnicie %d
 COMBAT_PREVIEW,%s   %d x %.1f = %d,%s   %d x %.1f = %d
-COMBAT_SELECT_HINT,Select cards, then Play,Zaznacz karty i Zagraj
+COMBAT_SELECT_HINT,"Select cards, then Play",Zaznacz karty i Zagraj
 COMBAT_WON,VICTORY,ZWYCIĘSTWO
 COMBAT_LOST,DEFEAT,PORAŻKA
 COMBAT_RESTART,Again,Jeszcze raz
