@@ -10,3 +10,4 @@ enum Effect { NONE, MULT_IF_ASPECT }
 @export var effect: Effect = Effect.NONE
 @export var effect_aspect: Aspects.Id = Aspects.Id.DEATH
 @export var effect_mult: float = 1.5
+@export var art: Texture2D            ## RWS 1909 card scan (assets/cards/arcana/, public domain)

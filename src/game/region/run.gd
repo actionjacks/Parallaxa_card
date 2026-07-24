@@ -149,9 +149,22 @@ func _relic_chip(a: ArcanumData) -> Control:
 	var p := _panel(Color(0.11, 0.09, 0.14), Aspects.color(a.effect_aspect))
 	p.tooltip_text = tr(a.name_key) + "\n" + _arcanum_desc(a)
 	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(row)
+	if a.art != null:
+		var t := TextureRect.new()
+		t.texture = a.art
+		t.custom_minimum_size = Vector2(22, 38)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(t)
 	var l := _label(tr(a.name_key), 14, Color(0.85, 0.8, 0.92))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.add_child(l)
+	row.add_child(l)
 	return p
 
 func _arcanum_desc(a: ArcanumData) -> String:
@@ -426,6 +439,17 @@ func _show_complete() -> void:
 	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
 	var relic := RunState.region.boss_arcanum
 	if relic != null:
+		if relic.art != null:
+			# The claimed Arcanum is shown as the actual card -- you beat it, now you wear it.
+			var t := TextureRect.new()
+			t.texture = relic.art
+			t.custom_minimum_size = Vector2(160, 277)
+			t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			var wrap_art := CenterContainer.new()
+			wrap_art.add_child(t)
+			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
 	root.add_child(_hint(tr("COMPLETE_HINT")))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))

@@ -137,6 +137,9 @@ func _play_fight(tag: String) -> void:
 		if not shot_turn:
 			await _shoot(tag + "_selected")   # selection + score preview
 			shot_turn = true
+			print("[pt2] %s t%d: clicked=%d selected=%d play_disabled=%s btn_y=%.0f" % [tag,
+				c.turn, best.size(), combat._selected.size(), str(combat._play_btn.disabled),
+				combat._play_btn.get_global_rect().get_center().y])
 		if not combat._play_btn.disabled:
 			await _click(_center(combat._play_btn))
 		await _frames(45)

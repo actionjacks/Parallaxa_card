@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="ArcanumData" format=3]
 
-[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="1_tokxl"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/13_death.jpg" id="1_ist3x"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_cwu00"]
 
 [resource]
-script = ExtResource("1_tokxl")
+script = ExtResource("2_cwu00")
 name_key = "ARCANUM_SMIERCI"
 effect = 1
 effect_mult = 1.4
+art = ExtResource("1_ist3x")

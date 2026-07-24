@@ -1,9 +1,10 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_xiddo"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/16_tower.jpg" id="1_1s27l"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_j3tn1"]
 
 [resource]
-script = ExtResource("1_xiddo")
+script = ExtResource("2_j3tn1")
 name_key = "ENEMY_WIEZA"
 max_hp = 470
 intents = PackedInt32Array(12, 16, 10)
@@ -12,3 +13,4 @@ reward_rtec = 12
 is_boss = true
 rule = 1
 rule_key = "RULE_TOWER"
+art = ExtResource("1_1s27l")

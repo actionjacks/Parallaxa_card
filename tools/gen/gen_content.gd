@@ -53,8 +53,10 @@ func _deck(id: String, name_key: String, cards: Array) -> void:
 
 func _region() -> void:
 	var death := _arcanum("ARCANUM_SMIERCI", A.DEATH, 1.4)
+	death.art = load("res://assets/cards/arcana/13_death.jpg")
 	ResourceSaver.save(death, ARCANA_DIR + "arcanum_death.tres")
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
+	tower_arc.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
 
 	# HP tuned so a strong opening play does not one-shot: fights last ~2-3 turns, the boss ~4-5,
@@ -68,6 +70,7 @@ func _region() -> void:
 	var b := _enemy("ENEMY_CIEN", 400, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "", 2)
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
 	var boss := _enemy("ENEMY_WIEZA", 470, [12, 16, 10], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
+	boss.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
 	var region := RegionData.new()

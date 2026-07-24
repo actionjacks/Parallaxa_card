@@ -30,6 +30,7 @@ var _gnicie_label: Label
 var _relic_row: HBoxContainer
 var _enemy_emblem: Panel
 var _emblem_glyph: Label
+var _emblem_art: TextureRect
 var _emblem_idle: Tween
 var _rule_label: Label
 var _preview_label: Label
@@ -236,9 +237,18 @@ func _render() -> void:
 	var etint := Color(0.92, 0.5, 0.28) if _enemy.is_boss else Color(0.55, 0.7, 0.42)
 	var esb: StyleBoxFlat = _enemy_emblem.get_meta("style")
 	esb.border_color = etint
-	_emblem_glyph.add_theme_color_override("font_color", etint)
-	var en := tr(_enemy.name_key)
-	_emblem_glyph.text = en.substr(0, 1) if en.length() > 0 else "?"
+	if _enemy.art != null:
+		# A real Major Arcana card stands in the arena (bosses ARE the card -- Fool's Journey).
+		_emblem_art.texture = _enemy.art
+		_emblem_art.visible = true
+		_emblem_glyph.visible = false
+		# Sized to fit the 720p layout budget -- taller art pushed the hand/buttons off-screen.
+		_enemy_emblem.custom_minimum_size = Vector2(128, 222)
+		_enemy_emblem.pivot_offset = Vector2(64, 111)
+	else:
+		_emblem_glyph.add_theme_color_override("font_color", etint)
+		var en := tr(_enemy.name_key)
+		_emblem_glyph.text = en.substr(0, 1) if en.length() > 0 else "?"
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
@@ -536,6 +546,13 @@ func _make_emblem() -> Panel:
 	_emblem_glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_emblem_glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	p.add_child(_emblem_glyph)
+	_emblem_art = TextureRect.new()
+	_emblem_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_emblem_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_emblem_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_emblem_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR   # scans, not pixel art
+	_emblem_art.visible = false
+	p.add_child(_emblem_art)
 	return p
 
 func _relic_chip(a: ArcanumData) -> Control:
@@ -551,7 +568,18 @@ func _relic_chip(a: ArcanumData) -> Control:
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", sb)
 	p.tooltip_text = tr(a.name_key)
-	p.add_child(_label(tr(a.name_key), 13, Color(0.85, 0.8, 0.92)))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	p.add_child(row)
+	if a.art != null:
+		var t := TextureRect.new()
+		t.texture = a.art
+		t.custom_minimum_size = Vector2(20, 34)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		row.add_child(t)
+	row.add_child(_label(tr(a.name_key), 13, Color(0.85, 0.8, 0.92)))
 	return p
 
 func _start_emblem_idle() -> void:
