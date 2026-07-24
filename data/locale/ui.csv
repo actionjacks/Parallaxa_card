@@ -246,6 +246,13 @@ REGION_01,Region I — Ash,Region I — Popiół
 ENEMY_CIEN,Wandering Shade,Zbłąkany Cień
 ENEMY_WIEZA,The Tower,Wieża
 ARCANUM_WIEZA,Arcanum of the Tower,Arkanum Wieży
+ARCANUM_SLONCA,Arcanum of the Sun,Arkanum Słońca
+ARCANUM_KAPLANKI,Arcanum of the High Priestess,Arkanum Kapłanki
+ARCANUM_DIABLA,Arcanum of the Devil,Arkanum Diabła
+ARCANUM_CESARZOWEJ,Arcanum of the Empress,Arkanum Cesarzowej
+DRAFT_TITLE,Choose your starting Arcanum,Wybierz startowe Arkanum
+DRAFT_HINT,The cards are laid out. One power will walk with you.,Karty rozłożone. Jedna moc pójdzie z tobą.
+DRAFT_TAKE,Wear it,Przywdziej
 RULE_TOWER,Tower: block does not protect (the walls fall),Wieża: blok nie chroni (walą się mury)
 RUN_HP,HP %d/%d,HP %d/%d
 RUN_RTEC,%d ☿,%d ☿

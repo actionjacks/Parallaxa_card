@@ -144,6 +144,23 @@ func _play_fight(tag: String) -> void:
 			await _click(_center(combat._play_btn))
 		await _frames(45)
 
+## Click through the run-opening Arcanum draft (pick the first offer) when it is on screen.
+func _pass_arcanum_draft() -> void:
+	var take = _button_with("DRAFT_TAKE")
+	if take == null:
+		return
+	await _shoot("00_draft")
+	if _rn._arc_panels.size() > 0:
+		await _click(_center(_rn._arc_panels[0]))
+	var offers: Array = []
+	for a in _rn._arc_offers:
+		offers.append(tr(a.name_key))
+	print("[pt2] draft offers: ", ", ".join(offers))
+	take = _button_with("DRAFT_TAKE")
+	if take != null and not take.disabled:
+		await _click(_center(take))
+	await _frames(20)
+
 func _proceed() -> void:   # click the map "Enter" to start the next encounter
 	await _frames(6)
 	var go = _button_with("MAP_GO")
@@ -161,6 +178,7 @@ func _go() -> void:
 	for i in mini(5, rs.deck.size()):
 		top.append("%s-%d" % [str(rs.deck[i].aspect), rs.deck[i].rank])
 	print("[pt2] deck top5: ", " ".join(top))
+	await _pass_arcanum_draft()
 	await _shoot("01_map")
 
 	# hover a card to show the preview

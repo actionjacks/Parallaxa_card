@@ -69,6 +69,15 @@ func _go() -> void:
 	_rn = load(RUN).instantiate()
 	root.add_child(_rn)
 	await _frames(20)
+	# run may open with the Arcanum draft -- click through it like a player
+	var take = _button_with("DRAFT_TAKE")
+	if take != null:
+		if _rn._arc_panels.size() > 0:
+			await _click(_center(_rn._arc_panels[0]))
+		take = _button_with("DRAFT_TAKE")
+		if take != null and not take.disabled:
+			await _click(_center(take))
+		await _frames(15)
 	await _shoot("01_map")
 
 	# --- click ENTER as a real player ---

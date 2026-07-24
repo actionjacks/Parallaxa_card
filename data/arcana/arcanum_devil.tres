@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/15_devil.jpg" id="1_nbxpu"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_km3jg"]
+
+[resource]
+script = ExtResource("2_km3jg")
+name_key = "ARCANUM_DIABLA"
+effect = 1
+effect_aspect = 3
+effect_mult = 1.4
+art = ExtResource("1_nbxpu")

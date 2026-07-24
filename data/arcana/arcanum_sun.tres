@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/19_sun.jpg" id="1_gl4qj"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_2jxdx"]
+
+[resource]
+script = ExtResource("2_2jxdx")
+name_key = "ARCANUM_SLONCA"
+effect = 1
+effect_aspect = 0
+effect_mult = 1.4
+art = ExtResource("1_gl4qj")

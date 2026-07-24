@@ -33,7 +33,14 @@ func _ready() -> void:
 	RunState.begin(load(REGION_PATH))
 	RunState.changed.connect(_update_status)
 	_build_shell()
-	_show_map()
+	_start_run_flow()
+
+## A run opens with the Arcanum draft (pick your starting power); map afterwards.
+func _start_run_flow() -> void:
+	if RunState.region != null and not RunState.region.starting_pool.is_empty():
+		_show_arcanum_draft()
+	else:
+		_show_map()
 
 # ---------------------------------------------------------------- shell / status
 
@@ -471,6 +478,91 @@ func _show_defeat() -> void:
 
 func _restart_run() -> void:
 	RunState.begin(RunState.region)
+	_start_run_flow()
+
+# ---------------------------------------------------------------- ARCANUM DRAFT
+
+var _arc_offers: Array = []
+var _arc_panels: Array = []
+var _arc_pick: int = -1
+var _arc_btn: Button
+
+func _show_arcanum_draft() -> void:
+	_statusbar.visible = true
+	_update_status()
+	_arc_offers = RunState.pick_offers(RunState.region.starting_pool, 3)
+	_arc_panels.clear()
+	_arc_pick = -1
+	var root := _screen_column()
+	root.add_child(_title(tr("DRAFT_TITLE")))
+	root.add_child(_hint(tr("DRAFT_HINT")))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 24)
+	for i in _arc_offers.size():
+		var panel := _arcanum_offer_panel(_arc_offers[i])
+		panel.gui_input.connect(_on_arc_input.bind(i))
+		_arc_panels.append(panel)
+		row.add_child(panel)
+	root.add_child(row)
+	_arc_btn = _button(tr("DRAFT_TAKE"), _take_arcanum)
+	_arc_btn.disabled = true
+	var wrap := CenterContainer.new()
+	wrap.add_child(_arc_btn)
+	root.add_child(wrap)
+	_mount(root)
+
+func _arcanum_offer_panel(a: ArcanumData) -> PanelContainer:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.1, 0.1, 0.14)
+	sb.set_border_width_all(2)
+	sb.border_color = Aspects.color(a.effect_aspect)
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 10
+	sb.content_margin_top = 10
+	sb.content_margin_right = 10
+	sb.content_margin_bottom = 10
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	p.set_meta("style", sb)
+	p.set_meta("border", sb.border_color)
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 6)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(vb)
+	if a.art != null:
+		var t := TextureRect.new()
+		t.texture = a.art
+		t.custom_minimum_size = Vector2(128, 222)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(t)
+	var name_l := _label(tr(a.name_key), 16, Color(0.92, 0.88, 0.95))
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(name_l)
+	var desc_l := _label(_arcanum_desc(a), 13, Aspects.color(a.effect_aspect))
+	desc_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(desc_l)
+	return p
+
+func _on_arc_input(ev: InputEvent, index: int) -> void:
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+		_arc_pick = index
+		for i in _arc_panels.size():
+			var sb: StyleBoxFlat = _arc_panels[i].get_meta("style")
+			sb.border_color = Color.WHITE if i == index else _arc_panels[i].get_meta("border")
+			sb.set_border_width_all(3 if i == index else 2)
+		_arc_btn.disabled = false
+		Sfx.play(&"card_select", -8.0)
+
+func _take_arcanum() -> void:
+	if _arc_pick >= 0:
+		RunState.claim_relic(_arc_offers[_arc_pick])
+		Sfx.play(&"coin", -6.0)
 	_show_map()
 
 # ---------------------------------------------------------------- helpers

@@ -31,7 +31,9 @@ func begin(p_region: RegionData) -> void:
 	deck = DeckLibrary.starter_deck()
 	_shuffle(deck)   # run-start order varies; within the run draws stay deterministic
 	relics = []
-	if region != null and region.starting_arcanum != null:
+	# Starting relic comes from the run-opening DRAFT (run.gd); legacy fallback only when the
+	# region has no pool authored.
+	if region != null and region.starting_pool.is_empty() and region.starting_arcanum != null:
 		relics.append(region.starting_arcanum)
 	step = 0
 	fights_won = 0

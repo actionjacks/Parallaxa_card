@@ -52,9 +52,21 @@ func _deck(id: String, name_key: String, cards: Array) -> void:
 # ---- enemies / arcana / region ----
 
 func _region() -> void:
-	var death := _arcanum("ARCANUM_SMIERCI", A.DEATH, 1.4)
-	death.art = load("res://assets/cards/arcana/13_death.jpg")
-	ResourceSaver.save(death, ARCANA_DIR + "arcanum_death.tres")
+	# Starting pool: one Arcanum per Aspect, each wearing its real RWS card. The run opens with a
+	# draft of 3 random picks from these -- a different build identity every run (Fool's Journey).
+	var pool_specs := [
+		["ARCANUM_SMIERCI", A.DEATH, "13_death", "arcanum_death"],
+		["ARCANUM_SLONCA", A.LIFE, "19_sun", "arcanum_sun"],
+		["ARCANUM_KAPLANKI", A.MIND, "02_high_priestess", "arcanum_priestess"],
+		["ARCANUM_DIABLA", A.CHAOS, "15_devil", "arcanum_devil"],
+		["ARCANUM_CESARZOWEJ", A.NATURE, "03_empress", "arcanum_empress"],
+	]
+	var pool: Array[ArcanumData] = []
+	for s in pool_specs:
+		var arc := _arcanum(s[0], s[1], 1.4)
+		arc.art = load("res://assets/cards/arcana/%s.jpg" % s[2])
+		ResourceSaver.save(arc, ARCANA_DIR + "%s.tres" % s[3])
+		pool.append(load(ARCANA_DIR + "%s.tres" % s[3]))
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
 	tower_arc.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
@@ -81,7 +93,7 @@ func _region() -> void:
 	region.fights = fights
 	region.boss = load(ENEMY_DIR + "boss_tower.tres")
 	region.boss_arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
-	region.starting_arcanum = load(ARCANA_DIR + "arcanum_death.tres")
+	region.starting_pool = pool
 	ResourceSaver.save(region, REGION_DIR + "region_01.tres")
 
 func _arcanum(name_key: String, aspect: int, mult: float) -> ArcanumData:

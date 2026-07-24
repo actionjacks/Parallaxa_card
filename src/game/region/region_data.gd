@@ -8,4 +8,5 @@ extends Resource
 @export var fights: Array[EnemyData] = []
 @export var boss: EnemyData
 @export var boss_arcanum: ArcanumData
-@export var starting_arcanum: ArcanumData
+@export var starting_arcanum: ArcanumData          ## legacy fallback when starting_pool is empty
+@export var starting_pool: Array[ArcanumData] = [] ## run start: draft 1 of 3 random picks from here
