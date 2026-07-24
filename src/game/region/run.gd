@@ -131,12 +131,12 @@ func _show_map() -> void:
 	var ladder := HBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
 	ladder.add_theme_constant_override("separation", 16)
-	var total := RunState.region.fights.size() + 1
+	var total := RunState.fights.size() + 1
 	for i in total:
-		var is_boss := i == RunState.region.fights.size()
+		var is_boss := i == RunState.fights.size()
 		var label := tr("MAP_NODE_BOSS") if is_boss else (tr("MAP_NODE_FIGHT") % (i + 1))
 		var mark := "✓ " if i < RunState.step else ""
-		var enemy: EnemyData = RunState.region.boss if is_boss else RunState.region.fights[i]
+		var enemy: EnemyData = RunState.region.boss if is_boss else RunState.fights[i]
 		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
 		ladder.add_child(chip)
 	root.add_child(ladder)
@@ -167,7 +167,7 @@ func _show_map() -> void:
 
 func _relic_chip(a: ArcanumData) -> Control:
 	var p := _panel(Color(0.11, 0.09, 0.14), Aspects.color(a.effect_aspect))
-	p.tooltip_text = tr(a.name_key) + "\n" + _arcanum_desc(a)
+	p.tooltip_text = tr(a.name_key) + "\n" + a.describe()
 	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
@@ -186,11 +186,6 @@ func _relic_chip(a: ArcanumData) -> Control:
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(l)
 	return p
-
-func _arcanum_desc(a: ArcanumData) -> String:
-	if a.effect == ArcanumData.Effect.MULT_IF_ASPECT:
-		return tr("ARCANUM_DESC_MULT") % [String.num(a.effect_mult, 1), tr(Aspects.name_key(a.effect_aspect))]
-	return ""
 
 func _view_deck() -> void:
 	_open_deck_picker(tr("VIEW_DECK_TITLE"), func(_card: CardData) -> void: pass)
@@ -224,8 +219,8 @@ func _node_chip(text: String, subtitle: String, current: bool, done: bool, is_bo
 # ---------------------------------------------------------------- COMBAT
 
 func _current_enemy() -> EnemyData:
-	if RunState.step < RunState.region.fights.size():
-		return RunState.region.fights[RunState.step]
+	if RunState.step < RunState.fights.size():
+		return RunState.fights[RunState.step]
 	return RunState.region.boss
 
 func _start_encounter() -> void:
@@ -243,7 +238,7 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 	RunState.player_hp = remaining_hp
 	RunState.rtec += _current_enemy().reward_rtec
 	RunState.fights_won += 1
-	if RunState.step >= RunState.region.fights.size():
+	if RunState.step >= RunState.fights.size():
 		RunState.claim_relic(RunState.region.boss_arcanum)
 		_show_complete()
 		return
@@ -646,7 +641,7 @@ func _arcanum_offer_panel(a: ArcanumData) -> PanelContainer:
 	var name_l := _label(tr(a.name_key), 16, Color(0.92, 0.88, 0.95))
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(name_l)
-	var desc_l := _label(_arcanum_desc(a), 13, Aspects.color(a.effect_aspect))
+	var desc_l := _label(a.describe(), 13, Aspects.color(a.effect_aspect))
 	desc_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(desc_l)
 	return p

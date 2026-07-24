@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_ovg2r"]
+
+[resource]
+script = ExtResource("1_ovg2r")
+rank = 13
+aspect = 3
+keyword = 5

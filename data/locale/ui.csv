@@ -282,6 +282,13 @@ REWARD_SKIP,Skip,Pomiń
 VIEW_DECK,Deck,Talia
 VIEW_DECK_TITLE,Your deck,Twoja talia
 ARCANUM_DESC_MULT,x%s Mult on %s cards,x%s Mult na kartach %s
+ARC_FX_MULT,x%s Mult on %s cards,x%s Mult na kartach %s
+ARC_FX_DISCARD,+%d discard every turn,+%d odrzut co turę
+ARC_FX_BLOCK,+%d Block with every play,+%d Bloku przy każdym zagraniu
+ARC_FX_HEAL,+%d HP with every play,+%d HP przy każdym zagraniu
+ARC_FX_PACT,"x%s Mult on every hand, but enemy hits hurt +%d more","x%s Mult na każdym układzie, ale ciosy wroga bolą +%d mocniej"
+ENEMY_WIEDZMA,Ash Witch,Popielna Wiedźma
+ENEMY_GOLEM,Cinder Golem,Żużlowy Golem
 REWARD_HINT,Pick one card to add to your deck.,Wybierz jedną kartę do talii.
 SHOP_TITLE,Shop,Sklep
 SHOP_BUY,Buy (%d ☿),Kup (%d ☿)

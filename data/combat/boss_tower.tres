@@ -7,7 +7,7 @@
 script = ExtResource("2_j3tn1")
 name_key = "ENEMY_WIEZA"
 max_hp = 470
-intents = PackedInt32Array(12, 16, 10)
+intents = PackedInt32Array(13, 17, 11)
 enrage_step = 3
 reward_rtec = 12
 is_boss = true

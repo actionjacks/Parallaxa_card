@@ -6,7 +6,7 @@ extends Node
 signal changed
 
 const START_MAX_HP: int = 55
-const REST_HEAL: int = 18       ## HP recovered after each non-boss fight (a "rest")
+const REST_HEAL: int = 12       ## HP recovered after each non-boss fight (a "rest")
 
 var player_hp: int = START_MAX_HP
 var player_max_hp: int = START_MAX_HP
@@ -16,6 +16,7 @@ var relics: Array = []            ## Array[ArcanumData]
 var region: RegionData
 var step: int = 0                 ## index into the region ladder (0..fights, last = boss)
 var fights_won: int = 0
+var fights: Array = []            ## this run's rolled ladder (Array[EnemyData])
 
 ## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
 ## Seeded fresh per run: reward drafts, shop offers and the run-start deck order differ run to run,
@@ -37,6 +38,16 @@ func begin(p_region: RegionData) -> void:
 		relics.append(region.starting_arcanum)
 	step = 0
 	fights_won = 0
+	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
+	fights = []
+	if region != null:
+		if not region.fight_pool_1.is_empty():
+			fights.append(pick_offers(region.fight_pool_1, 1)[0])
+		if not region.fight_pool_2.is_empty():
+			fights.append(pick_offers(region.fight_pool_2, 1)[0])
+		if fights.is_empty():
+			for f in region.fights:
+				fights.append(f)
 	changed.emit()
 
 ## The relic whose effect combat applies (slice: the first claimed Arcanum).

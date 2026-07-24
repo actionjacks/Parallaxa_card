@@ -92,3 +92,17 @@ dzwieki na hover/przyciskach, ascension/stakes po pierwszym zwyciestwie.
 4. **Podglady wezlow mapy + tooltipy edycji** (WAZNE #6/#7).
 5. **Roznorodnosc talii / balans flusha** (WAZNE #8).
 6. Drobnica.
+
+## PASS 3 — „najlepszy w kategorii": syndrom jeszcze-jednego-runu
+
+Audyt pod najwyzsza poprzeczke wykryl 4 blokery i wszystkie naprawiono:
+1. **Draft bez tozsamosci** — 5 startowych Arkanow robilo TO SAMO (x1.4 na inny Aspekt). Teraz 5
+   ROZNYCH stylow gry: Smierc x1.5 na kolorze / Slonce +3HP za zagranie (sustain) / Kaplanka +1 odrzut
+   (konsystencja) / DIABEL x1.35 zawsze ale ciosy bola +2 (pakt risk-reward) / Cesarzowa +4 Bloku za
+   zagranie (mur). Wybor Arkanum = wybor buildu od 1. minuty. Efekty per-zagranie licza sie w scoringu,
+   wiec podglad NIGDY nie klamie; pakt Diabla dolicza sie przy ciosie wroga (opisane na chipie).
+2. **Ci sami wrogowie co run** — teraz kazdy wezel LOSUJE wroga z puli (Kultysta vs Popielna Wiedzma
+   13/3/13 spike; Cien vs Zuzlowy Golem 16/0/12 burst-po-odpoczynku) — inne rytmy = inne decyzje.
+3. **Pula nagrod 12 kart** — poszerzona do 28 (wszystkie keywordy x aspekty x rangi + czyste karty).
+4. **Za latwo** — rest 18->12, boss 13/17/11: bot (dolna granica) konczy 20-45 HP zamiast 38-55/full.
+Weryfikacja: 3 runy z roznymi wrogami/draftami/omenami/ofertami, testy 14+5 zielone.

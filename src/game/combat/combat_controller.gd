@@ -41,7 +41,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	player_hp = start_hp if start_hp > 0 else player_max_hp
 	player_block = 0
 	enemy_gnicie = 0
-	discards_left = START_DISCARDS
+	discards_left = START_DISCARDS + _bonus_discards()
 	turn = 1
 	_intent_index = 0
 	_plays = 0
@@ -109,6 +109,8 @@ func resolve_enemy_turn() -> void:
 	# The Tower's field-rule ignores block, so defence can't save you against it.
 	var ignores_block: bool = enemy != null and enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK
 	var taken: int = maxi(0, incoming - (0 if ignores_block else player_block))
+	if incoming > 0:
+		taken += _pact_surcharge()   # the Devil's bill: every enemy hit hurts more
 	player_hp -= taken
 	player_block = 0
 	message.emit("LOG_ATTACK", [taken])
@@ -118,9 +120,23 @@ func resolve_enemy_turn() -> void:
 		_finish(false)
 		return
 	turn += 1
-	discards_left = START_DISCARDS
+	discards_left = START_DISCARDS + _bonus_discards()
 	phase = "player"
 	state_changed.emit()
+
+func _bonus_discards() -> int:
+	var n := 0
+	for r in relics:
+		if r != null and r.effect == ArcanumData.Effect.EXTRA_DISCARD:
+			n += r.effect_value
+	return n
+
+func _pact_surcharge() -> int:
+	var n := 0
+	for r in relics:
+		if r != null and r.effect == ArcanumData.Effect.PACT_MULT:
+			n += r.effect_value
+	return n
 
 func _finish(won: bool) -> void:
 	phase = "ended"

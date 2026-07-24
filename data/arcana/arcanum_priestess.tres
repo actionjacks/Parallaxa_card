@@ -6,7 +6,8 @@
 [resource]
 script = ExtResource("2_urqtp")
 name_key = "ARCANUM_KAPLANKI"
-effect = 1
+effect = 2
 effect_aspect = 1
-effect_mult = 1.4
+effect_mult = 1.0
+effect_value = 1
 art = ExtResource("1_oaugx")

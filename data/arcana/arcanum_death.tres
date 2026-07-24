@@ -7,5 +7,4 @@
 script = ExtResource("2_cwu00")
 name_key = "ARCANUM_SMIERCI"
 effect = 1
-effect_mult = 1.4
 art = ExtResource("1_ist3x")

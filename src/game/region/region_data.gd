@@ -5,7 +5,9 @@ extends Resource
 ## Beating the boss grants boss_arcanum (Fool's Journey). starting_arcanum is the run's opening boon.
 
 @export var name_key: String = ""
-@export var fights: Array[EnemyData] = []
+@export var fights: Array[EnemyData] = []          ## legacy fixed ladder (fallback)
+@export var fight_pool_1: Array[EnemyData] = []    ## node 1 candidates -- one is rolled per run
+@export var fight_pool_2: Array[EnemyData] = []    ## node 2 candidates -- one is rolled per run
 @export var boss: EnemyData
 @export var boss_arcanum: ArcanumData
 @export var starting_arcanum: ArcanumData          ## legacy fallback when starting_pool is empty

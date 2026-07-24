@@ -16,6 +16,7 @@ func _initialize() -> void:
 	failures += _check_opatrznosc()
 	failures += _check_editions()
 	failures += _check_two_relics()
+	failures += _check_playstyle_relics()
 	if failures == 0:
 		print("test_scoring: PASS")
 		quit(0)
@@ -135,6 +136,23 @@ func _check_two_relics() -> int:
 	], [_death_arcanum(), _tower_arcanum()])
 	return _expect("two-relics stack", r["hand"] == Poker.Hand.THREE and r["chips"] == 48 \
 		and is_equal_approx(r["mult"], 6.3) and r["damage"] == 302)
+
+# Playstyle relics resolve in scoring (preview-safe): Devil x1.35 always, Empress +4 block,
+# Sun +3 heal. Single 6 of Life: high card 5+6=11 chips.
+func _check_playstyle_relics() -> int:
+	var devil := ArcanumData.new()
+	devil.effect = ArcanumData.Effect.PACT_MULT
+	devil.effect_mult = 1.35
+	devil.effect_value = 2
+	var empress := ArcanumData.new()
+	empress.effect = ArcanumData.Effect.BLOCK_ON_PLAY
+	empress.effect_value = 4
+	var sun := ArcanumData.new()
+	sun.effect = ArcanumData.Effect.HEAL_ON_PLAY
+	sun.effect_value = 3
+	var r: Dictionary = Scoring.score([_c(6, Aspects.Id.LIFE)], [devil, empress, sun])
+	return _expect("playstyle relics (x1.35, +4 block, +3 heal)",
+		is_equal_approx(r["mult"], 1.35) and r["damage"] == 15 and r["block"] == 4 and r["heal"] == 3)
 
 # Editions: Foil +15 chips, Holo +2 mult, Polychrome x1.3 mult. High card of a 5 = 10 chips base.
 func _check_editions() -> int:

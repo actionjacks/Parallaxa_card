@@ -6,7 +6,8 @@
 [resource]
 script = ExtResource("2_2jxdx")
 name_key = "ARCANUM_SLONCA"
-effect = 1
+effect = 4
 effect_aspect = 0
-effect_mult = 1.4
+effect_mult = 1.0
+effect_value = 3
 art = ExtResource("1_gl4qj")

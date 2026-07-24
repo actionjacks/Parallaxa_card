@@ -54,13 +54,22 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	if has_furia and block == 0:
 		mult *= 1.5
 
-	# Relics: each MULT_IF_ASPECT relic multiplies when the hand contains its aspect (they stack).
+	# Relics stack; every per-play effect resolves HERE so the preview shows the exact outcome.
 	for relic in relics:
-		if relic != null and relic.effect == ArcanumData.Effect.MULT_IF_ASPECT:
-			for c in cards:
-				if c.aspect == relic.effect_aspect:
-					mult *= relic.effect_mult
-					break
+		if relic == null:
+			continue
+		match relic.effect:
+			ArcanumData.Effect.MULT_IF_ASPECT:
+				for c in cards:
+					if c.aspect == relic.effect_aspect:
+						mult *= relic.effect_mult
+						break
+			ArcanumData.Effect.PACT_MULT:
+				mult *= relic.effect_mult   # the Devil always pays out; the bill arrives on the enemy's turn
+			ArcanumData.Effect.BLOCK_ON_PLAY:
+				block += relic.effect_value
+			ArcanumData.Effect.HEAL_ON_PLAY:
+				heal += relic.effect_value
 
 	mult *= poly
 

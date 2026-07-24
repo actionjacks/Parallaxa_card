@@ -52,21 +52,27 @@ func _deck(id: String, name_key: String, cards: Array) -> void:
 # ---- enemies / arcana / region ----
 
 func _region() -> void:
-	# Starting pool: one Arcanum per Aspect, each wearing its real RWS card. The run opens with a
-	# draft of 3 random picks from these -- a different build identity every run (Fool's Journey).
+	# Starting pool: 5 DISTINCT playstyles, each wearing its real RWS card (Fool's Journey draft).
+	# [name_key, effect, aspect, mult, value, art, file]
+	var E := ArcanumData.Effect
 	var pool_specs := [
-		["ARCANUM_SMIERCI", A.DEATH, "13_death", "arcanum_death"],
-		["ARCANUM_SLONCA", A.LIFE, "19_sun", "arcanum_sun"],
-		["ARCANUM_KAPLANKI", A.MIND, "02_high_priestess", "arcanum_priestess"],
-		["ARCANUM_DIABLA", A.CHAOS, "15_devil", "arcanum_devil"],
-		["ARCANUM_CESARZOWEJ", A.NATURE, "03_empress", "arcanum_empress"],
+		["ARCANUM_SMIERCI", E.MULT_IF_ASPECT, A.DEATH, 1.5, 0, "13_death", "arcanum_death"],
+		["ARCANUM_SLONCA", E.HEAL_ON_PLAY, A.LIFE, 1.0, 3, "19_sun", "arcanum_sun"],
+		["ARCANUM_KAPLANKI", E.EXTRA_DISCARD, A.MIND, 1.0, 1, "02_high_priestess", "arcanum_priestess"],
+		["ARCANUM_DIABLA", E.PACT_MULT, A.CHAOS, 1.35, 2, "15_devil", "arcanum_devil"],
+		["ARCANUM_CESARZOWEJ", E.BLOCK_ON_PLAY, A.NATURE, 1.0, 4, "03_empress", "arcanum_empress"],
 	]
 	var pool: Array[ArcanumData] = []
 	for s in pool_specs:
-		var arc := _arcanum(s[0], s[1], 1.4)
-		arc.art = load("res://assets/cards/arcana/%s.jpg" % s[2])
-		ResourceSaver.save(arc, ARCANA_DIR + "%s.tres" % s[3])
-		pool.append(load(ARCANA_DIR + "%s.tres" % s[3]))
+		var arc := ArcanumData.new()
+		arc.name_key = s[0]
+		arc.effect = s[1]
+		arc.effect_aspect = s[2]
+		arc.effect_mult = s[3]
+		arc.effect_value = s[4]
+		arc.art = load("res://assets/cards/arcana/%s.jpg" % s[5])
+		ResourceSaver.save(arc, ARCANA_DIR + "%s.tres" % s[6])
+		pool.append(load(ARCANA_DIR + "%s.tres" % s[6]))
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
 	tower_arc.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
@@ -77,11 +83,17 @@ func _region() -> void:
 	# singletons, and the Death Arcanum makes that flush dominant. HP is tuned so fights end in ~2 turns
 	# (enemy survives the opener, so intents/attacks are seen) without a long grind. Real tuning is a
 	# gameplay pass -- likely: reward sustained plays, tone down the flush, or add rest/heal between fights.
+	# Node pools: each map slot rolls one of two enemies with a DIFFERENT attack rhythm, so the
+	# fights themselves vary run to run (steady vs spiky vs burst-with-rest patterns).
 	var a := _enemy("ENEMY_KULTYSTA", 340, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "", 2)
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
+	var a2 := _enemy("ENEMY_WIEDZMA", 310, [13, 3, 13], 5, false, EnemyData.Rule.NONE, "", 2)
+	ResourceSaver.save(a2, ENEMY_DIR + "enemy_a2.tres")
 	var b := _enemy("ENEMY_CIEN", 400, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "", 2)
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var boss := _enemy("ENEMY_WIEZA", 470, [12, 16, 10], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
+	var b2 := _enemy("ENEMY_GOLEM", 450, [16, 0, 12], 6, false, EnemyData.Rule.NONE, "", 3)
+	ResourceSaver.save(b2, ENEMY_DIR + "enemy_b2.tres")
+	var boss := _enemy("ENEMY_WIEZA", 470, [13, 17, 11], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
 	boss.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
@@ -91,6 +103,14 @@ func _region() -> void:
 	fights.append(load(ENEMY_DIR + "enemy_a.tres"))
 	fights.append(load(ENEMY_DIR + "enemy_b.tres"))
 	region.fights = fights
+	var p1: Array[EnemyData] = []
+	p1.append(load(ENEMY_DIR + "enemy_a.tres"))
+	p1.append(load(ENEMY_DIR + "enemy_a2.tres"))
+	region.fight_pool_1 = p1
+	var p2: Array[EnemyData] = []
+	p2.append(load(ENEMY_DIR + "enemy_b.tres"))
+	p2.append(load(ENEMY_DIR + "enemy_b2.tres"))
+	region.fight_pool_2 = p2
 	region.boss = load(ENEMY_DIR + "boss_tower.tres")
 	region.boss_arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
 	region.starting_pool = pool
@@ -132,11 +152,18 @@ func _starter() -> Array:
 		[8, A.NATURE, KW.BUJNOSC, 20], [6, A.NATURE, KW.NONE, 0],
 	]
 
+## 28-card reward/shop pool: every keyword across aspects and ranks (incl. courts) plus plain
+## cards for pair/straight fishing -- wide enough that consecutive runs see different offers.
 func _pool() -> Array:
-	# Interleaved by Aspect so any 3 consecutive offers show variety, not three of one colour.
 	return [
 		[10, A.DEATH, KW.ZNIWO, 1], [6, A.CHAOS, KW.SPALENIE, 8], [5, A.LIFE, KW.OSLONA, 7],
 		[11, A.MIND, KW.ECHO, 6], [7, A.NATURE, KW.BUJNOSC, 25], [8, A.DEATH, KW.GNICIE, 4],
 		[10, A.CHAOS, KW.FURIA, 0], [9, A.LIFE, KW.OPATRZNOSC, 6], [13, A.MIND, KW.ECHO, 8],
 		[10, A.NATURE, KW.BUJNOSC, 30], [13, A.DEATH, KW.ZNIWO, 2], [6, A.CHAOS, KW.SPALENIE, 10],
+		[11, A.DEATH, KW.GNICIE, 3], [13, A.CHAOS, KW.FURIA, 0], [12, A.LIFE, KW.OSLONA, 9],
+		[8, A.MIND, KW.ECHO, 5], [13, A.NATURE, KW.BUJNOSC, 35], [12, A.DEATH, KW.GNICIE, 5],
+		[8, A.CHAOS, KW.SPALENIE, 12], [10, A.LIFE, KW.OPATRZNOSC, 8], [14, A.MIND, KW.ECHO, 10],
+		[14, A.NATURE, KW.BUJNOSC, 40], [5, A.DEATH, KW.NONE, 0], [3, A.CHAOS, KW.NONE, 0],
+		[4, A.LIFE, KW.NONE, 0], [6, A.MIND, KW.NONE, 0], [9, A.NATURE, KW.NONE, 0],
+		[4, A.DEATH, KW.ZNIWO, 1],
 	]

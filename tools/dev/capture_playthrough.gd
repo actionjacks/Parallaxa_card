@@ -193,6 +193,10 @@ func _go() -> void:
 	for i in mini(5, rs.deck.size()):
 		top.append("%s-%d" % [str(rs.deck[i].aspect), rs.deck[i].rank])
 	print("[pt2] deck top5: ", " ".join(top))
+	var foes: Array = []
+	for f in rs.fights:
+		foes.append(tr(f.name_key))
+	print("[pt2] rolled foes: ", " | ".join(foes))
 	await _pass_arcanum_draft()
 	await _shoot("01_map")
 
