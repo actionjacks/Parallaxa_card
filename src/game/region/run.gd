@@ -11,12 +11,17 @@ const JOURNEY: Array[String] = [
 	"res://data/regions/region_04.tres",
 ]
 const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
-const BUY_COST := 4
+const BUY_COST := 5
 const THIN_COST := 3
 const ENCHANT_COST := 5
+const STAR_COST := 7
+## Hands a Star can level (the reachable ones).
+const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THREE,
+	Poker.Hand.STRAIGHT, Poker.Hand.FLUSH, Poker.Hand.FULL_HOUSE, Poker.Hand.FOUR]
 
 var _shop_offers: Array = []
 var _shop_reroll_cost: int = 1
+var _shop_star: int = -1          ## Poker.Hand this visit's Star levels; -1 = sold/none
 
 var _stage: Control
 var _statusbar: PanelContainer
@@ -235,7 +240,7 @@ func _start_encounter() -> void:
 	_statusbar.visible = false
 	var combat: Node = load(COMBAT_SCENE).instantiate()
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
-		RunState.player_hp, RunState.player_max_hp)
+		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels)
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
@@ -246,8 +251,8 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 	RunState.player_hp = remaining_hp
 	RunState.rtec += _current_enemy().reward_rtec
 	# Economy legs from the design: thrift (1 per unused discard) then interest (1 per 5 held, cap 5).
-	_last_thrift = unused_discards
-	RunState.rtec += unused_discards
+	_last_thrift = mini(unused_discards, 2)   # thrift capped: hoarding discards must not print money
+	RunState.rtec += _last_thrift
 	_last_interest = mini(RunState.rtec / 5, 5)
 	RunState.rtec += _last_interest
 	RunState.fights_won += 1
@@ -261,6 +266,7 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 		_show_reward()
 	else:
 		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
+		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost = 1
 		_show_shop()
 
@@ -375,6 +381,22 @@ func _show_shop() -> void:
 		ench.add_child(eb)
 	root.add_child(ench)
 
+	# --- Star: level a poker hand up for the rest of the run (the growth engine) ---
+	if _shop_star >= 0:
+		var lv := int(RunState.hand_levels.get(_shop_star, 0))
+		var up: Array = Poker.LEVEL_UP[_shop_star]
+		var srow := HBoxContainer.new()
+		srow.alignment = BoxContainer.ALIGNMENT_CENTER
+		srow.add_theme_constant_override("separation", 10)
+		var slabel := _label(tr("SHOP_STAR") % [tr(Poker.name_key(_shop_star)), lv + 1, lv + 2], 15, Color(0.95, 0.9, 0.6))
+		srow.add_child(slabel)
+		var sdesc := _label("(+%d chips, +%d Mult)" % [int(up[0]), int(up[1])], 13, Color(0.7, 0.72, 0.6))
+		srow.add_child(sdesc)
+		var sbuy := _button(tr("SHOP_STAR_BUY") % STAR_COST, _buy_star)
+		sbuy.disabled = RunState.rtec < STAR_COST
+		srow.add_child(sbuy)
+		root.add_child(srow)
+
 	root.add_child(_hint(tr("SHOP_HINT")))
 
 	# --- controls ---
@@ -416,9 +438,17 @@ func _enchant(edition: int) -> void:
 		_show_shop()
 	_open_deck_picker(tr("PICK_ENCHANT"), cb)
 
+func _buy_star() -> void:
+	if _shop_star >= 0 and RunState.spend(STAR_COST):
+		RunState.level_up_hand(_shop_star)
+		Sfx.play(&"coin", -4.0, 1.2)
+		_shop_star = -1   # one Star per visit
+		_show_shop()
+
 func _reroll_shop() -> void:
 	if RunState.spend(_shop_reroll_cost):
 		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)   # the slot-machine pull
+		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost += 1
 		_show_shop()
 

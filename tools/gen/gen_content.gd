@@ -149,18 +149,18 @@ func _region() -> void:
 		"boss_devil", "arcanum_devil_boss")
 
 	# ---- Region III "Szczyt": harder foes, boss MOON (rot-cleanse rule) ----
-	_save_enemy("enemy_r3a", "ENEMY_STRAZNIK", 650, [15, 17, 11], 9, 4)
-	_save_enemy("enemy_r3a2", "ENEMY_WIDMO", 620, [21, 7, 21], 9, 4)
-	_save_enemy("enemy_r3b", "ENEMY_TYTAN", 730, [17, 17, 17], 9, 4)
-	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 690, [23, 0, 19], 9, 5)
-	var moon := _enemy("ENEMY_KSIEZYC", 780, [16, 20, 14], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 4)
+	_save_enemy("enemy_r3a", "ENEMY_STRAZNIK", 720, [16, 18, 12], 9, 4)
+	_save_enemy("enemy_r3a2", "ENEMY_WIDMO", 690, [22, 8, 22], 9, 4)
+	_save_enemy("enemy_r3b", "ENEMY_TYTAN", 800, [18, 18, 18], 9, 4)
+	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 760, [24, 0, 20], 9, 5)
+	var moon := _enemy("ENEMY_KSIEZYC", 860, [18, 22, 15], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 4)
 	moon.art = load("res://assets/cards/arcana/18_moon.jpg")
 	ResourceSaver.save(moon, ENEMY_DIR + "boss_moon.tres")
 	_save_region("region_03", "REGION_03", ["enemy_r3a", "enemy_r3a2"], ["enemy_r3b", "enemy_r3b2"],
 		"boss_moon", "arcanum_moon")
 
 	# ---- Region IV "Swiat": the finale -- a single duel against THE WORLD (all rules at once) ----
-	var world := _enemy("ENEMY_SWIAT", 950, [20, 24, 16], 20, true, EnemyData.Rule.WORLD_ALL, "RULE_WORLD", 4)
+	var world := _enemy("ENEMY_SWIAT", 1500, [24, 28, 20], 20, true, EnemyData.Rule.WORLD_ALL, "RULE_WORLD", 5)
 	world.art = load("res://assets/cards/arcana/21_world.jpg")
 	ResourceSaver.save(world, ENEMY_DIR + "boss_world.tres")
 	_save_region("region_04", "REGION_04", [], [], "boss_world", "arcanum_world")
@@ -234,4 +234,8 @@ func _pool() -> Array:
 		[14, A.NATURE, KW.BUJNOSC, 40], [5, A.DEATH, KW.NONE, 0], [3, A.CHAOS, KW.NONE, 0],
 		[4, A.LIFE, KW.NONE, 0], [6, A.MIND, KW.NONE, 0], [9, A.NATURE, KW.NONE, 0],
 		[4, A.DEATH, KW.ZNIWO, 1],
+		# wave 2: ramp / ally-synergy / leech / curse archetypes
+		[6, A.NATURE, KW.WZROST, 2], [12, A.NATURE, KW.WZROST, 3], [9, A.NATURE, KW.SYMBIOZA, 5],
+		[5, A.NATURE, KW.SYMBIOZA, 4], [7, A.DEATH, KW.PIJAWKA, 15], [13, A.DEATH, KW.PIJAWKA, 20],
+		[10, A.DEATH, KW.KLATWA, 10], [6, A.DEATH, KW.KLATWA, 8],
 	]

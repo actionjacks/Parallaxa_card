@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_wu288")
 name_key = "ENEMY_HERALD"
-max_hp = 690
-intents = PackedInt32Array(23, 0, 19)
+max_hp = 760
+intents = PackedInt32Array(24, 0, 20)
 enrage_step = 5
 reward_rtec = 9

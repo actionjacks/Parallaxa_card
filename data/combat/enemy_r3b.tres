@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_xdqfg")
 name_key = "ENEMY_TYTAN"
-max_hp = 730
-intents = PackedInt32Array(17, 17, 17)
+max_hp = 800
+intents = PackedInt32Array(18, 18, 18)
 enrage_step = 4
 reward_rtec = 9

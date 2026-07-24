@@ -6,9 +6,11 @@ class_name Scoring
 static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictionary:
 	var grave: int = int(ctx.get("grave", 0))
 	var plays: int = int(ctx.get("plays", 0))
+	var levels: Dictionary = ctx.get("hand_levels", {})
+	var klatwa: int = int(ctx.get("klatwa", 0))   # stacked Curse on the enemy: +% damage taken
 
 	var hand: int = Poker.evaluate(cards)
-	var base: Array = Poker.BASE[hand]
+	var base: Array = Poker.leveled_base(hand, int(levels.get(hand, 0)))
 	var chips: int = int(base[0])
 	var mult: float = float(base[1])
 	var block: int = 0
@@ -47,6 +49,12 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 			CardData.Keyword.BUJNOSC:
 				if int(aspect_counts[c.aspect]) >= 3:
 					chips += c.keyword_value
+			CardData.Keyword.SYMBIOZA:
+				# +value chips per allied-colour card played alongside (pentagram neighbours)
+				var pals: Array = Aspects.allies(c.aspect)
+				for other in cards:
+					if other != c and pals.has(other.aspect):
+						chips += c.keyword_value
 			CardData.Keyword.FURIA:
 				has_furia = true
 
@@ -73,13 +81,27 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 
 	mult *= poly
 
+	# Curse multiplies the SCORED damage (Spalenie stays flat, outside the engine); this play's
+	# own Klatwa cards stack the debuff for FUTURE plays (returned, applied by the controller).
+	var damage: int = int(round(chips * mult * (1.0 + klatwa / 100.0))) + flat
+	var klatwa_add: int = 0
+	var leech: int = 0
+	for c in cards:
+		if c.keyword == CardData.Keyword.KLATWA:
+			klatwa_add += c.keyword_value
+		elif c.keyword == CardData.Keyword.PIJAWKA:
+			leech += c.keyword_value
+	if leech > 0:
+		heal += int(damage * leech / 100.0)
+
 	return {
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,
-		"damage": int(round(chips * mult)) + flat,
+		"damage": damage,
 		"block": block,
 		"heal": heal,
 		"gnicie": gnicie,
 		"flat": flat,
+		"klatwa_add": klatwa_add,
 	}

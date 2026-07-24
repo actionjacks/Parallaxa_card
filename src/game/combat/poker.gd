@@ -31,6 +31,26 @@ const NAME_KEYS: Dictionary = {
 	Hand.FIVE: "HAND_FIVE",
 }
 
+## Per-level base gains for each hand ("Star" consumables level hands up, Balatro-Planet style).
+const LEVEL_UP: Dictionary = {
+	Hand.HIGH_CARD: [10, 1],
+	Hand.PAIR: [15, 1],
+	Hand.TWO_PAIR: [20, 1],
+	Hand.THREE: [20, 2],
+	Hand.STRAIGHT: [30, 3],
+	Hand.FLUSH: [15, 2],
+	Hand.FULL_HOUSE: [25, 2],
+	Hand.FOUR: [30, 3],
+	Hand.STRAIGHT_FLUSH: [40, 4],
+	Hand.FIVE: [50, 3],
+}
+
+## Base [chips, mult] for a hand at the given level (level 0 = the BASE table).
+static func leveled_base(hand: int, level: int) -> Array:
+	var base: Array = BASE[hand]
+	var up: Array = LEVEL_UP[hand]
+	return [int(base[0]) + level * int(up[0]), float(base[1]) + level * float(up[1])]
+
 static func name_key(hand: int) -> String:
 	return NAME_KEYS.get(hand, "")
 

@@ -210,6 +210,10 @@ KW_ZNIWO,Harvest,Żniwo
 KW_SPALENIE,Scorch,Spalenie
 KW_ECHO,Echo,Echo
 KW_BUJNOSC,Bloom,Bujność
+KW_WZROST,Growth,Wzrost
+KW_SYMBIOZA,Symbiosis,Symbioza
+KW_PIJAWKA,Leech,Pijawka
+KW_KLATWA,Curse,Klątwa
 DECK_STARTER,Starter deck,Talia startowa
 DECK_REWARD_POOL,Reward pool,Pula nagród
 HAND_HIGH_CARD,High Card,Wysoka karta
@@ -353,3 +357,10 @@ KWD_FURIA,x1.5 Mult if you add no block this play.,x1.5 Mult jeśli nie dodasz b
 KWD_SPALENIE,Flat damage on top of the score.,Obrażenia wprost ponad wynik.
 KWD_ECHO,+Chips for each play made this fight.,+Chips za każde zagranie w tej walce.
 KWD_BUJNOSC,Bonus Chips when 3+ cards share an Aspect.,Bonus Chips gdy 3+ karty jednej barwy.
+KWD_WZROST,Gains +X chips each turn it waits in hand (keeps it for the run).,Zyskuje +X chipsów co turę w ręce (zostaje na cały run).
+KWD_SYMBIOZA,+X chips for every allied-colour card in the play.,+X chipsów za każdą kartę sojuszniczej barwy w zagraniu.
+KWD_PIJAWKA,Heals you for X% of the damage dealt.,Leczy Cię o X% zadanych obrażeń.
+KWD_KLATWA,The enemy takes +X% damage from your NEXT plays (stacks).,Wróg dostaje +X% obrażeń z KOLEJNYCH zagrań (kumuluje się).
+COMBAT_KLATWA,Curse +%d%%,Klątwa +%d%%
+SHOP_STAR,Star: %s Lv%d → Lv%d,Gwiazda: %s Lv%d → Lv%d
+SHOP_STAR_BUY,Level up (%d ☿),Podnieś (%d ☿)

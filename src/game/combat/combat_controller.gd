@@ -13,6 +13,8 @@ const START_DISCARDS: int = 3
 const PLAYER_MAX_HP: int = 50
 
 var relics: Array = []          ## Array[ArcanumData] applied to every play
+var hand_levels: Dictionary = {}   ## Poker.Hand -> level (Star consumables)
+var enemy_klatwa: int = 0          ## stacked Curse: +% damage the enemy takes from scored plays
 var enemy: EnemyData
 var hand: Array = []              ## Array[CardData] currently in hand
 var player_hp: int = PLAYER_MAX_HP
@@ -30,12 +32,14 @@ var _used: Array = []
 var _intent_index: int = 0
 var _plays: int = 0
 
-func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}) -> void:
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
 	enemy = p_enemy
 	relics = p_relics
+	hand_levels = p_levels
+	enemy_klatwa = 0
 	enemy_hp = enemy.max_hp
 	player_max_hp = max_hp if max_hp > 0 else PLAYER_MAX_HP
 	player_hp = start_hp if start_hp > 0 else player_max_hp
@@ -68,6 +72,7 @@ func play(selected: Array) -> void:
 	last_score = result
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
+	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
 	enemy_hp -= int(result["damage"])
 	if int(result["heal"]) > 0:
 		player_hp = mini(player_max_hp, player_hp + int(result["heal"]))
@@ -132,6 +137,9 @@ func resolve_enemy_turn() -> void:
 		return
 	turn += 1
 	discards_left = START_DISCARDS + _bonus_discards()
+	for c in hand:   # WZROST ramps while the card waits in hand (run-local, preview-exact)
+		if c.keyword == CardData.Keyword.WZROST:
+			c.growth += c.keyword_value
 	phase = "player"
 	state_changed.emit()
 
@@ -165,7 +173,7 @@ func _finish(won: bool) -> void:
 	ended.emit(won)
 
 func _ctx() -> Dictionary:
-	return {"grave": _used.size(), "plays": _plays}
+	return {"grave": _used.size(), "plays": _plays, "hand_levels": hand_levels, "klatwa": enemy_klatwa}
 
 func draw_count() -> int:
 	return _draw.size()

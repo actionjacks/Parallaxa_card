@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_nulp3")
 name_key = "ENEMY_WIDMO"
-max_hp = 620
-intents = PackedInt32Array(21, 7, 21)
+max_hp = 690
+intents = PackedInt32Array(22, 8, 22)
 enrage_step = 4
 reward_rtec = 9

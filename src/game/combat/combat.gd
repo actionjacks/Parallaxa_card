@@ -11,6 +11,8 @@ const DEF_ARCANUM_PATH := "res://data/arcana/arcanum_death.tres"
 var standalone: bool = true
 var _start_hp: int = -1
 var _max_hp: int = -1
+var _levels: Dictionary = {}
+var _prev_klatwa: int = 0
 
 var controller: CombatController
 var _deck: Array = []
@@ -27,6 +29,7 @@ var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
 var _intent_label: Label
 var _gnicie_label: Label
+var _klatwa_label: Label
 var _relic_row: HBoxContainer
 var _enemy_emblem: Panel
 var _emblem_glyph: Label
@@ -55,13 +58,14 @@ var _preview_node: Control = null
 var _prev_intent: int = -999
 var _prev_gnicie: int = 0
 
-func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
 	_relics = p_relics
 	_start_hp = start_hp
 	_max_hp = max_hp
+	_levels = p_levels
 
 func _ready() -> void:
 	if standalone:
@@ -75,7 +79,7 @@ func _ready() -> void:
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
-	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels)
 
 # ---------------------------------------------------------------- UI construction
 
@@ -115,6 +119,8 @@ func _build_ui() -> void:
 	ehp.add_child(_enemy_hp_label)
 	_gnicie_label = _label("", 14, Aspects.color(Aspects.Id.DEATH))
 	ev.add_child(_gnicie_label)
+	_klatwa_label = _label("", 14, Color(0.85, 0.55, 0.95))
+	ev.add_child(_klatwa_label)
 	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
 	ev.add_child(_rule_label)
 
@@ -168,9 +174,17 @@ func _build_ui() -> void:
 	root.add_child(_hand_row)
 
 	# --- controls ---
+	# FIXED overlay, not part of the flow: the middle column keeps growing (boss art, breakdown,
+	# Curse lines) and has TWICE pushed these buttons past 720p -- softlocking the fight. Anchored
+	# to the bottom edge they can never be pushed off-screen again.
 	var crow := HBoxContainer.new()
 	crow.add_theme_constant_override("separation", 10)
-	root.add_child(crow)
+	crow.anchor_top = 1.0
+	crow.anchor_bottom = 1.0
+	crow.offset_top = -34
+	crow.offset_bottom = -6
+	crow.offset_left = 24
+	add_child(crow)
 	_play_btn = Button.new()
 	_play_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_play_btn.pressed.connect(_on_play)
@@ -243,6 +257,10 @@ func _render() -> void:
 	if controller.enemy_gnicie > _prev_gnicie:
 		_pulse(_gnicie_label)
 	_prev_gnicie = controller.enemy_gnicie
+	_klatwa_label.text = (tr("COMBAT_KLATWA") % controller.enemy_klatwa) if controller.enemy_klatwa > 0 else ""
+	if controller.enemy_klatwa > _prev_klatwa:
+		_pulse(_klatwa_label)
+	_prev_klatwa = controller.enemy_klatwa
 	for ch in _relic_row.get_children():
 		ch.queue_free()
 	for a in _relics:
@@ -365,8 +383,12 @@ func _update_selection_ui() -> void:
 		_breakdown_label.text = ""
 		return
 	var r := controller.preview(_selected_indices())
+	var hand_name := tr(Poker.name_key(int(r["hand"])))
+	var lv := int(_levels.get(int(r["hand"]), 0))
+	if lv > 0:
+		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
-		tr(Poker.name_key(int(r["hand"]))), int(r["chips"]), float(r["mult"]), int(r["damage"]),
+		hand_name, int(r["chips"]), float(r["mult"]), int(r["damage"]),
 	]
 	var parts: Array = []
 	if int(r["block"]) > 0:
@@ -378,9 +400,13 @@ func _update_selection_ui() -> void:
 	_preview_extra.text = "    ".join(parts)
 	_breakdown_label.text = _mult_breakdown(int(r["hand"]), int(r["block"]))
 
-## Human-readable "why is the mult that value": base hand x + each relic / Furia / Polychrome factor.
+## Human-readable "why is the mult that value": leveled hand base + relic / Furia / Curse factors.
 func _mult_breakdown(hand: int, block: int) -> String:
-	var mods: Array = ["%s x%d" % [tr(Poker.name_key(hand)), int(Poker.BASE[hand][1])]]
+	var lv := int(_levels.get(hand, 0))
+	var base_mult := float(Poker.leveled_base(hand, lv)[1])
+	var mods: Array = ["%s x%s" % [tr(Poker.name_key(hand)), String.num(base_mult, 1)]]
+	if controller.enemy_klatwa > 0:
+		mods.append("%s +%d%%" % [tr("KW_KLATWA"), controller.enemy_klatwa])
 	var aspects := {}
 	var has_furia := false
 	var polys := 0

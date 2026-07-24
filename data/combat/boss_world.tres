@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("2_65qfc")
 name_key = "ENEMY_SWIAT"
-max_hp = 950
-intents = PackedInt32Array(20, 24, 16)
-enrage_step = 4
+max_hp = 1500
+intents = PackedInt32Array(24, 28, 20)
+enrage_step = 5
 reward_rtec = 20
 is_boss = true
 rule = 4

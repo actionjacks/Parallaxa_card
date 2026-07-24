@@ -17,6 +17,8 @@ func _initialize() -> void:
 	failures += _check_editions()
 	failures += _check_two_relics()
 	failures += _check_playstyle_relics()
+	failures += _check_hand_levels()
+	failures += _check_wave2_keywords()
 	if failures == 0:
 		print("test_scoring: PASS")
 		quit(0)
@@ -153,6 +155,36 @@ func _check_playstyle_relics() -> int:
 	var r: Dictionary = Scoring.score([_c(6, Aspects.Id.LIFE)], [devil, empress, sun])
 	return _expect("playstyle relics (x1.35, +4 block, +3 heal)",
 		is_equal_approx(r["mult"], 1.35) and r["damage"] == 15 and r["block"] == 4 and r["heal"] == 3)
+
+# Star levels: Pair at level 2 = base 10+2*15=40 chips, mult 2+2*1=4. Two 7s -> 54 x 4 = 216.
+func _check_hand_levels() -> int:
+	var r: Dictionary = Scoring.score([_c(7, Aspects.Id.DEATH), _c(7, Aspects.Id.DEATH)], [],
+		{"hand_levels": {Poker.Hand.PAIR: 2}})
+	return _expect("pair Lv3 216", r["chips"] == 54 and is_equal_approx(r["mult"], 4.0) and r["damage"] == 216)
+
+# Wave 2: Symbioza (+5 per allied card: NATURE allies LIFE+CHAOS -> 2 allies = +10),
+# Klatwa ctx (+50% on scored damage) and klatwa_add returned, Pijawka (20% leech), Wzrost (growth in chips).
+func _check_wave2_keywords() -> int:
+	var fails := 0
+	# Symbioza: NATURE 6 + LIFE 4 + CHAOS 3 -> high card of... ranks differ: 6,4,3 = HIGH_CARD base 5.
+	# chips = 5 + 6+4+3 + 10 = 28, mult 1 -> 28.
+	var r1: Dictionary = Scoring.score([
+		_c(6, Aspects.Id.NATURE, CardData.Keyword.SYMBIOZA, 5),
+		_c(4, Aspects.Id.LIFE), _c(3, Aspects.Id.CHAOS),
+	], [])
+	fails += _expect("symbioza 28", r1["chips"] == 28 and r1["damage"] == 28)
+	# Klatwa in ctx: single 6 -> 11 chips x1 = 11; +50% -> 17 (round 16.5). Card adds klatwa_add 8.
+	var r2: Dictionary = Scoring.score([_c(6, Aspects.Id.DEATH, CardData.Keyword.KLATWA, 8)], [], {"klatwa": 50})
+	fails += _expect("klatwa ctx 17/add8", r2["damage"] == 17 and r2["klatwa_add"] == 8)
+	# Pijawka: single 10 -> 15 chips x1 = 15 dmg; 20% leech -> heal 3.
+	var r3: Dictionary = Scoring.score([_c(10, Aspects.Id.DEATH, CardData.Keyword.PIJAWKA, 20)], [])
+	fails += _expect("pijawka heal3", r3["heal"] == 3 and r3["damage"] == 15)
+	# Wzrost: growth feeds chip_value: card rank 5 with growth 4 -> 5+4+5(base high) = 14 dmg.
+	var g := _c(5, Aspects.Id.NATURE, CardData.Keyword.WZROST, 2)
+	g.growth = 4
+	var r4: Dictionary = Scoring.score([g], [])
+	fails += _expect("wzrost chips 14", r4["damage"] == 14)
+	return fails
 
 # Editions: Foil +15 chips, Holo +2 mult, Polychrome x1.3 mult. High card of a 5 = 10 chips base.
 func _check_editions() -> int:

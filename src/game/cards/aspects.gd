@@ -20,6 +20,10 @@ const NAME_KEYS: Dictionary = {
 	Id.NATURE: "ASPECT_NATURE",
 }
 
+## Pentagram allies: neighbours on the WUBRG wheel (enum order IS the wheel order).
+static func allies(id: int) -> Array:
+	return [(id + 1) % 5, (id + 4) % 5]
+
 static func color(id: int) -> Color:
 	return COLORS.get(id, Color.WHITE)
 

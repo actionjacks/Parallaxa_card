@@ -8,7 +8,10 @@ extends Resource
 ## LIFE: Oslona (block), Opatrznosc (heal). MIND: Echo (chips per play this fight).
 ## DEATH: Gnicie (rot DoT), Zniwo (mult per card in grave). CHAOS: Furia (x1.5 mult if no block),
 ## Spalenie (flat direct damage). NATURE: Bujnosc (bonus chips if >=3 cards of one aspect).
-enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC }
+## Wave 2 appended at the END (saved .tres store enum ints): NATURE Wzrost (grows each turn in hand)
+## / Symbioza (chips per allied-colour card in the play); DEATH Pijawka (leech % of damage) /
+## Klatwa (stacking +% damage debuff on the enemy).
+enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA }
 
 ## Shop editions (bought with Rtec): Foil +chips, Holo +mult, Polychrome xmult.
 enum Edition { NONE, FOIL, HOLO, POLYCHROME }
@@ -19,13 +22,18 @@ enum Edition { NONE, FOIL, HOLO, POLYCHROME }
 @export var keyword_value: int = 0         ## magnitude for Gnicie X / Oslona X
 @export var edition: Edition = Edition.NONE
 
+## Runtime ramp from the WZROST keyword: accumulated bonus chips. Not exported on purpose --
+## a run-local state that resets when the card is duplicated into a new run.
+var growth: int = 0
+
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
+	var base := rank
 	if rank == 1:
-		return 11
-	if rank >= 11:
-		return 10
-	return rank
+		base = 11
+	elif rank >= 11:
+		base = 10
+	return base + growth
 
 ## Short rank glyph for the card face (language-neutral card notation).
 func rank_glyph() -> String:
@@ -47,6 +55,10 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.SPALENIE: return "KW_SPALENIE"
 		Keyword.ECHO: return "KW_ECHO"
 		Keyword.BUJNOSC: return "KW_BUJNOSC"
+		Keyword.WZROST: return "KW_WZROST"
+		Keyword.SYMBIOZA: return "KW_SYMBIOZA"
+		Keyword.PIJAWKA: return "KW_PIJAWKA"
+		Keyword.KLATWA: return "KW_KLATWA"
 	return ""
 
 static func edition_name_key(e: int) -> String:
@@ -66,6 +78,10 @@ static func keyword_desc_key(kw: int) -> String:
 		Keyword.SPALENIE: return "KWD_SPALENIE"
 		Keyword.ECHO: return "KWD_ECHO"
 		Keyword.BUJNOSC: return "KWD_BUJNOSC"
+		Keyword.WZROST: return "KWD_WZROST"
+		Keyword.SYMBIOZA: return "KWD_SYMBIOZA"
+		Keyword.PIJAWKA: return "KWD_PIJAWKA"
+		Keyword.KLATWA: return "KWD_KLATWA"
 	return ""
 
 ## Aspect that a keyword thematically belongs to (for generated content / tinting).
@@ -75,5 +91,6 @@ static func keyword_aspect(kw: int) -> int:
 		Keyword.ECHO: return Aspects.Id.MIND
 		Keyword.GNICIE, Keyword.ZNIWO: return Aspects.Id.DEATH
 		Keyword.FURIA, Keyword.SPALENIE: return Aspects.Id.CHAOS
-		Keyword.BUJNOSC: return Aspects.Id.NATURE
+		Keyword.BUJNOSC, Keyword.WZROST, Keyword.SYMBIOZA: return Aspects.Id.NATURE
+		Keyword.PIJAWKA, Keyword.KLATWA: return Aspects.Id.DEATH
 	return Aspects.Id.LIFE

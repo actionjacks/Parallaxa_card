@@ -25,6 +25,7 @@ func _go() -> void:
 	rs.deck[0].edition = CardData.Edition.POLYCHROME
 	rs.deck[1].edition = CardData.Edition.FOIL
 	rs.deck[2].edition = CardData.Edition.HOLO
+	run._shop_star = Poker.Hand.FLUSH
 	run._show_shop()
 	await _shoot("deep")
 	run._enchant(CardData.Edition.HOLO)   # opens the deck-picker

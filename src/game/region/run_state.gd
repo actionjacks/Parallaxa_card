@@ -18,6 +18,7 @@ var region_index: int = 0         ## position on the journey (0-based)
 var step: int = 0                 ## index into the region ladder (0..fights, last = boss)
 var fights_won: int = 0
 var fights: Array = []            ## this run's rolled ladder (Array[EnemyData])
+var hand_levels: Dictionary = {}  ## Poker.Hand -> level, raised by Star consumables (run-scoped)
 
 ## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
 ## Seeded fresh per run: reward drafts, shop offers and the run-start deck order differ run to run,
@@ -40,6 +41,7 @@ func begin(p_region: RegionData) -> void:
 		relics.append(region.starting_arcanum)
 	step = 0
 	fights_won = 0
+	hand_levels = {}
 	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
 	fights = []
 	if region != null:
@@ -109,6 +111,10 @@ func _shuffle(arr: Array) -> void:
 		var tmp = arr[i]
 		arr[i] = arr[j]
 		arr[j] = tmp
+
+func level_up_hand(hand: int) -> void:
+	hand_levels[hand] = int(hand_levels.get(hand, 0)) + 1
+	changed.emit()
 
 func spend(cost: int) -> bool:
 	if rtec < cost:
