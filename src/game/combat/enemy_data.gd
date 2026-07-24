@@ -3,7 +3,8 @@ class_name EnemyData
 extends Resource
 ## A duel opponent: HP + a telegraphed, cycling intent. Bosses carry a field-rule that warps the engine.
 
-enum Rule { NONE, TOWER_IGNORES_BLOCK }
+## Boss field-rules (the card's meaning warps the engine). WORLD_ALL combines all three finals.
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

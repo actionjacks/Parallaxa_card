@@ -3,7 +3,7 @@ extends Control
 ## parallaxa_orange theme (monogram font + custom cursors via CursorManager autoload).
 ## UI is built in code for the slice; scene authoring can come later.
 
-signal finished(won: bool, remaining_hp: int)
+signal finished(won: bool, remaining_hp: int, unused_discards: int)
 
 const DEF_ENEMY_PATH := "res://data/combat/enemy_a.tres"
 const DEF_ARCANUM_PATH := "res://data/arcana/arcanum_death.tres"
@@ -467,6 +467,11 @@ func _on_message(text_key: String, args: Array) -> void:
 		"LOG_HEAL":
 			_popup("+" + str(int(args[0])), Color(0.6, 0.9, 0.55), _player_fx_pos())
 			Sfx.play(&"heal", -6.0)
+		"LOG_PACT":
+			_popup("-" + str(int(args[0])), Color(1.0, 0.4, 0.6), _player_fx_pos(), 20)
+			Sfx.play(&"rot", -6.0)
+		"LOG_CLEANSE":
+			_popup(tr("COMBAT_CLEANSED"), Color(0.75, 0.8, 1.0), _enemy_fx_pos(), 18)
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
@@ -503,7 +508,7 @@ func _on_ended(won: bool) -> void:
 		tw.parallel().tween_property(_enemy_emblem, "rotation", 0.3, 0.5)
 	await get_tree().create_timer(0.6).timeout   # let the HP bar finish draining + a death beat
 	if not standalone:
-		finished.emit(won, controller.player_hp)
+		finished.emit(won, controller.player_hp, controller.discards_left)
 		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")
 	_overlay_label.add_theme_color_override("font_color",

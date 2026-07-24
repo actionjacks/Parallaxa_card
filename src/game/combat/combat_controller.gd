@@ -72,6 +72,15 @@ func play(selected: Array) -> void:
 	if int(result["heal"]) > 0:
 		player_hp = mini(player_max_hp, player_hp + int(result["heal"]))
 	_plays += 1
+	# The Devil's field-rule: every play costs blood. A killing blow still wins first
+	# (enemy_hp already has this play's damage subtracted above).
+	if enemy_hp > 0 and _rule_blood_tax():
+		player_hp -= 2
+		message.emit("LOG_PACT", [2])
+		if player_hp <= 0:
+			player_hp = 0
+			_finish(false)
+			return
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), int(result["damage"])])
 	if int(result["block"]) > 0:
 		message.emit("LOG_BLOCK", [int(result["block"])])
@@ -105,10 +114,12 @@ func resolve_enemy_turn() -> void:
 			enemy_hp = 0
 			_finish(true)
 			return
+		if _rule_cleanses_rot():
+			enemy_gnicie = 0   # the Moon's glow dissolves the rot: it ticks once, then washes away
+			message.emit("LOG_CLEANSE", [])
 	var incoming: int = current_intent()
 	# The Tower's field-rule ignores block, so defence can't save you against it.
-	var ignores_block: bool = enemy != null and enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK
-	var taken: int = maxi(0, incoming - (0 if ignores_block else player_block))
+	var taken: int = maxi(0, incoming - (0 if _rule_ignores_block() else player_block))
 	if incoming > 0:
 		taken += _pact_surcharge()   # the Devil's bill: every enemy hit hurts more
 	player_hp -= taken
@@ -123,6 +134,16 @@ func resolve_enemy_turn() -> void:
 	discards_left = START_DISCARDS + _bonus_discards()
 	phase = "player"
 	state_changed.emit()
+
+# Field-rule queries; WORLD_ALL is the finale that stacks every previous boss rule.
+func _rule_ignores_block() -> bool:
+	return enemy != null and (enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK or enemy.rule == EnemyData.Rule.WORLD_ALL)
+
+func _rule_blood_tax() -> bool:
+	return enemy != null and (enemy.rule == EnemyData.Rule.DEVIL_BLOOD_TAX or enemy.rule == EnemyData.Rule.WORLD_ALL)
+
+func _rule_cleanses_rot() -> bool:
+	return enemy != null and (enemy.rule == EnemyData.Rule.MOON_CLEANSE or enemy.rule == EnemyData.Rule.WORLD_ALL)
 
 func _bonus_discards() -> int:
 	var n := 0

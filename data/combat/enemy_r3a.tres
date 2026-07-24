@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_6fwx2"]
+
+[resource]
+script = ExtResource("1_6fwx2")
+name_key = "ENEMY_STRAZNIK"
+max_hp = 650
+intents = PackedInt32Array(15, 17, 11)
+enrage_step = 4
+reward_rtec = 9

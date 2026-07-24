@@ -3,7 +3,13 @@ extends Control
 ## Owns the run via RunState, swaps screens in a stage, feeds combat and reacts to its result.
 ## Screens are built in code on the project theme (monogram font + cursors).
 
-const REGION_PATH := "res://data/regions/region_01.tres"
+## The Fool's Journey: four regions, ending at The World. State carries across; full rest between.
+const JOURNEY: Array[String] = [
+	"res://data/regions/region_01.tres",
+	"res://data/regions/region_02.tres",
+	"res://data/regions/region_03.tres",
+	"res://data/regions/region_04.tres",
+]
 const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
 const BUY_COST := 4
 const THIN_COST := 3
@@ -24,13 +30,15 @@ var _reward_cards: Array = []
 var _reward_pick: int = -1
 var _reward_take_btn: Button
 var _last_rest: int = 0
+var _last_interest: int = 0
+var _last_thrift: int = 0
 var _prev_hp: int = -1
 var _prev_rtec: int = -1
 var _prev_deck: int = -1
 var _prev_relics: int = -1
 
 func _ready() -> void:
-	RunState.begin(load(REGION_PATH))
+	RunState.begin(load(JOURNEY[0]))
 	RunState.changed.connect(_update_status)
 	_build_shell()
 	_start_run_flow()
@@ -231,12 +239,17 @@ func _start_encounter() -> void:
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
-func _on_combat_finished(won: bool, remaining_hp: int) -> void:
+func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> void:
 	if not won:
 		_show_defeat()
 		return
 	RunState.player_hp = remaining_hp
 	RunState.rtec += _current_enemy().reward_rtec
+	# Economy legs from the design: thrift (1 per unused discard) then interest (1 per 5 held, cap 5).
+	_last_thrift = unused_discards
+	RunState.rtec += unused_discards
+	_last_interest = mini(RunState.rtec / 5, 5)
+	RunState.rtec += _last_interest
 	RunState.fights_won += 1
 	if RunState.step >= RunState.fights.size():
 		RunState.claim_relic(RunState.region.boss_arcanum)
@@ -266,6 +279,12 @@ func _show_reward() -> void:
 	root.add_child(_title(tr("REWARD_TITLE")))
 	if rested > 0:
 		root.add_child(_hint(tr("REST_HEALED") % rested))
+	if _last_thrift > 0:
+		root.add_child(_hint(tr("ECON_THRIFT") % _last_thrift))
+		_last_thrift = 0
+	if _last_interest > 0:
+		root.add_child(_hint(tr("ECON_INTEREST") % _last_interest))
+		_last_interest = 0
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
@@ -319,6 +338,12 @@ func _show_shop() -> void:
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
 		root.add_child(_hint(tr("REST_HEALED") % rested))
+	if _last_thrift > 0:
+		root.add_child(_hint(tr("ECON_THRIFT") % _last_thrift))
+		_last_thrift = 0
+	if _last_interest > 0:
+		root.add_child(_hint(tr("ECON_INTEREST") % _last_interest))
+		_last_interest = 0
 
 	# --- buy offers ---
 	var row := HBoxContainer.new()
@@ -451,8 +476,12 @@ func _leave_shop() -> void:
 func _show_complete() -> void:
 	_statusbar.visible = true
 	_update_status()
+	var final := RunState.region_index + 1 >= JOURNEY.size()
 	var root := _screen_column()
-	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
+	if final:
+		root.add_child(_big(tr("VICTORY_TITLE"), Color(0.95, 0.85, 0.5)))
+	else:
+		root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
 	var relic := RunState.region.boss_arcanum
 	if relic != null:
 		if relic.art != null:
@@ -467,12 +496,29 @@ func _show_complete() -> void:
 			wrap_art.add_child(t)
 			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
-	root.add_child(_hint(tr("COMPLETE_HINT")))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
 	var wrap := CenterContainer.new()
-	wrap.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
+	if not final:
+		root.add_child(_hint(tr("COMPLETE_HINT")))
+		wrap.add_child(_button(tr("COMPLETE_NEXT"), _continue_journey))
+	else:
+		# The World has fallen: the Journey is complete -- the run is WON.
+		var rr := HBoxContainer.new()
+		rr.alignment = BoxContainer.ALIGNMENT_CENTER
+		rr.add_theme_constant_override("separation", 8)
+		for a in RunState.relics:
+			rr.add_child(_relic_chip(a))
+		root.add_child(rr)
+		Sfx.play(&"win", -2.0)
+		wrap.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
 	root.add_child(wrap)
 	_mount(root)
+
+func _continue_journey() -> void:
+	var idx := RunState.region_index + 1
+	_pending_omen = {}
+	RunState.enter_region(load(JOURNEY[idx]), idx)
+	_show_map()
 
 func _show_defeat() -> void:
 	_statusbar.visible = true
@@ -496,7 +542,8 @@ func _show_defeat() -> void:
 	_mount(root)
 
 func _restart_run() -> void:
-	RunState.begin(RunState.region)
+	_pending_omen = {}
+	RunState.begin(load(JOURNEY[0]))   # a new Journey always starts at the first region
 	_start_run_flow()
 
 # ---------------------------------------------------------------- ARCANUM DRAFT

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/15_devil.jpg" id="1_v2s16"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_g22b2"]
+
+[resource]
+script = ExtResource("2_g22b2")
+name_key = "ENEMY_DIABEL"
+max_hp = 620
+intents = PackedInt32Array(14, 18, 12)
+enrage_step = 3
+reward_rtec = 14
+is_boss = true
+rule = 2
+rule_key = "RULE_DEVIL"
+art = ExtResource("1_v2s16")

@@ -73,9 +73,30 @@ func _region() -> void:
 		arc.art = load("res://assets/cards/arcana/%s.jpg" % s[5])
 		ResourceSaver.save(arc, ARCANA_DIR + "%s.tres" % s[6])
 		pool.append(load(ARCANA_DIR + "%s.tres" % s[6]))
+	# Boss-claimed relics (Fool's Journey: beat the card, wear the card).
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
 	tower_arc.art = load("res://assets/cards/arcana/16_tower.jpg")
 	ResourceSaver.save(tower_arc, ARCANA_DIR + "arcanum_tower.tres")
+	var devil_boss := ArcanumData.new()
+	devil_boss.name_key = "ARCANUM_DIABLA_BOSS"
+	devil_boss.effect = E.PACT_MULT
+	devil_boss.effect_mult = 1.25
+	devil_boss.effect_value = 1
+	devil_boss.art = load("res://assets/cards/arcana/15_devil.jpg")
+	ResourceSaver.save(devil_boss, ARCANA_DIR + "arcanum_devil_boss.tres")
+	var moon_arc := ArcanumData.new()
+	moon_arc.name_key = "ARCANUM_KSIEZYCA"
+	moon_arc.effect = E.EXTRA_DISCARD
+	moon_arc.effect_value = 1
+	moon_arc.art = load("res://assets/cards/arcana/18_moon.jpg")
+	ResourceSaver.save(moon_arc, ARCANA_DIR + "arcanum_moon.tres")
+	var world_arc := ArcanumData.new()
+	world_arc.name_key = "ARCANUM_SWIATA"
+	world_arc.effect = E.PACT_MULT
+	world_arc.effect_mult = 1.15
+	world_arc.effect_value = 0   # the completed circle: pure power, no price
+	world_arc.art = load("res://assets/cards/arcana/21_world.jpg")
+	ResourceSaver.save(world_arc, ARCANA_DIR + "arcanum_world.tres")
 
 	# HP tuned so a strong opening play does not one-shot: fights last ~2-3 turns, the boss ~4-5,
 	# so enemy intents, block, heal, DoT stacking and the Tower rule all actually come into play.
@@ -115,6 +136,53 @@ func _region() -> void:
 	region.boss_arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
 	region.starting_pool = pool
 	ResourceSaver.save(region, REGION_DIR + "region_01.tres")
+
+	# ---- Region II "Zgliszcza": scaled foes, boss DEVIL (blood-tax rule) ----
+	_save_enemy("enemy_r2a", "ENEMY_KAPLAN", 500, [11, 13, 8], 7, 3)
+	_save_enemy("enemy_r2a2", "ENEMY_UPIOR", 470, [17, 5, 17], 7, 3)
+	_save_enemy("enemy_r2b", "ENEMY_RYCERZ", 580, [13, 13, 13], 7, 3)
+	_save_enemy("enemy_r2b2", "ENEMY_CHIMERA", 540, [19, 0, 15], 7, 4)
+	var devil := _enemy("ENEMY_DIABEL", 620, [14, 18, 12], 14, true, EnemyData.Rule.DEVIL_BLOOD_TAX, "RULE_DEVIL", 3)
+	devil.art = load("res://assets/cards/arcana/15_devil.jpg")
+	ResourceSaver.save(devil, ENEMY_DIR + "boss_devil.tres")
+	_save_region("region_02", "REGION_02", ["enemy_r2a", "enemy_r2a2"], ["enemy_r2b", "enemy_r2b2"],
+		"boss_devil", "arcanum_devil_boss")
+
+	# ---- Region III "Szczyt": harder foes, boss MOON (rot-cleanse rule) ----
+	_save_enemy("enemy_r3a", "ENEMY_STRAZNIK", 650, [15, 17, 11], 9, 4)
+	_save_enemy("enemy_r3a2", "ENEMY_WIDMO", 620, [21, 7, 21], 9, 4)
+	_save_enemy("enemy_r3b", "ENEMY_TYTAN", 730, [17, 17, 17], 9, 4)
+	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 690, [23, 0, 19], 9, 5)
+	var moon := _enemy("ENEMY_KSIEZYC", 780, [16, 20, 14], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 4)
+	moon.art = load("res://assets/cards/arcana/18_moon.jpg")
+	ResourceSaver.save(moon, ENEMY_DIR + "boss_moon.tres")
+	_save_region("region_03", "REGION_03", ["enemy_r3a", "enemy_r3a2"], ["enemy_r3b", "enemy_r3b2"],
+		"boss_moon", "arcanum_moon")
+
+	# ---- Region IV "Swiat": the finale -- a single duel against THE WORLD (all rules at once) ----
+	var world := _enemy("ENEMY_SWIAT", 950, [20, 24, 16], 20, true, EnemyData.Rule.WORLD_ALL, "RULE_WORLD", 4)
+	world.art = load("res://assets/cards/arcana/21_world.jpg")
+	ResourceSaver.save(world, ENEMY_DIR + "boss_world.tres")
+	_save_region("region_04", "REGION_04", [], [], "boss_world", "arcanum_world")
+
+func _save_enemy(file: String, name_key: String, hp: int, intents: Array, reward: int, enrage: int) -> void:
+	ResourceSaver.save(_enemy(name_key, hp, intents, reward, false, EnemyData.Rule.NONE, "", enrage),
+		ENEMY_DIR + file + ".tres")
+
+func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, boss_file: String, arc_file: String) -> void:
+	var r := RegionData.new()
+	r.name_key = name_key
+	var p1: Array[EnemyData] = []
+	for f in pool1:
+		p1.append(load(ENEMY_DIR + f + ".tres"))
+	r.fight_pool_1 = p1
+	var p2: Array[EnemyData] = []
+	for f in pool2:
+		p2.append(load(ENEMY_DIR + f + ".tres"))
+	r.fight_pool_2 = p2
+	r.boss = load(ENEMY_DIR + boss_file + ".tres")
+	r.boss_arcanum = load(ARCANA_DIR + arc_file + ".tres")
+	ResourceSaver.save(r, REGION_DIR + file + ".tres")
 
 func _arcanum(name_key: String, aspect: int, mult: float) -> ArcanumData:
 	var arc := ArcanumData.new()

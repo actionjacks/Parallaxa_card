@@ -14,6 +14,7 @@ var rtec: int = 0                 ## alchemical currency (Mercury)
 var deck: Array = []              ## Array[CardData]
 var relics: Array = []            ## Array[ArcanumData]
 var region: RegionData
+var region_index: int = 0         ## position on the journey (0-based)
 var step: int = 0                 ## index into the region ladder (0..fights, last = boss)
 var fights_won: int = 0
 var fights: Array = []            ## this run's rolled ladder (Array[EnemyData])
@@ -25,6 +26,7 @@ var rng := RandomNumberGenerator.new()
 
 func begin(p_region: RegionData) -> void:
 	rng.randomize()
+	region_index = 0
 	region = p_region
 	player_max_hp = START_MAX_HP
 	player_hp = player_max_hp
@@ -67,6 +69,23 @@ func claim_relic(a: ArcanumData) -> void:
 	if a != null:
 		relics.append(a)
 		changed.emit()
+
+## Step into the NEXT region of the journey: run state (deck, relics, Mercury) carries over,
+## the ladder resets, new opponents are rolled, and the traveller gets a full night's rest.
+func enter_region(p_region: RegionData, index: int) -> void:
+	region = p_region
+	region_index = index
+	step = 0
+	player_hp = player_max_hp   # full heal between regions
+	fights = []
+	if not region.fight_pool_1.is_empty():
+		fights.append(pick_offers(region.fight_pool_1, 1)[0])
+	if not region.fight_pool_2.is_empty():
+		fights.append(pick_offers(region.fight_pool_2, 1)[0])
+	if fights.is_empty():
+		for f in region.fights:
+			fights.append(f)
+	changed.emit()
 
 ## Rest after a fight: heal REST_HEAL up to max. Returns the amount actually healed.
 func rest() -> int:

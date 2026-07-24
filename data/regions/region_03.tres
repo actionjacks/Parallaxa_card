@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Resource" path="res://data/combat/boss_moon.tres" id="1_m07an"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_moon.tres" id="2_q86b7"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_fg0ro"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3a.tres" id="4_spak4"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3a2.tres" id="5_rwxfa"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3b.tres" id="6_sxt6e"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3b2.tres" id="7_oa7h5"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="8_jyg5y"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="9_l22p8"]
+
+[resource]
+script = ExtResource("8_jyg5y")
+name_key = "REGION_03"
+fight_pool_1 = Array[ExtResource("3_fg0ro")]([ExtResource("4_spak4"), ExtResource("5_rwxfa")])
+fight_pool_2 = Array[ExtResource("3_fg0ro")]([ExtResource("6_sxt6e"), ExtResource("7_oa7h5")])
+boss = ExtResource("1_m07an")
+boss_arcanum = ExtResource("2_q86b7")

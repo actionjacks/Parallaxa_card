@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_0batl"]
+
+[resource]
+script = ExtResource("1_0batl")
+name_key = "ENEMY_CHIMERA"
+max_hp = 540
+intents = PackedInt32Array(19, 0, 15)
+enrage_step = 4
+reward_rtec = 7

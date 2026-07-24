@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/21_world.jpg" id="1_7qbuq"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_65qfc"]
+
+[resource]
+script = ExtResource("2_65qfc")
+name_key = "ENEMY_SWIAT"
+max_hp = 950
+intents = PackedInt32Array(20, 24, 16)
+enrage_step = 4
+reward_rtec = 20
+is_boss = true
+rule = 4
+rule_key = "RULE_WORLD"
+art = ExtResource("1_7qbuq")

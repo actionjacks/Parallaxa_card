@@ -1,10 +1,12 @@
 extends SceneTree
-## Full real-input playthrough for UX review: plays the whole run with synthesized mouse
-## motion + clicks and screenshots every stage the player actually sees.
-## Run: tools/dev/run_hidden.sh -s res://tools/dev/capture_playthrough.gd
+## Full-JOURNEY real-input playthrough: a screen-state machine that detects what is on screen
+## (draft / map+omen / combat / reward / shop / region-clear / victory / defeat) and acts like a
+## player, across ALL regions. Run: tools/dev/run_hidden.sh -s res://tools/dev/capture_playthrough.gd
 
 const RUN := "res://src/game/region/run.tscn"
 var _rn: Node
+var _omen_shot := false
+var _fight_no := 0
 
 func _initialize() -> void:
 	_go()
@@ -53,6 +55,12 @@ func _find(node: Node, pred: Callable):
 			return r
 	return null
 
+func _collect(node: Node, pred: Callable, acc: Array) -> void:
+	if node is Control and pred.call(node):
+		acc.append(node)
+	for c in node.get_children():
+		_collect(c, pred, acc)
+
 func _center(ctrl: Control) -> Vector2:
 	return ctrl.get_global_rect().get_center()
 
@@ -67,12 +75,6 @@ func _reward_cards() -> Array:
 	var acc: Array = []
 	_collect(_rn, func(x): return x is PanelContainer and x.has_meta("card") and x.is_visible_in_tree(), acc)
 	return acc
-
-func _collect(node: Node, pred: Callable, acc: Array) -> void:
-	if node is Control and pred.call(node):
-		acc.append(node)
-	for c in node.get_children():
-		_collect(c, pred, acc)
 
 func _best(hand: Array) -> Array:
 	var asp := {}
@@ -100,25 +102,26 @@ func _best(hand: Array) -> Array:
 
 func _play_fight(tag: String) -> void:
 	var combat = _find_combat()
-	var shot_turn := false
-	var shot_enemy := false
+	if combat == null:
+		return
+	var shot := false
 	var guard := 0
-	while guard < 90:
+	while guard < 250:
 		guard += 1
 		if not is_instance_valid(combat):
 			return
 		var c = combat.controller
 		if c.phase == "ended" or c.enemy_hp <= 0:
+			for w in 60:
+				if not is_instance_valid(combat):
+					break
+				await _frames(3)
 			return
 		if c.phase != "player":
-			if not shot_enemy:
-				await _shoot(tag + "_enemyturn")   # the paused enemy turn / wind-up
-				shot_enemy = true
 			await _frames(3)
 			continue
 		var kids: Array = combat._hand_row.get_children()
 		var best: Array = _best(c.hand)
-		# Fish like a real player: a weak hand (<3 of a kind) is worth a discard when available.
 		if best.size() < 3 and c.discards_left > 0 and c.hand.size() >= 5:
 			var junk: Array = []
 			for i in c.hand.size():
@@ -134,21 +137,14 @@ func _play_fight(tag: String) -> void:
 		for idx in best:
 			if idx < kids.size():
 				await _click(_center(kids[idx]))
-		if not shot_turn:
-			await _shoot(tag + "_selected")   # selection + score preview
-			shot_turn = true
-			print("[pt2] %s t%d: clicked=%d selected=%d play_disabled=%s btn_y=%.0f" % [tag,
-				c.turn, best.size(), combat._selected.size(), str(combat._play_btn.disabled),
-				combat._play_btn.get_global_rect().get_center().y])
+		if not shot:
+			await _shoot(tag + "_sel")
+			shot = true
 		if not combat._play_btn.disabled:
 			await _click(_center(combat._play_btn))
 		await _frames(45)
 
-## Click through the run-opening Arcanum draft (pick the first offer) when it is on screen.
-func _pass_arcanum_draft() -> void:
-	var take = _button_with("DRAFT_TAKE")
-	if take == null:
-		return
+func _pass_draft() -> void:
 	await _shoot("00_draft")
 	if _rn._arc_panels.size() > 0:
 		await _click(_center(_rn._arc_panels[0]))
@@ -156,16 +152,12 @@ func _pass_arcanum_draft() -> void:
 	for a in _rn._arc_offers:
 		offers.append(tr(a.name_key))
 	print("[pt2] draft offers: ", ", ".join(offers))
-	take = _button_with("DRAFT_TAKE")
+	var take = _button_with("DRAFT_TAKE")
 	if take != null and not take.disabled:
 		await _click(_center(take))
-	await _frames(20)
+	await _frames(15)
 
-var _omen_shot := false
-
-func _proceed() -> void:   # click the map "Enter" to start the next encounter
-	await _frames(6)
-	# an omen may wait on the map -- decide like a player (accept simple boons, leave Justice)
+func _handle_map() -> void:
 	if not _rn._pending_omen.is_empty():
 		var oid: String = _rn._pending_omen["id"]
 		print("[pt2] omen: ", oid)
@@ -183,65 +175,80 @@ func _proceed() -> void:   # click the map "Enter" to start the next encounter
 		await _click(_center(go))
 	await _frames(25)
 
+func _foes() -> String:
+	var names: Array = []
+	for f in root.get_node("RunState").fights:
+		names.append(tr(f.name_key))
+	names.append(tr(root.get_node("RunState").region.boss.name_key))
+	return " | ".join(names)
+
 func _go() -> void:
 	await _frames(2)
 	_rn = load(RUN).instantiate()
 	root.add_child(_rn)
 	await _frames(20)
 	var rs := root.get_node("RunState")
-	var top: Array = []
-	for i in mini(5, rs.deck.size()):
-		top.append("%s-%d" % [str(rs.deck[i].aspect), rs.deck[i].rank])
-	print("[pt2] deck top5: ", " ".join(top))
-	var foes: Array = []
-	for f in rs.fights:
-		foes.append(tr(f.name_key))
-	print("[pt2] rolled foes: ", " | ".join(foes))
-	await _pass_arcanum_draft()
-	await _shoot("01_map")
-
-	# hover a card to show the preview
-	await _proceed()
-	var combat = _find_combat()
-	if combat != null and combat._hand_row.get_child_count() > 0:
-		_motion(_center(combat._hand_row.get_child(2)))
-		await _shoot("02_combat_hover")
-
-	# fight 1
-	await _play_fight("03_fight1")
-	await _frames(55)
-	await _shoot("04_reward")
-	var offer_desc: Array = []
-	for c in _rn._reward_cards:
-		offer_desc.append("%s-%d" % [str(c.aspect), c.rank])
-	print("[pt2] reward offers: ", " ".join(offer_desc))
-	# take a reward card
-	var rc := _reward_cards()
-	if rc.size() > 0:
-		await _click(_center(rc[0]))
-	var take = _button_with("REWARD_TAKE")
-	if take != null:
-		await _click(_center(take))
-	await _frames(30)
-	await _shoot("05_map2")
-
-	# fight 2 -> shop
-	await _proceed()
-	await _play_fight("06_fight2")
-	await _frames(55)
-	await _shoot("07_shop")
-	var next = _button_with("SHOP_NEXT")
-	if next != null:
-		await _click(_center(next))
-	await _frames(30)
-	await _shoot("08_map3")
-
-	# boss
-	await _proceed()
-	await _shoot("09_boss")
-	await _play_fight("10_boss")
-	await _frames(70)
-	await _shoot("11_end")
-
-	print("playthrough: done  relics=%d hp=%d" % [root.get_node("RunState").relics.size(), root.get_node("RunState").player_hp])
+	print("[pt2] region 1 foes: ", _foes())
+	var result := "TIMEOUT"
+	var guard := 0
+	while guard < 80:
+		guard += 1
+		await _frames(8)
+		if _find_combat() != null:
+			_fight_no += 1
+			await _play_fight("f%02d" % _fight_no)
+			await _frames(30)
+			continue
+		if _button_with("DRAFT_TAKE") != null:
+			await _pass_draft()
+			continue
+		var b = _button_with("COMPLETE_NEXT")
+		if b != null:
+			print("[pt2] region %d cleared (hp=%d rtec=%d relics=%d)" % [rs.region_index + 1, rs.player_hp, rs.rtec, rs.relics.size()])
+			await _shoot("clear_r%d" % (rs.region_index + 1))
+			await _click(_center(b))
+			await _frames(20)
+			print("[pt2] region %d foes: " % (rs.region_index + 1), _foes())
+			continue
+		# classify end screens by their TITLE labels (the restart buttons share one caption)
+		if _find(_rn, func(c): return c is Label and c.text == tr("DEFEAT_TITLE") and c.is_visible_in_tree()) != null:
+			result = "DEFEAT"
+			await _shoot("defeat")
+			break
+		if _find(_rn, func(c): return c is Label and c.text == tr("VICTORY_TITLE") and c.is_visible_in_tree()) != null:
+			result = "VICTORY"
+			await _shoot("victory")
+			break
+		b = _button_with("REWARD_TAKE")
+		if b != null:
+			var rc := _reward_cards()
+			if rc.size() > 0:
+				await _click(_center(rc[0]))
+			b = _button_with("REWARD_TAKE")
+			if b != null and not b.disabled:
+				await _click(_center(b))
+			else:
+				var sk = _button_with("REWARD_SKIP")
+				if sk != null:
+					await _click(_center(sk))
+			await _frames(15)
+			continue
+		b = _button_with("SHOP_NEXT")
+		if b != null:
+			# spend like a player: hoarded Mercury converts into deck power
+			var buy = _find(_rn, func(c): return c is Button \
+				and c.text == (tr("SHOP_BUY") % 4) and c.is_visible_in_tree() and not c.disabled)
+			if buy != null and rs.rtec >= 12:
+				await _click(_center(buy))
+				await _frames(12)
+				continue
+			await _click(_center(b))
+			await _frames(15)
+			continue
+		if _button_with("MAP_GO") != null:
+			await _handle_map()
+			continue
+	print("journey: %s  region=%d fights_won=%d hp=%d/%d rtec=%d deck=%d relics=%d" % [
+		result, rs.region_index + 1, rs.fights_won, rs.player_hp, rs.player_max_hp,
+		rs.rtec, rs.deck.size(), rs.relics.size()])
 	quit(0)

@@ -243,8 +243,27 @@ LOG_ATTACK,Enemy hits: -%d,Wróg uderza: -%d
 LOG_BLOCK,Block: +%d,Blok: +%d
 LOG_HEAL,Heal: +%d,Leczenie: +%d
 REGION_01,Region I — Ash,Region I — Popiół
+REGION_02,Region II — Embers,Region II — Zgliszcza
+REGION_03,Region III — Summit,Region III — Szczyt
+REGION_04,The World,Świat
+COMPLETE_NEXT,Journey on,Ruszaj dalej
+VICTORY_TITLE,THE JOURNEY IS COMPLETE — YOU WIN,PODRÓŻ UKOŃCZONA — WYGRANA
+ENEMY_KAPLAN,Ember Priest,Kapłan Zgliszcz
+ENEMY_UPIOR,Ember Wraith,Upiór Zgliszcz
+ENEMY_RYCERZ,Ash Knight,Rycerz Popiołu
+ENEMY_CHIMERA,Cinder Chimera,Żużlowa Chimera
+ENEMY_STRAZNIK,Summit Warden,Strażnik Szczytu
+ENEMY_WIDMO,Peak Phantom,Widmo Grani
+ENEMY_TYTAN,Frost Titan,Tytan Szczytowy
+ENEMY_HERALD,Herald of the End,Herold Końca
+ARCANUM_DIABLA_BOSS,Pact of the Devil,Pakt Diabła
+ARCANUM_KSIEZYCA,Arcanum of the Moon,Arkanum Księżyca
+ARCANUM_SWIATA,Arcanum of the World,Arkanum Świata
 ENEMY_CIEN,Wandering Shade,Zbłąkany Cień
 ENEMY_WIEZA,The Tower,Wieża
+ENEMY_DIABEL,The Devil,Diabeł
+ENEMY_KSIEZYC,The Moon,Księżyc
+ENEMY_SWIAT,The World,Świat
 ARCANUM_WIEZA,Arcanum of the Tower,Arkanum Wieży
 ARCANUM_SLONCA,Arcanum of the Sun,Arkanum Słońca
 ARCANUM_KAPLANKI,Arcanum of the High Priestess,Arkanum Kapłanki
@@ -268,6 +287,12 @@ OMEN_JUSTICE_DESC,Remove one card from your deck for free.,Usuń jedną kartę z
 OMEN_TEMPERANCE,Temperance,Umiarkowanie
 OMEN_TEMPERANCE_DESC,"Balance: +6 HP, +2 ☿.","Równowaga: +6 HP, +2 ☿."
 RULE_TOWER,Tower: block does not protect (the walls fall),Wieża: blok nie chroni (walą się mury)
+RULE_DEVIL,Devil: every play costs 2 HP (a pact of blood),Diabeł: każde zagranie kosztuje 2 HP (pakt krwi)
+RULE_MOON,Moon: Rot washes away after each tick,Księżyc: Gnicie rozpływa się po każdym tyknięciu
+RULE_WORLD,"The World: walls fall, blood pact holds, the glow cleanses","Świat: mury padły, pakt krwi trwa, poświata oczyszcza"
+COMBAT_CLEANSED,cleansed,oczyszczone
+LOG_PACT,Pact: -%d,Pakt: -%d
+LOG_CLEANSE,The glow cleanses the Rot,Poświata oczyszcza Gnicie
 RUN_HP,HP %d/%d,HP %d/%d
 RUN_RTEC,%d ☿,%d ☿
 RUN_DECK,Deck %d,Talia %d
@@ -313,6 +338,8 @@ RUN_SUMMARY,Fights won: %d,Wygrane walki: %d
 DEFEAT_TITLE,DEFEAT,PORAŻKA
 DEFEAT_NEW,New run,Nowy run
 REST_HEALED,Rested: +%d HP,Odpoczynek: +%d HP
+ECON_THRIFT,Thrift: +%d ☿ (unused discards),Oszczędność: +%d ☿ (niewykorzystane odrzuty)
+ECON_INTEREST,Interest: +%d ☿,Odsetki: +%d ☿
 COMBAT_TAG_BLOCK,+%d Block,+%d Blok
 COMBAT_TAG_HEAL,+%d HP,+%d HP
 COMBAT_TAG_GNICIE,Rot %d,Gnicie %d

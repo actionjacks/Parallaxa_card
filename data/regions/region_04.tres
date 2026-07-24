@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Resource" path="res://data/combat/boss_world.tres" id="1_4vm4y"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_world.tres" id="2_y4hlk"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_eemqt"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="4_vf2qd"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="5_h2ti4"]
+
+[resource]
+script = ExtResource("4_vf2qd")
+name_key = "REGION_04"
+boss = ExtResource("1_4vm4y")
+boss_arcanum = ExtResource("2_y4hlk")

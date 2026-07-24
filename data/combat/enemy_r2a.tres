@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_howpl"]
+
+[resource]
+script = ExtResource("1_howpl")
+name_key = "ENEMY_KAPLAN"
+max_hp = 500
+intents = PackedInt32Array(11, 13, 8)
+enrage_step = 3
+reward_rtec = 7

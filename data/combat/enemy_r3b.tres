@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_xdqfg"]
+
+[resource]
+script = ExtResource("1_xdqfg")
+name_key = "ENEMY_TYTAN"
+max_hp = 730
+intents = PackedInt32Array(17, 17, 17)
+enrage_step = 4
+reward_rtec = 9

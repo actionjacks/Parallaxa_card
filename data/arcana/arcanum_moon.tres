@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/18_moon.jpg" id="1_ak5gv"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_kmlnn"]
+
+[resource]
+script = ExtResource("2_kmlnn")
+name_key = "ARCANUM_KSIEZYCA"
+effect = 2
+effect_value = 1
+art = ExtResource("1_ak5gv")
