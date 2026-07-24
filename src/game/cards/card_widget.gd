@@ -7,6 +7,26 @@ const BG := Color(0.09, 0.09, 0.13)
 const BG_SEL := Color(0.18, 0.18, 0.26)
 const CARD_SIZE := Vector2(80, 112)
 
+## RWS 1909 Minor Arcana illustrations for the hover preview. Four Aspects map onto the historical
+## suits (design: Life=Cups, Mind=Swords, Chaos=Wands, Death=Pentacles); Nature has no historical
+## suit and shows no illustration. Ranks map 1:1 (Ace=01..10, Page 11, Knight 12, Queen 13, King 14).
+const MINOR_SUIT := {
+	Aspects.Id.LIFE: "cups",
+	Aspects.Id.MIND: "swords",
+	Aspects.Id.CHAOS: "wands",
+	Aspects.Id.DEATH: "pents",
+}
+static var _minor_cache: Dictionary = {}
+
+static func minor_art(card: CardData) -> Texture2D:
+	if not MINOR_SUIT.has(card.aspect):
+		return null
+	var key: String = "%s_%02d" % [MINOR_SUIT[card.aspect], card.rank]
+	if not _minor_cache.has(key):
+		var path := "res://assets/cards/minor/%s.jpg" % key
+		_minor_cache[key] = load(path) if ResourceLoader.exists(path) else null
+	return _minor_cache[key]
+
 static func build(card: CardData) -> PanelContainer:
 	var col := Aspects.color(card.aspect)
 	var sb := StyleBoxFlat.new()
@@ -88,6 +108,16 @@ static func build_preview(card: CardData) -> PanelContainer:
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 8)
 	panel.add_child(vb)
+	var art := minor_art(card)
+	if art != null:
+		var t := TextureRect.new()
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE   # BEFORE size (EXPAND_KEEP_SIZE trap)
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.texture = art
+		t.custom_minimum_size = Vector2(0, 180)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(t)
 	vb.add_child(_lbl(card.rank_glyph(), 54, col))
 	vb.add_child(_lbl(TranslationServer.translate(Aspects.name_key(card.aspect)), 20, col))
 	if card.keyword != CardData.Keyword.NONE:

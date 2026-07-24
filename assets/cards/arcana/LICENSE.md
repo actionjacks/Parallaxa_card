@@ -14,6 +14,10 @@ Illustrations by **Pamela Colman Smith** (1878-1951), under direction of A. E. W
   (e.g. US Games versions) are NOT public domain.** Only scans of the original 1909 printing
   may be added here.
 
+The same provenance and terms apply to `assets/cards/minor/` — the 56 Minor Arcana from the same
+1909 printing (Commons file pattern `<Suit>NN.jpg`, e.g. `Wands01.jpg`; NN 01 = Ace .. 10 = ten,
+11 Page, 12 Knight, 13 Queen, 14 King), downscaled to height 384.
+
 File map (NN matches the traditional Major Arcana numbering):
 00 Fool, 01 Magician, 02 High Priestess, 03 Empress, 04 Emperor, 05 Hierophant, 06 Lovers,
 07 Chariot, 08 Strength, 09 Hermit, 10 Wheel of Fortune, 11 Justice, 12 Hanged Man, 13 Death,
