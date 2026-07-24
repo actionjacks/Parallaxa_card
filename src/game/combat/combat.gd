@@ -27,7 +27,10 @@ var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
 var _intent_label: Label
 var _gnicie_label: Label
-var _relic_label: Label
+var _relic_row: HBoxContainer
+var _enemy_emblem: Panel
+var _emblem_glyph: Label
+var _emblem_idle: Tween
 var _rule_label: Label
 var _preview_label: Label
 var _log_label: Label
@@ -64,6 +67,7 @@ func _ready() -> void:
 		_relics = [load(DEF_ARCANUM_PATH)]
 		_deck = DeckLibrary.starter_deck()
 	_build_ui()
+	_start_emblem_idle()
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)
@@ -74,11 +78,7 @@ func _ready() -> void:
 # ---------------------------------------------------------------- UI construction
 
 func _build_ui() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.02, 0.023, 0.04)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	add_child(Backdrop.build())
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -116,16 +116,20 @@ func _build_ui() -> void:
 	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
 	ev.add_child(_rule_label)
 
-	# --- middle: relic + preview + log ---
+	# --- middle: relics + enemy emblem + score readout ---
 	var mid := VBoxContainer.new()
-	mid.add_theme_constant_override("separation", 6)
+	mid.add_theme_constant_override("separation", 8)
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(mid)
-	_relic_label = _label("", 14, Color(0.7, 0.62, 0.85))
-	mid.add_child(_relic_label)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid.add_child(spacer)
+	_relic_row = HBoxContainer.new()
+	_relic_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_relic_row.add_theme_constant_override("separation", 8)
+	mid.add_child(_relic_row)
+	var emblem_wrap := CenterContainer.new()
+	emblem_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mid.add_child(emblem_wrap)
+	_enemy_emblem = _make_emblem()
+	emblem_wrap.add_child(_enemy_emblem)
 	_preview_label = _label("", 24, Color(0.98, 0.95, 0.8))
 	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_label)
@@ -221,13 +225,16 @@ func _render() -> void:
 	if controller.enemy_gnicie > _prev_gnicie:
 		_pulse(_gnicie_label)
 	_prev_gnicie = controller.enemy_gnicie
-	if _relics.is_empty():
-		_relic_label.text = ""
-	else:
-		var names: Array = []
-		for r in _relics:
-			names.append(tr(r.name_key))
-		_relic_label.text = "* " + "    * ".join(names)
+	for ch in _relic_row.get_children():
+		ch.queue_free()
+	for a in _relics:
+		_relic_row.add_child(_relic_chip(a))
+	var etint := Color(0.92, 0.5, 0.28) if _enemy.is_boss else Color(0.55, 0.7, 0.42)
+	var esb: StyleBoxFlat = _enemy_emblem.get_meta("style")
+	esb.border_color = etint
+	_emblem_glyph.add_theme_color_override("font_color", etint)
+	var en := tr(_enemy.name_key)
+	_emblem_glyph.text = en.substr(0, 1) if en.length() > 0 else "?"
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
@@ -351,6 +358,7 @@ func _on_play() -> void:
 			_widgets.erase(card)
 	_selected.clear()
 	_fx_index = 0
+	_emblem_hit()
 	controller.play(idx)
 
 func _on_discard() -> void:
@@ -420,9 +428,12 @@ func _on_awaiting_enemy() -> void:
 		controller.resolve_enemy_turn()
 
 func _on_ended(won: bool) -> void:
+	if _emblem_idle != null:
+		_emblem_idle.kill()
 	if won:
-		_enemy_panel.pivot_offset = _enemy_panel.size * 0.5
-		create_tween().tween_property(_enemy_panel, "modulate", Color(0.4, 0.12, 0.12, 0.25), 0.45)
+		var tw := create_tween()
+		tw.tween_property(_enemy_emblem, "modulate", Color(0.4, 0.12, 0.12, 0.12), 0.5)
+		tw.parallel().tween_property(_enemy_emblem, "rotation", 0.3, 0.5)
 	await get_tree().create_timer(0.6).timeout   # let the HP bar finish draining + a death beat
 	if not standalone:
 		finished.emit(won, controller.player_hp)
@@ -464,6 +475,51 @@ func _grave_fx_pos() -> Vector2:
 
 func _block_fx_pos() -> Vector2:
 	return _block_label.global_position + Vector2(0, -28)
+
+func _make_emblem() -> Panel:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.13, 0.08, 0.09, 0.92)
+	sb.set_border_width_all(3)
+	sb.border_color = Color(0.6, 0.25, 0.28)
+	sb.set_corner_radius_all(16)
+	var p := Panel.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(168, 168)
+	p.pivot_offset = Vector2(84, 84)
+	p.set_meta("style", sb)
+	_emblem_glyph = _label("", 92, Color(0.9, 0.5, 0.5))
+	_emblem_glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_emblem_glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_emblem_glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	p.add_child(_emblem_glyph)
+	return p
+
+func _relic_chip(a: ArcanumData) -> Control:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.11, 0.09, 0.14)
+	sb.set_border_width_all(1)
+	sb.border_color = Aspects.color(a.effect_aspect)
+	sb.set_corner_radius_all(3)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 3
+	sb.content_margin_bottom = 3
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.tooltip_text = tr(a.name_key)
+	p.add_child(_label(tr(a.name_key), 13, Color(0.85, 0.8, 0.92)))
+	return p
+
+func _start_emblem_idle() -> void:
+	_emblem_idle = create_tween().set_loops()
+	_emblem_idle.tween_property(_enemy_emblem, "modulate:a", 0.82, 1.3).set_trans(Tween.TRANS_SINE)
+	_emblem_idle.tween_property(_enemy_emblem, "modulate:a", 1.0, 1.3).set_trans(Tween.TRANS_SINE)
+
+func _emblem_hit() -> void:
+	if _enemy_emblem == null:
+		return
+	_enemy_emblem.scale = Vector2(1.12, 1.12)
+	create_tween().tween_property(_enemy_emblem, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _pulse(node: Control) -> void:
 	if node == null:

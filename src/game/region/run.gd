@@ -38,11 +38,7 @@ func _ready() -> void:
 # ---------------------------------------------------------------- shell / status
 
 func _build_shell() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color(0.02, 0.023, 0.04)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
+	add_child(Backdrop.build())
 
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
