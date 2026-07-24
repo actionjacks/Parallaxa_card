@@ -182,6 +182,19 @@ func _build_ui() -> void:
 	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
 	crow.add_child(_help_label)
 
+	# The Fool stands on the player's side of the arena -- you ARE the card (Fool's Journey).
+	var fool := TextureRect.new()
+	# expand_mode BEFORE size: with the default EXPAND_KEEP_SIZE the texture inflates min size to
+	# 296x512 the moment it is assigned, and a later .size set gets clamped to it.
+	fool.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fool.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fool.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	fool.texture = load("res://assets/cards/arcana/00_fool.jpg")
+	fool.position = Vector2(64, 330)
+	fool.size = Vector2(82, 142)
+	fool.tooltip_text = tr("FOOL_YOU")
+	add_child(fool)
+
 	_fx = Control.new()
 	_fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -57,6 +57,14 @@ func _build_shell() -> void:
 	var sb := HBoxContainer.new()
 	sb.add_theme_constant_override("separation", 24)
 	_statusbar.add_child(sb)
+	var fool := TextureRect.new()   # the run's identity: you are The Fool
+	fool.texture = load("res://assets/cards/arcana/00_fool.jpg")
+	fool.custom_minimum_size = Vector2(20, 34)
+	fool.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fool.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fool.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	fool.tooltip_text = tr("FOOL_YOU")
+	sb.add_child(fool)
 	_hp_label = _label("", 16, Color(0.6, 0.9, 0.55))
 	_rtec_label = _label("", 16, Color(0.85, 0.8, 0.55))
 	_deck_label = _label("", 16, Color(0.75, 0.78, 0.85))
@@ -140,6 +148,11 @@ func _show_map() -> void:
 		for a in RunState.relics:
 			rr.add_child(_relic_chip(a))
 		root.add_child(rr)
+
+	if not _pending_omen.is_empty():
+		var ow := CenterContainer.new()
+		ow.add_child(_omen_block())
+		root.add_child(ow)
 
 	root.add_child(_hint(tr("MAP_HINT")))
 	var ctrls := HBoxContainer.new()
@@ -235,6 +248,7 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 		_show_complete()
 		return
 	_last_rest = RunState.rest()   # recover between fights so the run isn't a one-HP knife-edge
+	_roll_omen()                   # the road reveals an omen; it waits on the map screen
 	if RunState.step == 0:
 		_show_reward()
 	else:
@@ -469,6 +483,16 @@ func _show_defeat() -> void:
 	_statusbar.visible = true
 	_update_status()
 	var root := _screen_column()
+	# Death XIII greets the fallen -- the card reads the outcome for you.
+	var death_art := TextureRect.new()
+	death_art.texture = load("res://assets/cards/arcana/13_death.jpg")
+	death_art.custom_minimum_size = Vector2(150, 260)
+	death_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	death_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	death_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var death_wrap := CenterContainer.new()
+	death_wrap.add_child(death_art)
+	root.add_child(death_wrap)
 	root.add_child(_big(tr("DEFEAT_TITLE"), Color(0.9, 0.4, 0.4)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
 	var wrap := CenterContainer.new()
@@ -486,6 +510,84 @@ var _arc_offers: Array = []
 var _arc_panels: Array = []
 var _arc_pick: int = -1
 var _arc_btn: Button
+
+# ---------------------------------------------------------------- OMENS
+# Between fights the road can reveal an omen: a Major Arcana with a small, fully deterministic
+# choice. Uses the reward-layer RNG only for WHICH omen appears; effects are exact.
+# TODO(editor-first): move to .tres once the shape settles.
+
+const OMENS: Array = [
+	{"id": "star", "art": "res://assets/cards/arcana/17_star.jpg", "name": "OMEN_STAR", "desc": "OMEN_STAR_DESC"},
+	{"id": "wheel", "art": "res://assets/cards/arcana/10_wheel_of_fortune.jpg", "name": "OMEN_WHEEL", "desc": "OMEN_WHEEL_DESC"},
+	{"id": "hanged", "art": "res://assets/cards/arcana/12_hanged_man.jpg", "name": "OMEN_HANGED", "desc": "OMEN_HANGED_DESC"},
+	{"id": "justice", "art": "res://assets/cards/arcana/11_justice.jpg", "name": "OMEN_JUSTICE", "desc": "OMEN_JUSTICE_DESC"},
+	{"id": "temperance", "art": "res://assets/cards/arcana/14_temperance.jpg", "name": "OMEN_TEMPERANCE", "desc": "OMEN_TEMPERANCE_DESC"},
+]
+
+var _pending_omen: Dictionary = {}
+
+func _roll_omen() -> void:
+	_pending_omen = RunState.pick_offers(OMENS, 1)[0]
+
+func _omen_block() -> Control:
+	var p := _panel(Color(0.1, 0.09, 0.13), Color(0.7, 0.6, 0.85))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	p.add_child(row)
+	var t := TextureRect.new()
+	t.texture = load(_pending_omen["art"])
+	t.custom_minimum_size = Vector2(64, 111)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	row.add_child(t)
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 6)
+	row.add_child(vb)
+	vb.add_child(_label(tr("OMEN_TITLE") + ": " + tr(_pending_omen["name"]), 17, Color(0.9, 0.85, 0.95)))
+	vb.add_child(_label(tr(_pending_omen["desc"]), 14, Color(0.72, 0.74, 0.82)))
+	var btns := HBoxContainer.new()
+	btns.add_theme_constant_override("separation", 10)
+	var take := _button(tr("OMEN_TAKE"), _accept_omen)
+	if _pending_omen["id"] == "hanged" and RunState.player_hp <= 5:
+		take.disabled = true   # the trade would kill you; the card refuses
+	btns.add_child(take)
+	btns.add_child(_button(tr("OMEN_SKIP"), _skip_omen))
+	vb.add_child(btns)
+	return p
+
+func _accept_omen() -> void:
+	var id: String = _pending_omen["id"]
+	_pending_omen = {}
+	match id:
+		"star":
+			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 10)
+			Sfx.play(&"heal", -6.0)
+		"wheel":
+			RunState.rtec += 4
+			Sfx.play(&"coin", -6.0)
+		"hanged":
+			RunState.player_hp -= 5
+			RunState.rtec += 8
+			Sfx.play(&"coin", -6.0)
+		"temperance":
+			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 6)
+			RunState.rtec += 2
+			Sfx.play(&"heal", -6.0)
+		"justice":
+			Sfx.play(&"card_select", -8.0)
+			var cb := func(card: CardData) -> void:
+				RunState.remove_card(card)
+				_show_map()
+			_open_deck_picker(tr("PICK_REMOVE"), cb)
+			return
+	RunState.changed.emit()
+	_show_map()
+
+func _skip_omen() -> void:
+	_pending_omen = {}
+	_show_map()
 
 func _show_arcanum_draft() -> void:
 	_statusbar.visible = true

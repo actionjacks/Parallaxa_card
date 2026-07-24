@@ -161,8 +161,23 @@ func _pass_arcanum_draft() -> void:
 		await _click(_center(take))
 	await _frames(20)
 
+var _omen_shot := false
+
 func _proceed() -> void:   # click the map "Enter" to start the next encounter
 	await _frames(6)
+	# an omen may wait on the map -- decide like a player (accept simple boons, leave Justice)
+	if not _rn._pending_omen.is_empty():
+		var oid: String = _rn._pending_omen["id"]
+		print("[pt2] omen: ", oid)
+		if not _omen_shot:
+			await _shoot("omen")
+			_omen_shot = true
+		var b = _button_with("OMEN_TAKE" if oid != "justice" else "OMEN_SKIP")
+		if b == null or b.disabled:
+			b = _button_with("OMEN_SKIP")
+		if b != null:
+			await _click(_center(b))
+		await _frames(12)
 	var go = _button_with("MAP_GO")
 	if go != null:
 		await _click(_center(go))

@@ -253,6 +253,20 @@ ARCANUM_CESARZOWEJ,Arcanum of the Empress,Arkanum Cesarzowej
 DRAFT_TITLE,Choose your starting Arcanum,Wybierz startowe Arkanum
 DRAFT_HINT,The cards are laid out. One power will walk with you.,Karty rozłożone. Jedna moc pójdzie z tobą.
 DRAFT_TAKE,Wear it,Przywdziej
+FOOL_YOU,The Fool — that is you,Głupiec — to Ty
+OMEN_TITLE,Omen,Omen
+OMEN_TAKE,Accept,Przyjmij
+OMEN_SKIP,Leave it,Zostaw
+OMEN_STAR,The Star,Gwiazda
+OMEN_STAR_DESC,Hope restores +10 HP.,Nadzieja przywraca +10 HP.
+OMEN_WHEEL,Wheel of Fortune,Koło Fortuny
+OMEN_WHEEL_DESC,The wheel turns: +4 ☿.,Koło się obraca: +4 ☿.
+OMEN_HANGED,The Hanged Man,Wisielec
+OMEN_HANGED_DESC,"Sacrifice: -5 HP, +8 ☿.","Poświęcenie: -5 HP, +8 ☿."
+OMEN_JUSTICE,Justice,Sprawiedliwość
+OMEN_JUSTICE_DESC,Remove one card from your deck for free.,Usuń jedną kartę z talii za darmo.
+OMEN_TEMPERANCE,Temperance,Umiarkowanie
+OMEN_TEMPERANCE_DESC,"Balance: +6 HP, +2 ☿.","Równowaga: +6 HP, +2 ☿."
 RULE_TOWER,Tower: block does not protect (the walls fall),Wieża: blok nie chroni (walą się mury)
 RUN_HP,HP %d/%d,HP %d/%d
 RUN_RTEC,%d ☿,%d ☿
