@@ -117,15 +117,28 @@ func _play_fight(tag: String) -> void:
 			await _frames(3)
 			continue
 		var kids: Array = combat._hand_row.get_children()
-		for idx in _best(c.hand):
+		var best: Array = _best(c.hand)
+		# Fish like a real player: a weak hand (<3 of a kind) is worth a discard when available.
+		if best.size() < 3 and c.discards_left > 0 and c.hand.size() >= 5:
+			var junk: Array = []
+			for i in c.hand.size():
+				if not best.has(i):
+					junk.append(i)
+			for idx in junk.slice(0, 5):
+				if idx < kids.size():
+					await _click(_center(kids[idx]))
+			if not combat._discard_btn.disabled:
+				await _click(_center(combat._discard_btn))
+				await _frames(15)
+				continue
+		for idx in best:
 			if idx < kids.size():
 				await _click(_center(kids[idx]))
 		if not shot_turn:
 			await _shoot(tag + "_selected")   # selection + score preview
 			shot_turn = true
-		var play = _button_with("COMBAT_PLAY")
-		if play != null and not play.disabled:
-			await _click(_center(play))
+		if not combat._play_btn.disabled:
+			await _click(_center(combat._play_btn))
 		await _frames(45)
 
 func _proceed() -> void:   # click the map "Enter" to start the next encounter
@@ -140,6 +153,11 @@ func _go() -> void:
 	_rn = load(RUN).instantiate()
 	root.add_child(_rn)
 	await _frames(20)
+	var rs := root.get_node("RunState")
+	var top: Array = []
+	for i in mini(5, rs.deck.size()):
+		top.append("%s-%d" % [str(rs.deck[i].aspect), rs.deck[i].rank])
+	print("[pt2] deck top5: ", " ".join(top))
 	await _shoot("01_map")
 
 	# hover a card to show the preview
@@ -153,6 +171,10 @@ func _go() -> void:
 	await _play_fight("03_fight1")
 	await _frames(55)
 	await _shoot("04_reward")
+	var offer_desc: Array = []
+	for c in _rn._reward_cards:
+		offer_desc.append("%s-%d" % [str(c.aspect), c.rank])
+	print("[pt2] reward offers: ", " ".join(offer_desc))
 	# take a reward card
 	var rc := _reward_cards()
 	if rc.size() > 0:

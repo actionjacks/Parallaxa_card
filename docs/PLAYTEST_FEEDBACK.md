@@ -55,6 +55,35 @@ kazdego ekranu tak, jak widzi go gracz. Locale = PL.
   („Select cards, then Play"), przez co PL pokazywalo smiec „then Play". Opakowano w cudzyslow.
   (Klasyczna pulapka CSV z CLAUDE.md — wykryta dopiero patrzac na ekran w locale PL.)
 
+## PASS 2 — satysfakcja / regrywalnosc / wciagniecie (playtest realnym inputem, 2+ runy)
+
+Kryteria: gra ma byc satysfakcjonujaca, REGRYWALNA i wciagajaca. Ustalenia i wdrozone naprawy:
+
+1. **KRYTYCZNE / REGRYWALNOSC: gra byla w 100% deterministycznym skryptem.** Zero RNG w calym kodzie:
+   oferty nagrod = staly offset (step*3), sklep = staly offset 5, talia w stalej kolejnosci .tres.
+   Kazdy run identyczny -> zerowa regrywalnosc. To LAMALO decyzje projektowa „hybryda: walka
+   deterministyczna, nagrody ZMIENNE". **NAPRAWIONE**: RunState.rng (seed per run) = jedyne
+   usankcjonowane zrodlo losowosci; losowe 3 oferty nagrody, losowe oferty sklepu, reroll = prawdziwe
+   losowanie, talia tasowana RAZ na starcie runu (w runie dobor pozostaje deterministyczny, sim-preview
+   nie klamie). Dowod: 3 runy — rozne talie startowe, rozne oferty, rozne przebiegi (hp 27/27/43).
+2. **KRYTYCZNE / SATYSFAKCJA: gra byla CALKOWICIE niema.** AudioManager istnial, nikt go nie wolal.
+   **NAPRAWIONE**: proceduralne SFX (src/game/audio/sfx.gd — WAV syntezowany w kodzie, zero plikow):
+   select/deselect karty, zagranie, trafienie (glosniejsze i nizsze przy wiekszych obrazeniach), blok,
+   lecz, Gnicie, moneta (kupno/nagroda), cios w gracza, ZABLOKOWANO, fanfara wygranej / zjazd porazki.
+3. **WCIAGNIECIE: brak eskalacji napiecia w walce.** Intencje wroga staly w miejscu — dlugie walki nie
+   grozily niczym. **NAPRAWIONE**: enrage (EnemyData.enrage_step) — po kazdym pelnym cyklu intencji
+   baza rosnie (+2 zwykli, +3 boss). Deterministyczne, zawsze widoczne w „Uderzy za N" (uczciwe).
+   Przeciaganie walki = kara; szybkie zabicie = nagroda. Boss 470 HP (po dywersyfikacji talii).
+4. **SATYSFAKCJA: kazde trafienie wygladalo tak samo.** 400-dmg flush = ten sam popup co 29-dmg para.
+   **NAPRAWIONE**: rozmiar liczby obrazen skaluje z wartoscia, trafienia >=150 wstrzasaja arena
+   (screen shake), dzwiek trafienia ciezszy przy duzych hitach.
+5. **Bot testowy gral bez odrzutow** (nie jak gracz) — po dywersyfikacji talii nie domykal bossa.
+   Poprawiony: fishuje odrzutami przy slabej rece (jak realny gracz). 3/3 runy wygrane z marginesem
+   27-43 HP — napiecie jest, sciana nie.
+
+Pozostaje do przyszlego strojenia: wiecej wrogow/pul nagrod (wieksza przestrzen wariancji), muzyka,
+dzwieki na hover/przyciskach, ascension/stakes po pierwszym zwyciestwie.
+
 ## Rekomendowana kolejnosc
 
 1. **Wizualny wrog + tlo pola walki** (KRYT #1/#3) — najwiekszy skok „to gra, nie wireframe".

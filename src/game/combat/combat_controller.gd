@@ -53,7 +53,10 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 func current_intent() -> int:
 	if enemy == null or enemy.intents.is_empty():
 		return 0
-	return enemy.intents[_intent_index % enemy.intents.size()]
+	# Enrage: each completed intent cycle raises the base, so stalling gets punished. Deterministic
+	# and always shown by the intent label -- the preview never lies about the incoming hit.
+	var cycle: int = _intent_index / enemy.intents.size()
+	return enemy.intents[_intent_index % enemy.intents.size()] + cycle * enemy.enrage_step
 
 func preview(selected: Array) -> Dictionary:
 	return Scoring.score(_cards_from(selected), relics, _ctx())

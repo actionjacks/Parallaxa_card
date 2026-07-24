@@ -17,12 +17,19 @@ var region: RegionData
 var step: int = 0                 ## index into the region ladder (0..fights, last = boss)
 var fights_won: int = 0
 
+## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
+## Seeded fresh per run: reward drafts, shop offers and the run-start deck order differ run to run,
+## while everything inside a fight stays exact and preview-safe.
+var rng := RandomNumberGenerator.new()
+
 func begin(p_region: RegionData) -> void:
+	rng.randomize()
 	region = p_region
 	player_max_hp = START_MAX_HP
 	player_hp = player_max_hp
 	rtec = 0
 	deck = DeckLibrary.starter_deck()
+	_shuffle(deck)   # run-start order varies; within the run draws stay deterministic
 	relics = []
 	if region != null and region.starting_arcanum != null:
 		relics.append(region.starting_arcanum)
@@ -54,6 +61,22 @@ func rest() -> int:
 	player_hp = mini(player_max_hp, player_hp + REST_HEAL)
 	changed.emit()
 	return player_hp - before
+
+## N distinct random cards from a pool (the variable-reward layer: drafts and shop offers).
+func pick_offers(pool: Array, n: int) -> Array:
+	var idx: Array = range(pool.size())
+	_shuffle(idx)
+	var out: Array = []
+	for i in mini(n, idx.size()):
+		out.append(pool[idx[i]])
+	return out
+
+func _shuffle(arr: Array) -> void:
+	for i in range(arr.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp = arr[i]
+		arr[i] = arr[j]
+		arr[j] = tmp
 
 func spend(cost: int) -> bool:
 	if rtec < cost:

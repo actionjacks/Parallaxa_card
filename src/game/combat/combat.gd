@@ -310,8 +310,10 @@ func _on_card_input(event: InputEvent, card: CardData) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if _selected.has(card):
 			_selected.erase(card)
+			Sfx.play(&"card_select", -8.0, 0.85)
 		elif _selected.size() < 5:
 			_selected.append(card)
+			Sfx.play(&"card_select", -8.0)
 		_refresh_card_styles()
 		_update_selection_ui()
 
@@ -386,6 +388,7 @@ func _on_play() -> void:
 	_selected.clear()
 	_fx_index = 0
 	_emblem_hit()
+	Sfx.play(&"card_play", -6.0)
 	controller.play(idx)
 
 func _on_discard() -> void:
@@ -424,18 +427,31 @@ func _on_message(text_key: String, args: Array) -> void:
 	_log_label.text = "\n".join(_log_lines)
 	match text_key:
 		"LOG_PLAY":
-			_popup("-" + str(int(args[1])), Color(1.0, 0.5, 0.4), _enemy_fx_pos())
+			# The number grows with the hit and big hits shake the arena -- a 400 flush must FEEL
+			# bigger than a 30 pair, not just read bigger.
+			var dmg := int(args[1])
+			_popup("-" + str(dmg), Color(1.0, 0.5, 0.4), _enemy_fx_pos(), 26 + clampi(dmg / 12, 0, 22))
+			Sfx.play(&"hit", minf(0.0, -6.0 + dmg / 60.0), clampf(1.15 - dmg / 500.0, 0.7, 1.15))
+			if dmg >= 150:
+				_shake(4.0 + minf(dmg / 60.0, 8.0))
 		"LOG_GNICIE":
 			_popup("-" + str(int(args[0])), Aspects.color(Aspects.Id.DEATH), _enemy_fx_pos())
+			Sfx.play(&"rot", -8.0)
 		"LOG_BLOCK":
 			_popup("+" + str(int(args[0])), Color(0.6, 0.8, 1.0), _block_fx_pos())
 			_pulse(_block_label)
+			Sfx.play(&"block", -6.0)
 		"LOG_HEAL":
 			_popup("+" + str(int(args[0])), Color(0.6, 0.9, 0.55), _player_fx_pos())
+			Sfx.play(&"heal", -6.0)
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
 				_hit_flash()
+				Sfx.play(&"player_hit", -4.0)
+			else:
+				_popup(tr("COMBAT_BLOCKED"), Color(0.6, 0.8, 1.0), _player_fx_pos(), 20)
+				Sfx.play(&"block", -4.0)
 
 ## After the player's play resolves and animates, pause a beat, then let the enemy act.
 func _on_awaiting_enemy() -> void:
@@ -455,6 +471,7 @@ func _on_awaiting_enemy() -> void:
 		controller.resolve_enemy_turn()
 
 func _on_ended(won: bool) -> void:
+	Sfx.play(&"win" if won else &"lose", -4.0)
 	if _emblem_idle != null:
 		_emblem_idle.kill()
 	if won:
@@ -555,6 +572,13 @@ func _pulse(node: Control) -> void:
 	node.scale = Vector2(1.3, 1.3)
 	create_tween().tween_property(node, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+func _shake(strength: float) -> void:
+	var tw := create_tween()
+	for i in 4:
+		var off := Vector2(randf_range(-strength, strength), randf_range(-strength, strength))
+		tw.tween_property(self, "position", off, 0.04)
+	tw.tween_property(self, "position", Vector2.ZERO, 0.05)
+
 func _hit_flash() -> void:
 	var r := ColorRect.new()
 	r.color = Color(0.85, 0.12, 0.12, 0.30)
@@ -565,8 +589,8 @@ func _hit_flash() -> void:
 	tw.tween_property(r, "modulate:a", 0.0, 0.35)
 	tw.tween_callback(r.queue_free)
 
-func _popup(text: String, color: Color, at: Vector2) -> void:
-	var l := _label(text, 26, color)
+func _popup(text: String, color: Color, at: Vector2, size: int = 26) -> void:
+	var l := _label(text, size, color)
 	l.position = at
 	_fx.add_child(l)
 	var delay: float = _fx_index * 0.16

@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("1_xiddo")
 name_key = "ENEMY_WIEZA"
-max_hp = 520
-intents = PackedInt32Array(11, 14, 9)
+max_hp = 470
+intents = PackedInt32Array(12, 16, 10)
+enrage_step = 3
 reward_rtec = 12
 is_boss = true
 rule = 1

@@ -9,7 +9,7 @@ const BUY_COST := 4
 const THIN_COST := 3
 const ENCHANT_COST := 5
 
-var _shop_offset: int = 5
+var _shop_offers: Array = []
 var _shop_reroll_cost: int = 1
 
 var _stage: Control
@@ -218,7 +218,7 @@ func _on_combat_finished(won: bool, remaining_hp: int) -> void:
 	if RunState.step == 0:
 		_show_reward()
 	else:
-		_shop_offset = 5
+		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
 		_shop_reroll_cost = 1
 		_show_shop()
 
@@ -230,8 +230,7 @@ func _show_reward() -> void:
 	_reward_panels.clear()
 	_reward_cards.clear()
 	_reward_pick = -1
-	var pool := DeckLibrary.reward_pool()
-	var offset: int = (RunState.step * 3) % maxi(1, pool.size() - 2)
+	var offers: Array = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
 	var rested := _last_rest
 	_last_rest = 0
 	var root := _screen_column()
@@ -241,8 +240,7 @@ func _show_reward() -> void:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
-	for i in 3:
-		var card: CardData = pool[(offset + i) % pool.size()]
+	for card: CardData in offers:
 		var panel := CardWidget.build(card)
 		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		panel.gui_input.connect(_on_reward_input.bind(_reward_cards.size()))
@@ -271,6 +269,7 @@ func _on_reward_input(event: InputEvent, index: int) -> void:
 func _take_reward() -> void:
 	if _reward_pick >= 0:
 		RunState.add_card(_reward_cards[_reward_pick])
+		Sfx.play(&"coin", -6.0)
 	RunState.step += 1
 	_show_map()
 
@@ -285,7 +284,8 @@ func _show_shop() -> void:
 	_update_status()
 	var rested := _last_rest
 	_last_rest = 0
-	var pool := DeckLibrary.reward_pool()
+	if _shop_offers.is_empty():
+		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
@@ -295,8 +295,7 @@ func _show_shop() -> void:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
-	for i in 3:
-		var card: CardData = pool[(_shop_offset + i) % pool.size()]
+	for card: CardData in _shop_offers:
 		var item := VBoxContainer.new()
 		item.alignment = BoxContainer.ALIGNMENT_CENTER
 		item.add_theme_constant_override("separation", 6)
@@ -341,6 +340,7 @@ func _show_shop() -> void:
 func _buy(card: CardData) -> void:
 	if RunState.spend(BUY_COST):
 		RunState.add_card(card)
+		Sfx.play(&"coin", -4.0)
 		_show_shop()  # refresh prices / affordability
 
 func _thin_deck() -> void:
@@ -364,7 +364,7 @@ func _enchant(edition: int) -> void:
 
 func _reroll_shop() -> void:
 	if RunState.spend(_shop_reroll_cost):
-		_shop_offset += 3
+		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)   # the slot-machine pull
 		_shop_reroll_cost += 1
 		_show_shop()
 

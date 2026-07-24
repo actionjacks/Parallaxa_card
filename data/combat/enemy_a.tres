@@ -7,4 +7,5 @@ script = ExtResource("1_gla68")
 name_key = "ENEMY_KULTYSTA"
 max_hp = 340
 intents = PackedInt32Array(8, 10, 6)
+enrage_step = 2
 reward_rtec = 5

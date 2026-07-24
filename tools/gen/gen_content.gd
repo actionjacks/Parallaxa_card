@@ -63,11 +63,11 @@ func _region() -> void:
 	# singletons, and the Death Arcanum makes that flush dominant. HP is tuned so fights end in ~2 turns
 	# (enemy survives the opener, so intents/attacks are seen) without a long grind. Real tuning is a
 	# gameplay pass -- likely: reward sustained plays, tone down the flush, or add rest/heal between fights.
-	var a := _enemy("ENEMY_KULTYSTA", 340, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "")
+	var a := _enemy("ENEMY_KULTYSTA", 340, [8, 10, 6], 5, false, EnemyData.Rule.NONE, "", 2)
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
-	var b := _enemy("ENEMY_CIEN", 400, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "")
+	var b := _enemy("ENEMY_CIEN", 400, [9, 12, 7], 6, false, EnemyData.Rule.NONE, "", 2)
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var boss := _enemy("ENEMY_WIEZA", 520, [11, 14, 9], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER")
+	var boss := _enemy("ENEMY_WIEZA", 470, [12, 16, 10], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 
 	var region := RegionData.new()
@@ -89,7 +89,7 @@ func _arcanum(name_key: String, aspect: int, mult: float) -> ArcanumData:
 	arc.effect_mult = mult
 	return arc
 
-func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: int, rule_key: String) -> EnemyData:
+func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: int, rule_key: String, enrage: int = 0) -> EnemyData:
 	var e := EnemyData.new()
 	e.name_key = name_key
 	e.max_hp = hp
@@ -98,6 +98,7 @@ func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: boo
 	e.is_boss = is_boss
 	e.rule = rule
 	e.rule_key = rule_key
+	e.enrage_step = enrage
 	return e
 
 # ---- specs ----

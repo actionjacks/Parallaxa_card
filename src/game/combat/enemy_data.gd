@@ -8,6 +8,7 @@ enum Rule { NONE, TOWER_IGNORES_BLOCK }
 @export var name_key: String = ""
 @export var max_hp: int = 150
 @export var intents: PackedInt32Array = PackedInt32Array([12, 18, 8])  ## cycled each enemy turn
+@export var enrage_step: int = 0          ## added to every intent per full cycle: long fights escalate
 @export var reward_rtec: int = 6          ## Rtec (currency) granted on defeat
 @export var is_boss: bool = false
 @export var rule: Rule = Rule.NONE
