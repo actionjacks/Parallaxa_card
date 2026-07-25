@@ -1,0 +1,16 @@
+brak gui gracza chodzi o to ze gracz musi mieć swój panel najpeiej pod TAB gdzie wyświetli aktualny deck aktualne karty informacje mechaniki itp.
+
+kiedy mam karty nawet w walcem prawym przyciskiem myszy wyswietlam w przybliżeniu karte aby sprawddzic opis po prawej toltipy z astosowaniem karty mechanikiami dokładnym opisem.
+
+chce aby gracz mogl miedzy runami zbierac walute która będzie ulepsza karty karty będą coraz lepiej wygladac na końcu będą foil może lepsze efekty wzomcnienia w późniejszym etapie karty będą 3d jak w herstone aniamowane.
+
+trzeba zmienić panel walki chce aby karty były cale widoczne ale aby wygladalo tak ze gracz trzyma je w reku jak w herstone i zagranie karty to wyzucanie ich na srodkowy panel kiedy gracz  zedecduje się zagranie naciska przycis zagraj.
+
+trzeba poprawić ux gracz nie widzie kiedy karty sa odzucnoe nie widzi kiedy karty dobiera brakuje aby karty mu wchodzili na reke itp. jak w herstone.
+
+grze brakuje gu i UX gracz ma trudność żeby zobaczyć co się dzieje oraz co może zrobić gra musi być intuicyjna i czytelna, animacje tez poprawia feel gry. Grze zdecydowanie brakuje panelu do wyświetlania jakie ma karty co karty robia podpowiedzi opisy panel na odblokowane karty odblokowane arkany aktualny poziom wierza progres.
+
+pod esc nie działa wyświetlanie menu
+
+Potrzebuje od ciebie pelnej analizy jako game developera ktory sprawnie zaprojektuje to czego grze brakuje lacznie z ekranem tytulowem gui w formie 
+Kart tarota odpowiednim do stylu gru menu i opcje inventory gracza zapiwyanie gry ladowanie gry progress miedy runami do gry trzeba wprowadzic player profile.
