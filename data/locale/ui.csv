@@ -573,3 +573,63 @@ SETTINGS_REDUCE_MOTION,Reduce motion (no shake/hitstop),Ogranicz ruch (bez wstrz
 SETTINGS_DISABLE_FLASH,Disable screen flashes,Wyłącz błyski ekranu
 SETTINGS_STREAMER,Streamer mode (fate code on screen),Tryb streamera (kod losu na ekranie)
 SETTINGS_FAST_PACE,Fast pace (short enemy beats),Szybkie tempo (krótkie pauzy wroga)
+ENEMY_RYDWAN,The Chariot,Rydwan
+ENEMY_SILA,Strength,Siła
+ENEMY_WISIELEC,The Hanged Man,Wisielec
+ENEMY_SPRAWIEDLIWOSC,Justice,Sprawiedliwość
+ENEMY_SAD,Judgement,Sąd
+ENEMY_GWIAZDA,The Star,Gwiazda
+RULE_CHARIOT,Chariot: his attack lands TWICE — block absorbs only the first strike,Rydwan: atak spada DWA razy — blok chroni tylko przed pierwszym
+RULE_STRENGTH,Strength: suppresses burst — takes 20% less from every play,Siła: tłumi burst — otrzymuje 20% mniej z każdego zagrania
+RULE_HANGED,The Hanged Man: suspension — your discards are capped at 1 per turn,Wisielec: zawieszenie — odrzuty ograniczone do 1 na turę
+RULE_JUSTICE,"Justice: a play of 40+ damage draws an exact riposte (dmg/40, max 8)","Sprawiedliwość: zagranie za 40+ ściąga dokładną ripostę (obr/40, maks 8)"
+RULE_JUDGEMENT,Judgement: the deck is judged — each played card of rank 3 or less costs 1 HP,Sąd: talia osądzona — każda zagrana karta rangi 3 lub niższej kosztuje 1 HP
+RULE_STAR,Star: hope — heals +12 at the start of every enemy turn,Gwiazda: nadzieja — leczy się +12 na początku każdej swojej tury
+ARCANUM_WISIELCA,The Hanged Man,Arkanum Wisielca
+ARCANUM_SPRAWIEDLIWOSCI,Justice,Arkanum Sprawiedliwości
+ARCANUM_SADU,Judgement,Arkanum Sądu
+ARCANUM_GWIAZDY,The Star,Arkanum Gwiazdy
+GATE_TITLE,THE WORLD HAS FALLEN,ŚWIAT PADŁ
+GATE_HINT,"End the reading — or walk BEYOND: Depth %d (foes +50%% HP, harder blows).","Zakończ odczytanie — albo idź DALEJ: Głębia %d (wrogowie +50%% HP, cięższe ciosy)."
+GATE_END,End the reading,Zakończ odczytanie
+GATE_BEYOND,Beyond — Depth %d,Dalej — Głębia %d
+SPREAD_DEPTH,Depth beyond the World: %d,Głębia za Światem: %d
+KW_KORZENIE,Roots,Korzenie
+KWD_KORZENIE,Block that roots: +2 block for every turn this card waited in hand.,Blok który się korzeni: +2 bloku za każdą turę czekania tej karty w ręce.
+PREVIEW_RIPOSTE,Riposte: -%d HP,Riposta: -%d HP
+PREVIEW_FRAIL,Judged: -%d HP,Osąd: -%d HP
+LOG_RIPOSTE,Justice ripostes: -%d,Sprawiedliwość odpowiada: -%d
+LOG_FRAIL,The deck is judged: -%d,Talia osądzona: -%d
+LOG_STAR_REGEN,The Star mends: +%d,Gwiazda się leczy: +%d
+ACH_MAGNUM,Magnum Opus,Magnum Opus
+ACH_MAGNUM_DESC,Assemble the secret hand: five of a kind in one Aspect.,Złóż sekretny układ: pięć jednakowych w jednym Aspekcie.
+ACH_REVERSED,Profaned,Profanacja
+ACH_REVERSED_DESC,Claim a REVERSED Arcanum and pay its price.,Weź ODWRÓCONE Arkanum i zapłać jego cenę.
+ACH_ELITE,Regicide,Królobójstwo
+ACH_ELITE_DESC,Fell a reversed court elite.,Powal odwróconą elitę dworu.
+ACH_TITAN,Titanbreaker,Pogromca Tytanów
+ACH_TITAN_DESC,Deal 1000 or more damage in a single play.,Zadaj 1000 lub więcej obrażeń jednym zagraniem.
+ACH_DAILY,Reader of the Day,Czytający Dzień
+ACH_DAILY_DESC,Win a Daily Fate.,Wygraj Dzienny Los.
+ACH_BEYOND,Beyond the World,Za Światem
+ACH_BEYOND_DESC,Walk through the gate after felling The World.,Przejdź przez bramę po powaleniu Świata.
+ACH_DEPTH2,Deep Reader,Czytający Głębię
+ACH_DEPTH2_DESC,Reach Depth 2 beyond the World.,Osiągnij Głębię 2 za Światem.
+ACH_VEIL_1,Veil I Torn,Zasłona I Zerwana
+ACH_VEIL_1_DESC,Win the Journey at Veil I.,Wygraj Podróż na Zasłonie I.
+ACH_VEIL_2,Veil II Torn,Zasłona II Zerwana
+ACH_VEIL_2_DESC,Win the Journey at Veil II.,Wygraj Podróż na Zasłonie II.
+ACH_VEIL_3,Veil III Torn,Zasłona III Zerwana
+ACH_VEIL_3_DESC,Win the Journey at Veil III.,Wygraj Podróż na Zasłonie III.
+ACH_VEIL_4,Veil IV Torn,Zasłona IV Zerwana
+ACH_VEIL_4_DESC,Win the Journey at Veil IV.,Wygraj Podróż na Zasłonie IV.
+ACH_VEIL_5,True Night Torn,Prawdziwa Noc Zerwana
+ACH_VEIL_5_DESC,Win the Journey at Veil V.,Wygraj Podróż na Zasłonie V.
+ACH_WIN_REAPER,Reaper's Due,Zapłata Żniwiarza
+ACH_WIN_REAPER_DESC,Win the Journey with Reaper's Deal.,Wygraj Podróż Paktem Żniwiarza.
+ACH_WIN_GARDENER,Gardener's Harvest,Zbiory Ogrodnika
+ACH_WIN_GARDENER_DESC,Win the Journey with Gardener's Path.,Wygraj Podróż Ścieżką Ogrodnika.
+ACH_WIN_ORACLE,Oracle's Proof,Dowód Wyroczni
+ACH_WIN_ORACLE_DESC,Win the Journey with Oracle's Gambit.,Wygraj Podróż Gambitem Wyroczni.
+ACH_LEVEL10,Seasoned Reader,Wprawiony Tarocista
+ACH_LEVEL10_DESC,Reach Tarocista level 10.,Osiągnij 10. poziom Tarocisty.

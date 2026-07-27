@@ -502,7 +502,9 @@ func _open_collection() -> void:
 		hl.add_child(_lbl(tr("ACH_DONE") if done else tr("ACH_UNDONE"), 12,
 			Color(0.6, 0.85, 0.6) if done else Color(0.55, 0.55, 0.62)))
 		arow.add_child(_lbl(tr(ach + "_DESC"), 12, Color(0.68, 0.7, 0.78)))
-		arow.add_child(_lbl(tr("ACH_REWARD") % tr(ach + "_REWARD"), 12, Color(0.72, 0.62, 0.85)))
+		# Prestige achievements have no reward line (proof, not power).
+		if tr(ach + "_REWARD") != ach + "_REWARD":
+			arow.add_child(_lbl(tr("ACH_REWARD") % tr(ach + "_REWARD"), 12, Color(0.72, 0.62, 0.85)))
 
 	var close := _menu_btn(tr("COMMON_CLOSE"), func() -> void:
 		_collection.queue_free()

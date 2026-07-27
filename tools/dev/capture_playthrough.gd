@@ -247,7 +247,8 @@ func _go() -> void:
 	_log("[pt2] region 1 foes: " + _foes())
 	var result := "TIMEOUT"
 	var guard := 0
-	while guard < 80:
+	var guard_max := 140 if OS.get_environment("PT_BEYOND") == "1" else 80
+	while guard < guard_max:
 		guard += 1
 		await _frames(8)
 		if _find_combat() != null:
@@ -259,6 +260,23 @@ func _go() -> void:
 		if _button_with("DRAFT_TAKE") != null:
 			_log("[bc] draft")
 			await _pass_draft()
+			continue
+		# The World gate: end the reading (or walk Beyond once when PT_BEYOND=1).
+		var gate = _button_with("GATE_END")
+		if gate != null:
+			if OS.get_environment("PT_BEYOND") == "1" and rs.depth == 0:
+				var beyond_text: String = TranslationServer.translate("GATE_BEYOND") % (rs.depth + 1)
+				var gb = _find(_rn, func(c): return c is Button and c.text == beyond_text and c.is_visible_in_tree())
+				if gb != null:
+					_log("[bc] walking BEYOND (depth %d)" % (rs.depth + 1))
+					await _shoot("gate")
+					await _click(_center(gb))
+					await _frames(20)
+					continue
+			_log("[bc] the World has fallen -- ending the reading")
+			await _shoot("gate")
+			await _click(_center(gate))
+			await _frames(15)
 			continue
 		# Boss claim: pick the REVERSED option on odd regions (exercises both paths), else upright.
 		var claim = _button_with("CLAIM_TAKE")

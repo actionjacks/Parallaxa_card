@@ -130,10 +130,23 @@ func _region() -> void:
 	ResourceSaver.save(world_arc, ARCANA_DIR + "arcanum_world.tres")
 	# Meta-widening arcana: bought with Sol into the boss offer pool / unlocked by achievements
 	# into the opening draft (profile.gd wires them; existing Effect values only).
-	_save_arcanum_simple("arcanum_emperor", "ARCANUM_CESARZA", E.BLOCK_ON_PLAY, A.LIFE, 1.0, 6, "04_emperor")
-	_save_arcanum_simple("arcanum_chariot", "ARCANUM_RYDWANU", E.MULT_IF_ASPECT, A.MIND, 1.4, 0, "07_chariot")
-	_save_arcanum_simple("arcanum_strength", "ARCANUM_SILY", E.MULT_IF_ASPECT, A.LIFE, 1.5, 0, "08_strength")
-	_save_arcanum_simple("arcanum_hermit", "ARCANUM_PUSTELNIKA", E.EXTRA_DISCARD, A.MIND, 1.0, 2, "09_hermit")
+	_save_arcanum_simple("arcanum_emperor", "ARCANUM_CESARZA", E.BLOCK_ON_PLAY, A.LIFE, 1.0, 6, "04_emperor",
+		[0.0, 12, P.MAX_HP, 6])
+	_save_arcanum_simple("arcanum_chariot", "ARCANUM_RYDWANU", E.MULT_IF_ASPECT, A.MIND, 1.4, 0, "07_chariot",
+		[2.0, -1, P.SELF_CURSE, 2])
+	_save_arcanum_simple("arcanum_strength", "ARCANUM_SILY", E.MULT_IF_ASPECT, A.LIFE, 1.5, 0, "08_strength",
+		[2.2, -1, P.MAX_HP, 8])
+	_save_arcanum_simple("arcanum_hermit", "ARCANUM_PUSTELNIKA", E.EXTRA_DISCARD, A.MIND, 1.0, 2, "09_hermit",
+		[0.0, 3, P.SELF_CURSE, 2])
+	# Boss-rotation relics (Fool's Journey wave C -- beat the card, wear the card).
+	_save_arcanum_simple("arcanum_hanged", "ARCANUM_WISIELCA", E.EXTRA_DISCARD, A.MIND, 1.0, 2, "12_hanged_man",
+		[0.0, 3, P.SELF_CURSE, 2])
+	_save_arcanum_simple("arcanum_justice", "ARCANUM_SPRAWIEDLIWOSCI", E.BLOCK_ON_PLAY, A.LIFE, 1.0, 5, "11_justice",
+		[0.0, 10, P.MAX_HP, 6])
+	_save_arcanum_simple("arcanum_judgement", "ARCANUM_SADU", E.PACT_MULT, A.CHAOS, 1.3, 2, "20_judgement",
+		[1.6, 3, P.NONE, 0])
+	_save_arcanum_simple("arcanum_star", "ARCANUM_GWIAZDY", E.HEAL_ON_PLAY, A.LIFE, 1.0, 4, "17_star",
+		[0.0, 8, P.RTEC_TAX, 2])
 
 	# Enemy pressure (docs/specs/spec_difficulty.md par.3): intended fight length 5-6 plays; the
 	# per-turn enrage past the first cycle is the anti-stall clock. Every regular enemy IS a Minor
@@ -153,7 +166,12 @@ func _region() -> void:
 	ResourceSaver.save(b2, ENEMY_DIR + "enemy_b2.tres")
 	var boss := _enemy("ENEMY_WIEZA", 600, [15, 20, 13], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
 	boss.art = load(MAJOR + "16_tower.jpg")
+	boss.arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
+	_save_boss("boss_chariot", "ENEMY_RYDWAN", 560, [9, 12, 7], 12,
+		EnemyData.Rule.CHARIOT_DOUBLE, "RULE_CHARIOT", 3, "07_chariot", "arcanum_chariot")
+	_save_boss("boss_strength", "ENEMY_SILA", 780, [12, 15, 10], 12,
+		EnemyData.Rule.STRENGTH_RESIST, "RULE_STRENGTH", 3, "08_strength", "arcanum_strength")
 	_save_elite("enemy_elite_r1", "ENEMY_ELITE_R1", 680, [22, 0, 16], 12, 5, "pents_13")
 
 	var region := RegionData.new()
@@ -172,6 +190,10 @@ func _region() -> void:
 	region.fight_pool_2 = p2
 	region.boss = load(ENEMY_DIR + "boss_tower.tres")
 	region.boss_arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
+	var bp1: Array[EnemyData] = []
+	for bf in ["boss_tower", "boss_chariot", "boss_strength"]:
+		bp1.append(load(ENEMY_DIR + bf + ".tres"))
+	region.boss_pool = bp1
 	region.starting_pool = pool
 	region.accent = Color(0.604, 0.561, 0.518)   # ash
 	region.elite = load(ENEMY_DIR + "enemy_elite_r1.tres")
@@ -184,10 +206,16 @@ func _region() -> void:
 	_save_enemy("enemy_r2b2", "ENEMY_CHIMERA", 780, [24, 0, 19], 7, 4, "wands_10")
 	var devil := _enemy("ENEMY_DIABEL", 780, [16, 20, 14], 14, true, EnemyData.Rule.DEVIL_BLOOD_TAX, "RULE_DEVIL", 4)
 	devil.art = load(MAJOR + "15_devil.jpg")
+	devil.arcanum = load(ARCANA_DIR + "arcanum_devil_boss.tres")
 	ResourceSaver.save(devil, ENEMY_DIR + "boss_devil.tres")
+	_save_boss("boss_hanged", "ENEMY_WISIELEC", 760, [17, 21, 14], 14,
+		EnemyData.Rule.HANGED_CAP, "RULE_HANGED", 4, "12_hanged_man", "arcanum_hanged")
+	_save_boss("boss_justice", "ENEMY_SPRAWIEDLIWOSC", 740, [15, 19, 12], 14,
+		EnemyData.Rule.JUSTICE_RIPOSTE, "RULE_JUSTICE", 4, "11_justice", "arcanum_justice")
 	_save_elite("enemy_elite_r2", "ENEMY_ELITE_R2", 870, [18, 18, 18], 14, 5, "wands_13")
 	_save_region("region_02", "REGION_02", ["enemy_r2a", "enemy_r2a2"], ["enemy_r2b", "enemy_r2b2"],
-		"boss_devil", "arcanum_devil_boss", Color(0.851, 0.373, 0.231), "enemy_elite_r2")
+		"boss_devil", "arcanum_devil_boss", Color(0.851, 0.373, 0.231), "enemy_elite_r2",
+		["boss_devil", "boss_hanged", "boss_justice"])
 
 	# ---- Region III "Szczyt": Queens and Kings, boss MOON (cleanse + self-mend) ----
 	_save_enemy("enemy_r3a", "ENEMY_STRAZNIK", 1040, [20, 23, 15], 9, 4, "cups_13")
@@ -196,17 +224,24 @@ func _region() -> void:
 	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 1090, [30, 0, 25], 9, 5, "wands_14")
 	var moon := _enemy("ENEMY_KSIEZYC", 980, [20, 25, 17], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 5)
 	moon.art = load(MAJOR + "18_moon.jpg")
+	moon.arcanum = load(ARCANA_DIR + "arcanum_moon.tres")
 	ResourceSaver.save(moon, ENEMY_DIR + "boss_moon.tres")
+	_save_boss("boss_judgement", "ENEMY_SAD", 950, [21, 26, 17], 16,
+		EnemyData.Rule.JUDGEMENT_FRAIL, "RULE_JUDGEMENT", 5, "20_judgement", "arcanum_judgement")
+	_save_boss("boss_star", "ENEMY_GWIAZDA", 1000, [19, 24, 16], 16,
+		EnemyData.Rule.STAR_REGEN, "RULE_STAR", 5, "17_star", "arcanum_star")
 	_save_elite("enemy_elite_r3", "ENEMY_ELITE_R3", 1200, [25, 25, 25], 18, 6, "swords_14")
 	_save_region("region_03", "REGION_03", ["enemy_r3a", "enemy_r3a2"], ["enemy_r3b", "enemy_r3b2"],
-		"boss_moon", "arcanum_moon", Color(0.498, 0.706, 0.831), "enemy_elite_r3")
+		"boss_moon", "arcanum_moon", Color(0.498, 0.706, 0.831), "enemy_elite_r3",
+		["boss_moon", "boss_judgement", "boss_star"])
 
 	# ---- Region IV "Swiat": the finale -- a single duel against THE WORLD (all rules at once) ----
 	var world := _enemy("ENEMY_SWIAT", 1300, [26, 30, 22], 20, true, EnemyData.Rule.WORLD_ALL, "RULE_WORLD", 6)
 	world.art = load(MAJOR + "21_world.jpg")
+	world.arcanum = load(ARCANA_DIR + "arcanum_world.tres")
 	ResourceSaver.save(world, ENEMY_DIR + "boss_world.tres")
 	_save_region("region_04", "REGION_04", [], [], "boss_world", "arcanum_world",
-		Color(0.910, 0.761, 0.408), "")
+		Color(0.910, 0.761, 0.408), "", ["boss_world"])
 
 func _apply_reversed(arc: ArcanumData, spec) -> void:
 	if spec == null:
@@ -216,7 +251,7 @@ func _apply_reversed(arc: ArcanumData, spec) -> void:
 	arc.price = spec[2] as ArcanumData.Price
 	arc.price_value = spec[3]
 
-func _save_arcanum_simple(file: String, name_key: String, effect: ArcanumData.Effect, aspect: Aspects.Id, mult: float, value: int, art: String) -> void:
+func _save_arcanum_simple(file: String, name_key: String, effect: ArcanumData.Effect, aspect: Aspects.Id, mult: float, value: int, art: String, rev = null) -> void:
 	var arc := ArcanumData.new()
 	arc.name_key = name_key
 	arc.effect = effect
@@ -224,12 +259,20 @@ func _save_arcanum_simple(file: String, name_key: String, effect: ArcanumData.Ef
 	arc.effect_mult = mult
 	arc.effect_value = value
 	arc.art = load("%s%s.jpg" % [MAJOR, art])
+	_apply_reversed(arc, rev)
 	ResourceSaver.save(arc, ARCANA_DIR + file + ".tres")
 
 func _save_enemy(file: String, name_key: String, hp: int, intents: Array, reward: int, enrage: int, art: String = "") -> void:
 	var e := _enemy(name_key, hp, intents, reward, false, EnemyData.Rule.NONE, "", enrage)
 	if art != "":
 		e.art = load(MINOR + art + ".jpg")
+	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
+
+## A rotation boss: a Major Arcana with a field rule and its claimable relic.
+func _save_boss(file: String, name_key: String, hp: int, intents: Array, reward: int, rule: EnemyData.Rule, rule_key: String, enrage: int, art: String, arc_file: String) -> void:
+	var e := _enemy(name_key, hp, intents, reward, true, rule, rule_key, enrage)
+	e.art = load("%s%s.jpg" % [MAJOR, art])
+	e.arcanum = load(ARCANA_DIR + arc_file + ".tres")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
 ## Elite: a REVERSED court card guarding better loot (map fork). Art renders flipped in combat.
@@ -239,7 +282,7 @@ func _save_elite(file: String, name_key: String, hp: int, intents: Array, reward
 	e.art = load(MINOR + art + ".jpg")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
-func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, boss_file: String, arc_file: String, accent: Color, elite_file: String) -> void:
+func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, boss_file: String, arc_file: String, accent: Color, elite_file: String, boss_pool_files: Array = []) -> void:
 	var r := RegionData.new()
 	r.name_key = name_key
 	var p1: Array[EnemyData] = []
@@ -255,6 +298,10 @@ func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, bo
 	r.accent = accent
 	if elite_file != "":
 		r.elite = load(ENEMY_DIR + elite_file + ".tres")
+	var bp: Array[EnemyData] = []
+	for bf in boss_pool_files:
+		bp.append(load(ENEMY_DIR + bf + ".tres"))
+	r.boss_pool = bp
 	ResourceSaver.save(r, REGION_DIR + file + ".tres")
 
 func _arcanum(name_key: String, aspect: Aspects.Id, mult: float) -> ArcanumData:
@@ -337,6 +384,8 @@ func _pool() -> Array:
 		[9, A.CHAOS, KW.PRZECIAZENIE, 3, R.RARE], [14, A.CHAOS, KW.PRZECIAZENIE, 2, R.LEGENDARY],
 		[7, A.CHAOS, KW.LAWINA, 0, R.RARE], [11, A.CHAOS, KW.LAWINA, 0, R.RARE],
 		[8, A.MIND, KW.KOMBINAT, 50, R.RARE], [13, A.MIND, KW.KOMBINAT, 75, R.LEGENDARY],
+		# wave C: rooting block (the defensive twin of Wzrost)
+		[5, A.NATURE, KW.KORZENIE, 4, R.RARE], [9, A.NATURE, KW.KORZENIE, 6, R.RARE],
 	]
 
 ## Alt starter "Reaper's Deal" (Sol unlock): Death/Chaos -- rot, harvest and burst.

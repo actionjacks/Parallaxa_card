@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_strength.tres" id="1_57q1r"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/08_strength.jpg" id="2_0neyk"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_r6sn2"]
+
+[resource]
+script = ExtResource("3_r6sn2")
+name_key = "ENEMY_SILA"
+max_hp = 780
+intents = PackedInt32Array(12, 15, 10)
+enrage_step = 3
+reward_rtec = 12
+is_boss = true
+rule = 6
+rule_key = "RULE_STRENGTH"
+art = ExtResource("2_0neyk")
+arcanum = ExtResource("1_57q1r")

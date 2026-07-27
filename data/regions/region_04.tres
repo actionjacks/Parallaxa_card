@@ -12,3 +12,4 @@ name_key = "REGION_04"
 boss = ExtResource("1_4vm4y")
 boss_arcanum = ExtResource("2_y4hlk")
 accent = Color(0.91, 0.761, 0.408, 1)
+boss_pool = Array[ExtResource("3_eemqt")]([ExtResource("1_4vm4y")])

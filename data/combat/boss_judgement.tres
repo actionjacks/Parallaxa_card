@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_judgement.tres" id="1_fmhko"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/20_judgement.jpg" id="2_lwoi3"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_nvj2s"]
+
+[resource]
+script = ExtResource("3_nvj2s")
+name_key = "ENEMY_SAD"
+max_hp = 950
+intents = PackedInt32Array(21, 26, 17)
+enrage_step = 5
+reward_rtec = 16
+is_boss = true
+rule = 9
+rule_key = "RULE_JUDGEMENT"
+art = ExtResource("2_lwoi3")
+arcanum = ExtResource("1_fmhko")

@@ -199,7 +199,7 @@ func _show_map() -> void:
 		var is_boss := i == RunState.fights.size()
 		var label := tr("MAP_NODE_BOSS") if is_boss else (tr("MAP_NODE_FIGHT") % (i + 1))
 		var mark := "✓ " if i < RunState.step else ""
-		var enemy: EnemyData = RunState.region.boss if is_boss else RunState.fights[i]
+		var enemy: EnemyData = (RunState.boss if RunState.boss != null else RunState.region.boss) if is_boss else RunState.fights[i]
 		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
 		ladder.add_child(chip)
 	root.add_child(ladder)
@@ -298,14 +298,14 @@ func _current_enemy() -> EnemyData:
 		return RunState.region.elite
 	if RunState.step < RunState.fights.size():
 		return RunState.fights[RunState.step]
-	return RunState.region.boss
+	return RunState.boss if RunState.boss != null else RunState.region.boss
 
 func _start_encounter(elite: bool = false) -> void:
 	_fight_elite = elite
 	_statusbar.visible = false
 	var combat: Node = load(COMBAT_SCENE).instantiate()
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
-		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil)
+		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth)
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
@@ -626,14 +626,18 @@ var _claim_btn: Button
 func _show_boss_choice() -> void:
 	_statusbar.visible = true
 	_update_status()
-	var boss_arc: ArcanumData = RunState.region.boss_arcanum
-	_claim_offers = []
-	if boss_arc != null:
-		_claim_offers.append({"arc": boss_arc, "rev": false})
-		_claim_offers.append({"arc": boss_arc, "rev": true})
+	var slain: EnemyData = RunState.boss if RunState.boss != null else RunState.region.boss
+	var boss_arc: ArcanumData = slain.arcanum if (slain != null and slain.arcanum != null) else RunState.region.boss_arcanum
 	var owned_keys: Array = []
 	for r: ArcanumData in RunState.relics:
 		owned_keys.append(r.name_key)
+	_claim_offers = []
+	if boss_arc != null:
+		# Already wearing this Arcanum (bought or claimed before): only the REVERSED deepening
+		# is on the table -- the same relic never stacks twice upright.
+		if not owned_keys.has(boss_arc.name_key):
+			_claim_offers.append({"arc": boss_arc, "rev": false})
+		_claim_offers.append({"arc": boss_arc, "rev": true})
 	var alts: Array = []
 	for a: ArcanumData in ([] if RunState.pure_reading else Profile.boss_pool_arcana()):
 		if not owned_keys.has(a.name_key) and (boss_arc == null or a.name_key != boss_arc.name_key):
@@ -747,7 +751,12 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 	_update_status()
 	var final := RunState.region_index + 1 >= JOURNEY.size()
 	if final:
-		_show_spread(true)
+		# The World has fallen: the run is WON (recorded once, endless deaths stay wins) and the
+		# gate opens -- end the reading, or walk BEYOND into a deeper world.
+		if not RunState.run_won:
+			RunState.run_won = true
+			Profile.record_victory(RunState.veil)
+		_show_world_gate(claimed)
 		return
 	var root := _screen_column()
 	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
@@ -783,17 +792,57 @@ func _continue_journey() -> void:
 	_refresh_backdrop()   # the backdrop takes on the new region's accent
 	_show_map()
 
+## BEYOND THE WORLD: the victory gate. The exponential vector finally has something to spend
+## itself on -- every depth loops the Journey with +50% HP / +35% intents / +1 enrage.
+func _show_world_gate(claimed: ArcanumData = null) -> void:
+	var root := _screen_column()
+	root.add_child(_big(tr("GATE_TITLE"), Color(0.95, 0.85, 0.5)))
+	if claimed != null and claimed.art != null:
+		var t := TextureRect.new()
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.texture = claimed.art
+		t.custom_minimum_size = Vector2(140, 242)
+		if claimed.is_reversed:
+			t.flip_h = true
+			t.flip_v = true
+			t.modulate = Color(1.0, 0.82, 0.84)
+		var wrap_art := CenterContainer.new()
+		wrap_art.add_child(t)
+		root.add_child(wrap_art)
+	root.add_child(_hint(tr("GATE_HINT") % (RunState.depth + 1)))
+	var ctrls := HBoxContainer.new()
+	ctrls.alignment = BoxContainer.ALIGNMENT_CENTER
+	ctrls.add_theme_constant_override("separation", 16)
+	var end_btn := _button(tr("GATE_END"), func() -> void: _show_spread(true))
+	end_btn.custom_minimum_size = Vector2(200, 40)
+	ctrls.add_child(end_btn)
+	var go_btn := _button(tr("GATE_BEYOND") % (RunState.depth + 1), _go_beyond)
+	go_btn.custom_minimum_size = Vector2(200, 40)
+	go_btn.add_theme_color_override("font_color", Color(0.95, 0.55, 0.5))
+	ctrls.add_child(go_btn)
+	root.add_child(ctrls)
+	_mount(root)
+
+func _go_beyond() -> void:
+	RunState.depth += 1
+	_pending_omen = null
+	_last_rest = RunState.enter_region(load(JOURNEY[0]), 0)
+	_refresh_backdrop()
+	_show_map()
+
 ## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
 ## recording and the achievement sweep all happen HERE, exactly once per run.
 func _show_spread(victory: bool) -> void:
 	_statusbar.visible = false
 	RunState.delete_run_save()
-	RunState.stat_sol_earned = Profile.earn_run_reward(victory, RunState.fights_won, RunState.veil)
-	if victory:
-		Profile.record_victory(RunState.veil)
-	var fresh: Array = Profile.check_run_achievements(victory)
-	var progress: Dictionary = Profile.record_run_end(victory)   # lifetime ledger + run-end XP
-	var s := SpreadScreen.build(victory, fresh, progress)
+	# A death BEYOND the World is still a won reading (the victory was recorded at the gate).
+	var victory_eff := victory or RunState.run_won
+	RunState.stat_sol_earned = Profile.earn_run_reward(victory_eff, RunState.fights_won, RunState.veil)
+	var fresh: Array = Profile.check_run_achievements(victory_eff)
+	var progress: Dictionary = Profile.record_run_end(victory_eff)   # lifetime ledger + run-end XP
+	var s := SpreadScreen.build(victory_eff, fresh, progress)
 	s.new_run.connect(_restart_run)
 	s.repeat_run.connect(_repeat_fate)
 	s.to_menu.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))

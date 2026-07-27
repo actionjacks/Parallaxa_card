@@ -1,10 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/18_moon.jpg" id="1_joka7"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_txj03"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_moon.tres" id="1_txj03"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/18_moon.jpg" id="2_4255o"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_83mhr"]
 
 [resource]
-script = ExtResource("2_txj03")
+script = ExtResource("3_83mhr")
 name_key = "ENEMY_KSIEZYC"
 max_hp = 980
 intents = PackedInt32Array(20, 25, 17)
@@ -13,4 +14,5 @@ reward_rtec = 16
 is_boss = true
 rule = 3
 rule_key = "RULE_MOON"
-art = ExtResource("1_joka7")
+art = ExtResource("2_4255o")
+arcanum = ExtResource("1_txj03")

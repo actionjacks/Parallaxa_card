@@ -14,7 +14,9 @@ extends Resource
 ## Wave 3 (the exponential vector, appended): CHAOS Przeciazenie (x2 Mult glass card with a visible
 ## durability counter -- shatters at 0) / Lawina (card chips re-score once per Chaos card, max 3);
 ## MIND Kombinat (xMult grows per consecutive play of the same hand type).
-enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA, PRZECIAZENIE, LAWINA, KOMBINAT }
+## Wave C (appended): NATURE Korzenie -- block that ROOTS: +2 block for every turn the card
+## waited in hand (run-local ramp, preview-exact; the block twin of Wzrost).
+enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA, PRZECIAZENIE, LAWINA, KOMBINAT, KORZENIE }
 
 ## Shop editions (bought with Rtec): Foil +chips, Holo +mult, Polychrome xmult.
 enum Edition { NONE, FOIL, HOLO, POLYCHROME }
@@ -36,6 +38,10 @@ var growth: int = 0
 ## Runtime wear from the PRZECIAZENIE keyword: plays survived. Persisted in the RUN save (not the
 ## .tres) -- the glass cracks across fights within one run. durability left = keyword_value - wear.
 var wear: int = 0
+
+## Runtime ramp from the KORZENIE keyword: accumulated bonus BLOCK (separate from `growth`,
+## which feeds chips -- roots must not double-dip into chip value). Transient like growth.
+var bloom: int = 0
 
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
@@ -73,6 +79,7 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.PRZECIAZENIE: return "KW_PRZECIAZENIE"
 		Keyword.LAWINA: return "KW_LAWINA"
 		Keyword.KOMBINAT: return "KW_KOMBINAT"
+		Keyword.KORZENIE: return "KW_KORZENIE"
 	return ""
 
 static func edition_name_key(e: int) -> String:
@@ -99,6 +106,7 @@ static func keyword_desc_key(kw: int) -> String:
 		Keyword.PRZECIAZENIE: return "KWD_PRZECIAZENIE"
 		Keyword.LAWINA: return "KWD_LAWINA"
 		Keyword.KOMBINAT: return "KWD_KOMBINAT"
+		Keyword.KORZENIE: return "KWD_KORZENIE"
 	return ""
 
 ## Aspect that a keyword thematically belongs to (for generated content / tinting).
@@ -112,4 +120,5 @@ static func keyword_aspect(kw: int) -> int:
 		Keyword.PIJAWKA, Keyword.KLATWA: return Aspects.Id.DEATH
 		Keyword.PRZECIAZENIE, Keyword.LAWINA: return Aspects.Id.CHAOS
 		Keyword.KOMBINAT: return Aspects.Id.MIND
+		Keyword.KORZENIE: return Aspects.Id.NATURE
 	return Aspects.Id.LIFE

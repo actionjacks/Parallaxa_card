@@ -31,6 +31,7 @@ var turn: int = 1
 var phase: String = "player"      ## "player", "enemy", "ended"
 var last_score: Dictionary = {}
 var veil: int = 0                 ## ascension tier (P1): pressure knobs, all preview-visible
+var depth: int = 0                ## Beyond-the-World loop count: +50% HP, +35% intents per depth
 var heal_used: int = 0            ## per-fight heal pool spent (budget burns even at full HP)
 var heal_cap: int = FIGHT_HEAL_CAP   ## effective cap this fight (veil + boss rule adjusted)
 var overkill_rtec: int = 0        ## Mercury earned by the killing blow's excess damage
@@ -52,7 +53,7 @@ var _plays: int = 0
 var _hand_history: Array = []     ## Poker.Hand per play this fight (Kombinat streaks)
 var _dmg_this_round: int = 0      ## damage dealt since the enemy last acted (Moon mend check)
 
-func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0) -> void:
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
@@ -60,17 +61,23 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	relics = p_relics
 	hand_levels = p_levels
 	veil = p_veil
+	depth = p_depth
 	enemy_klatwa = 0
-	# Veil V bosses stand 15% taller (computed here -- .tres are never mutated).
+	# Veil V bosses stand 15% taller; every Beyond depth adds +50% HP (computed here -- .tres
+	# are never mutated).
 	enemy_max_hp = enemy.max_hp
 	if enemy.is_boss and veil >= 5:
 		enemy_max_hp = int(round(enemy.max_hp * 1.15 / 10.0)) * 10
+	if depth > 0:
+		enemy_max_hp = int(round(enemy_max_hp * (1.0 + 0.5 * depth) / 10.0)) * 10
 	enemy_hp = enemy_max_hp
 	player_max_hp = max_hp if max_hp > 0 else PLAYER_MAX_HP
 	player_hp = start_hp if start_hp > 0 else player_max_hp
 	player_block = 0
 	enemy_gnicie = 0
 	discards_left = START_DISCARDS + _bonus_discards()
+	if enemy.rule == EnemyData.Rule.HANGED_CAP:
+		discards_left = mini(discards_left, 1)   # the Hanged Man: suspension
 	turn = 1
 	_intent_index = 0
 	_plays = 0
@@ -101,9 +108,10 @@ func _intent_at(idx: int) -> int:
 	if enemy == null or enemy.intents.is_empty():
 		return 0
 	var n := enemy.intents.size()
-	var step := enemy.enrage_step + (1 if veil >= 3 else 0)
+	var step := enemy.enrage_step + (1 if veil >= 3 else 0) + depth
 	var over := maxi(0, idx - n + 1)
-	return enemy.intents[idx % n] + over * step
+	var base := int(floor(enemy.intents[idx % n] * (1.0 + 0.35 * depth)))
+	return base + over * step
 
 func current_intent() -> int:
 	return _intent_at(_intent_index)
@@ -128,6 +136,31 @@ func enrage_cycles() -> int:
 func preview(selected: Array) -> Dictionary:
 	return Scoring.score(_cards_from(selected), relics, _ctx())
 
+## Boss-side damage modifier -- the ONLY place a rule may touch scored damage. The combat scene
+## displays effective_damage() everywhere (preview, lethal, prophecy), so the covenant holds.
+func effective_damage(raw: int) -> int:
+	if enemy != null and enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
+		return ceili(raw * 0.8)
+	return raw
+
+## Justice's exact riposte for a play of the given EFFECTIVE damage (0 = none). Preview-visible.
+func riposte_for(dmg: int) -> int:
+	if enemy == null or enemy.rule != EnemyData.Rule.JUSTICE_RIPOSTE or dmg < 40:
+		return 0
+	@warning_ignore("integer_division")
+	var r: int = mini(8, dmg / 40)
+	return r
+
+## Judgement's deck-tax for a set of cards about to be played (1 HP per rank <= 3). Preview-visible.
+func frail_tax(cards: Array) -> int:
+	if enemy == null or enemy.rule != EnemyData.Rule.JUDGEMENT_FRAIL:
+		return 0
+	var n := 0
+	for c in cards:
+		if c.rank <= 3:
+			n += 1
+	return n
+
 ## Trailing streak of the given hand type in this fight's play history (Kombinat display).
 func kombinat_streak(hand_type: int) -> int:
 	var streak := 0
@@ -147,7 +180,7 @@ func play(selected: Array) -> void:
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
-	var dmg := int(result["damage"])
+	var dmg := effective_damage(int(result["damage"]))
 	enemy_hp -= dmg
 	fight_damage += dmg
 	_dmg_this_round += dmg
@@ -174,6 +207,24 @@ func play(selected: Array) -> void:
 		message.emit("LOG_HEAL_CAPPED", [healed, int(result.get("heal_raw", healed))])
 	_plays += 1
 	_hand_history.append(int(result["hand"]))
+	# Justice reflects, Judgement judges the deck -- both AFTER the kill check (a killing blow
+	# still wins first), both exact and pre-announced by the combat scene's preview.
+	if enemy_hp > 0:
+		var rip := riposte_for(dmg)
+		if rip > 0:
+			player_hp -= rip
+			damage_taken += rip
+			message.emit("LOG_RIPOSTE", [rip])
+		var frail := frail_tax(cards)
+		if frail > 0:
+			player_hp -= frail
+			damage_taken += frail
+			message.emit("LOG_FRAIL", [frail])
+		if player_hp <= 0:
+			player_hp = 0
+			death_cause = "attack"
+			_finish(false)
+			return
 	# The Devil's field-rule: every play costs blood, and the bill grows with the fight clock.
 	# A killing blow still wins first (enemy_hp already has this play's damage subtracted above).
 	if enemy_hp > 0 and _rule_blood_tax():
@@ -246,9 +297,16 @@ func resolve_enemy_turn() -> void:
 	if _rule_moon_mends() and _dmg_this_round < MOON_MEND_THRESHOLD:
 		enemy_hp = mini(enemy_max_hp, enemy_hp + MOON_MEND_HEAL)
 		message.emit("LOG_MOON_MEND", [MOON_MEND_HEAL])
+	# The Star's hope: a flat self-heal every turn -- outdamage it or watch the fight undo itself.
+	if enemy.rule == EnemyData.Rule.STAR_REGEN:
+		enemy_hp = mini(enemy_max_hp, enemy_hp + 12)
+		message.emit("LOG_STAR_REGEN", [12])
 	var incoming: int = current_intent()
 	# The Tower's field-rule ignores block, so defence can't save you against it.
 	var taken: int = maxi(0, incoming - (0 if _rule_ignores_block() else player_block))
+	# The Chariot's momentum: the attack lands TWICE and block absorbs only the first strike.
+	if enemy.rule == EnemyData.Rule.CHARIOT_DOUBLE and incoming > 0:
+		taken += incoming
 	if incoming > 0:
 		taken += _pact_surcharge() + _curse_surcharge()   # the Devil's bill + reversed prices
 	player_hp -= taken
@@ -264,9 +322,13 @@ func resolve_enemy_turn() -> void:
 		return
 	turn += 1
 	discards_left = START_DISCARDS + _bonus_discards()
-	for c in hand:   # WZROST ramps while the card waits in hand (run-local, preview-exact)
+	if enemy.rule == EnemyData.Rule.HANGED_CAP:
+		discards_left = mini(discards_left, 1)
+	for c in hand:   # WZROST/KORZENIE ramp while the card waits in hand (run-local, preview-exact)
 		if c.keyword == CardData.Keyword.WZROST:
 			c.growth += c.keyword_value
+		elif c.keyword == CardData.Keyword.KORZENIE:
+			c.bloom += 2
 	phase = "player"
 	state_changed.emit()
 

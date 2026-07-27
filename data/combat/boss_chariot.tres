@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_chariot.tres" id="1_1ja8w"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/07_chariot.jpg" id="2_6fn4k"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_jwu34"]
+
+[resource]
+script = ExtResource("3_jwu34")
+name_key = "ENEMY_RYDWAN"
+max_hp = 560
+intents = PackedInt32Array(9, 12, 7)
+enrage_step = 3
+reward_rtec = 12
+is_boss = true
+rule = 5
+rule_key = "RULE_CHARIOT"
+art = ExtResource("2_6fn4k")
+arcanum = ExtResource("1_1ja8w")

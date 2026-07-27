@@ -14,3 +14,5 @@ extends Resource
 @export var starting_pool: Array[ArcanumData] = [] ## run start: draft 1 of 3 random picks from here
 @export var accent: Color = Color(0.6, 0.6, 0.65)  ## region identity tint: map header + backdrop
 @export var elite: EnemyData                       ## the region's elite (map fork: risk for loot)
+@export var boss_pool: Array[EnemyData] = []       ## boss ROTATION: one is rolled per run (Fool's
+                                                   ## Journey: different runs climb different Arcana)

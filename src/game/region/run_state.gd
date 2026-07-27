@@ -39,6 +39,10 @@ var pending_overkill: int = 0     ## Mercury from the killing blow's excess (con
 ## seeds and Daily Fates; a game titled on honesty cannot ship a lying seed.
 var pure_reading: bool = false
 var daily_tag: String = ""        ## Daily Fate date ("" = regular run)
+var boss: EnemyData               ## this region's ROLLED boss (Fool's Journey rotation)
+var depth: int = 0                ## Beyond-the-World loops completed (0 = first journey)
+var run_won: bool = false         ## The World has fallen at least once (endless death stays a WIN)
+var run_deck_id: String = "classic"   ## starter used this run (deck-win achievements)
 var elite_taken: bool = false     ## this region's elite fork already fought (one elite per region)
 
 # --- run statistics (reset in begin(); saved in save_run; the spread screen reads them) ---
@@ -82,6 +86,11 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	player_hp = player_max_hp
 	rtec = 0
 	pending_overkill = 0
+	run_deck_id = "classic"
+	if not pure_reading:
+		var prof := get_node_or_null("/root/Profile")
+		if prof != null and prof.available_decks().has(prof.selected_deck):
+			run_deck_id = prof.selected_deck
 	deck = DeckLibrary.starter_deck_pure() if pure_reading else DeckLibrary.starter_deck()
 	_shuffle(deck)   # run-start order varies with the seed; within the run draws stay deterministic
 	relics = []
@@ -92,6 +101,8 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	step = 0
 	fights_won = 0
 	elite_taken = false
+	depth = 0
+	run_won = false
 	hand_levels = {}
 	stat_damage_total = 0
 	stat_best_hit = 0
@@ -118,7 +129,16 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 		if fights.is_empty():
 			for f in region.fights:
 				fights.append(f)
+		_roll_boss()
 	changed.emit()
+
+## Boss ROTATION (Fool's Journey): each run climbs a different subset of the Arcana. Rolled
+## AFTER the fight pools (rng append contract). Falls back to the authored fixed boss.
+func _roll_boss() -> void:
+	if region != null and not region.boss_pool.is_empty():
+		boss = pick_offers(region.boss_pool, 1)[0]
+	else:
+		boss = region.boss if region != null else null
 
 ## The relic whose effect combat applies (slice: the first claimed Arcanum).
 func active_relic() -> ArcanumData:
@@ -183,6 +203,7 @@ func enter_region(p_region: RegionData, index: int) -> int:
 	if fights.is_empty():
 		for f in region.fights:
 			fights.append(f)
+	_roll_boss()
 	changed.emit()
 	return healed
 
@@ -333,6 +354,10 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "st_elites", stat_elites_slain)
 	cf.set_value("run", "pure", pure_reading)
 	cf.set_value("run", "daily", daily_tag)
+	cf.set_value("run", "boss", boss.resource_path if boss != null else "")
+	cf.set_value("run", "depth", depth)
+	cf.set_value("run", "run_won", run_won)
+	cf.set_value("run", "deck_id", run_deck_id)
 	var relic_entries: Array = []
 	for a in relics:
 		relic_entries.append({"p": a.source_path if a.source_path != "" else a.resource_path, "r": a.is_reversed})
@@ -367,6 +392,8 @@ func load_run() -> String:
 	elite_taken = cf.get_value("run", "elite_taken", false)
 	region = load(cf.get_value("run", "region_path", ""))
 	region_index = cf.get_value("run", "region_index", 0)
+	var boss_path: String = cf.get_value("run", "boss", "")
+	boss = load(boss_path) if boss_path != "" else (region.boss if region != null else null)
 	step = cf.get_value("run", "step", 0)
 	player_max_hp = cf.get_value("run", "max_hp", START_MAX_HP)
 	player_hp = cf.get_value("run", "hp", player_max_hp)
@@ -389,6 +416,9 @@ func load_run() -> String:
 	stat_elites_slain = cf.get_value("run", "st_elites", 0)
 	pure_reading = cf.get_value("run", "pure", false)
 	daily_tag = cf.get_value("run", "daily", "")
+	depth = cf.get_value("run", "depth", 0)
+	run_won = cf.get_value("run", "run_won", false)
+	run_deck_id = cf.get_value("run", "deck_id", "classic")
 	stat_death_foe = ""
 	stat_death_turn = 0
 	stat_death_cause = ""

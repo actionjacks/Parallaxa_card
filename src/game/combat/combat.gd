@@ -13,6 +13,7 @@ var _start_hp: int = -1
 var _max_hp: int = -1
 var _levels: Dictionary = {}
 var _veil: int = 0
+var _depth: int = 0
 var _prev_klatwa: int = 0
 var _heartbeat: AudioStreamPlayer   ## enrage stem: owned here, never a stolen pool voice
 
@@ -68,7 +69,7 @@ var _prev_gnicie: int = 0
 var _prophecy: Control = null      ## the diegetic lethal stamp (built when a kill is foretold)
 var _prophecy_dmg: int = -1
 
-func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
@@ -77,6 +78,7 @@ func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp
 	_max_hp = max_hp
 	_levels = p_levels
 	_veil = p_veil
+	_depth = p_depth
 
 func _ready() -> void:
 	if standalone:
@@ -91,7 +93,7 @@ func _ready() -> void:
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
-	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth)
 
 # ---------------------------------------------------------------- UI construction
 
@@ -681,8 +683,11 @@ func _update_selection_ui() -> void:
 	var lv := int(_levels.get(int(r["hand"]), 0))
 	if lv > 0:
 		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
+	# Boss rules may bend the scored damage (Strength's resist): the preview shows the number
+	# that will actually LAND -- the covenant never lies through a rule.
+	var eff := controller.effective_damage(int(r["damage"]))
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
-		hand_name, int(r["chips"]), float(r["mult"]), int(r["damage"]),
+		hand_name, int(r["chips"]), float(r["mult"]), eff,
 	]
 	var parts: Array = []
 	if int(r["block"]) > 0:
@@ -695,15 +700,22 @@ func _update_selection_ui() -> void:
 		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
 	# The covenant's showpiece: the preview ANNOUNCES the kill and its overkill payout --
 	# rendered as the PROPHECY STAMP, not a text tag (this is the game's clip).
-	var lethal_now := int(r["damage"]) >= controller.enemy_hp
+	var lethal_now := eff >= controller.enemy_hp
 	@warning_ignore("integer_division")
-	var bonus: int = clampi((int(r["damage"]) - controller.enemy_hp) / 50, 0, 5) if lethal_now else 0
+	var bonus: int = clampi((eff - controller.enemy_hp) / 50, 0, 5) if lethal_now else 0
 	if lethal_now:
 		var lethal := tr("PREVIEW_LETHAL")
 		if bonus > 0:
 			lethal += "  " + tr("PREVIEW_OVERKILL") % bonus
 		parts.append(lethal)
-	_set_prophecy(lethal_now, int(r["damage"]), int(r["hand"]), bonus)
+	if not lethal_now:
+		var rip := controller.riposte_for(eff)
+		if rip > 0:
+			parts.append(tr("PREVIEW_RIPOSTE") % rip)
+		var frail := controller.frail_tax(_selected)
+		if frail > 0:
+			parts.append(tr("PREVIEW_FRAIL") % frail)
+	_set_prophecy(lethal_now, eff, int(r["hand"]), bonus)
 	# Glass warning: a selected Overload card at durability 1 will SHATTER with this play.
 	for card in _selected:
 		if card.keyword == CardData.Keyword.PRZECIAZENIE and card.keyword_value - card.wear <= 1:
@@ -768,8 +780,8 @@ func _on_play() -> void:
 	# Read the fate BEFORE committing: if the preview foretells the kill, the resolution must
 	# be the ceremony (counter rolling to the exact promised number), not a surprise.
 	var pre := controller.preview(idx)
-	var foretold_kill := int(pre["damage"]) >= controller.enemy_hp
-	var promised := int(pre["damage"])
+	var promised := controller.effective_damage(int(pre["damage"]))
+	var foretold_kill := promised >= controller.enemy_hp
 	var pre_destroyed := controller.destroyed_cards.size()
 	_hide_card_preview()
 	for card in _selected:
@@ -853,6 +865,12 @@ func _on_message(text_key: String, args: Array) -> void:
 			Sfx.play(&"heal", -8.0, 0.7)
 		"LOG_HEAL_CAPPED":
 			_popup(tr("COMBAT_HEAL_CAPPED"), Color(0.6, 0.62, 0.58), _player_fx_pos(), 16)
+		"LOG_RIPOSTE", "LOG_FRAIL":
+			_popup("-" + str(int(args[0])), Color(1.0, 0.55, 0.4), _player_fx_pos(), 20)
+			Sfx.play(&"player_hit", -8.0, 1.2)
+		"LOG_STAR_REGEN":
+			_popup("+" + str(int(args[0])), Color(0.85, 0.9, 1.0), _enemy_fx_pos(), 20)
+			Sfx.play(&"heal", -9.0, 0.8)
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())

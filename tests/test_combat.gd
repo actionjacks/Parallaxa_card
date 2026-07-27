@@ -20,6 +20,13 @@ func _initialize() -> void:
 	fails += _expect("overkill converts excess to Mercury (cap 5)", _overkill_check())
 	fails += _expect("glass shatters after its durability is spent", _glass_check())
 	fails += _expect("veil5 boss stands 15% taller (600 -> 690)", _veil_boss_hp() == 690)
+	fails += _expect("chariot lands twice; block absorbs only the first (50-(20-8)-20=18)", _chariot_hp() == 18)
+	fails += _expect("strength resists 20% (100 -> 80 effective)", _strength_eff() == 80)
+	fails += _expect("hanged man caps discards at 1", _hanged_discards() == 1)
+	fails += _expect("justice ripostes exactly dmg/40 (cap 8)", _justice_riposte())
+	fails += _expect("judgement taxes 1 HP per rank<=3 card played", _frail_tax_check())
+	fails += _expect("the star mends +12 every enemy turn", _star_regen_check())
+	fails += _expect("depth 1 scales intents +35% and hp +50%", _depth_check())
 	if fails == 0:
 		print("test_combat: PASS")
 		quit(0)
@@ -194,6 +201,63 @@ func _veil_boss_hp() -> int:
 	e.is_boss = true
 	ctrl.start(_flat_deck(9), e, [], 50, 50, {}, 5)
 	return ctrl.enemy_max_hp
+
+func _rule_enemy(rule: int, intents: Array = [20]) -> EnemyData:
+	var e := EnemyData.new()
+	e.max_hp = 9999
+	e.intents = PackedInt32Array(intents)
+	e.rule = rule as EnemyData.Rule
+	return e
+
+func _chariot_hp() -> int:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(9)
+	deck[0].keyword = CardData.Keyword.OSLONA
+	deck[0].keyword_value = 8
+	ctrl.start(deck, _rule_enemy(EnemyData.Rule.CHARIOT_DOUBLE), [], 50, 50)
+	ctrl.play([0])              # +8 block
+	ctrl.resolve_enemy_turn()   # first strike 20-8=12, second strike 20 unblocked
+	return ctrl.player_hp
+
+func _strength_eff() -> int:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _rule_enemy(EnemyData.Rule.STRENGTH_RESIST), [], 50, 50)
+	return ctrl.effective_damage(100)
+
+func _hanged_discards() -> int:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _rule_enemy(EnemyData.Rule.HANGED_CAP), [], 50, 50)
+	return ctrl.discards_left
+
+func _justice_riposte() -> bool:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _rule_enemy(EnemyData.Rule.JUSTICE_RIPOSTE), [], 50, 50)
+	return ctrl.riposte_for(39) == 0 and ctrl.riposte_for(120) == 3 and ctrl.riposte_for(999) == 8
+
+func _frail_tax_check() -> bool:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(9)          # rank-2 cards: all frail
+	ctrl.start(deck, _rule_enemy(EnemyData.Rule.JUDGEMENT_FRAIL, [0]), [], 50, 50)
+	ctrl.play([0, 1])                  # two rank-2 cards -> -2 HP after the play
+	return ctrl.player_hp == 48
+
+func _star_regen_check() -> bool:
+	var ctrl := CombatController.new()
+	var e := _rule_enemy(EnemyData.Rule.STAR_REGEN, [0])
+	e.max_hp = 500
+	ctrl.start(_flat_deck(9), e, [], 50, 50)
+	ctrl.play([0])              # rank-2: 7 damage -> 493
+	ctrl.resolve_enemy_turn()   # star mends +12 -> 500 (clamped)
+	return ctrl.enemy_hp == 500
+
+func _depth_check() -> bool:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.max_hp = 600
+	e.intents = PackedInt32Array([20])
+	ctrl.start(_flat_deck(9), e, [], 50, 50, {}, 0, 1)
+	# hp 600 * 1.5 = 900; intent floor(20 * 1.35) = 27
+	return ctrl.enemy_max_hp == 900 and ctrl.current_intent() == 27
 
 func _flat_deck(n: int) -> Array:
 	var deck: Array = []

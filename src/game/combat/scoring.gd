@@ -55,6 +55,8 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		match c.keyword:
 			CardData.Keyword.OSLONA:
 				block += c.keyword_value
+			CardData.Keyword.KORZENIE:
+				block += c.keyword_value + c.bloom   # roots deepen every turn the card waits
 			CardData.Keyword.OPATRZNOSC:
 				heal += c.keyword_value
 			CardData.Keyword.GNICIE:

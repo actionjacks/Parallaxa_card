@@ -1,10 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/21_world.jpg" id="1_7qbuq"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_65qfc"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_world.tres" id="1_65qfc"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/21_world.jpg" id="2_no10y"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_usn4l"]
 
 [resource]
-script = ExtResource("2_65qfc")
+script = ExtResource("3_usn4l")
 name_key = "ENEMY_SWIAT"
 max_hp = 1300
 intents = PackedInt32Array(26, 30, 22)
@@ -13,4 +14,5 @@ reward_rtec = 20
 is_boss = true
 rule = 4
 rule_key = "RULE_WORLD"
-art = ExtResource("1_7qbuq")
+art = ExtResource("2_no10y")
+arcanum = ExtResource("1_65qfc")

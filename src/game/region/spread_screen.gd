@@ -124,6 +124,8 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 		tr("SPREAD_SALT") % RunState.stat_sol_earned,
 	]:
 		sv.add_child(_lbl(line, 15, Color(0.78, 0.78, 0.85)))
+	if RunState.depth > 0:
+		sv.add_child(_lbl(tr("SPREAD_DEPTH") % RunState.depth, 15, Color(0.95, 0.6, 0.5)))
 	# The tarocista's progress: run-end XP, and the fanfare line when a level fell.
 	if int(progress.get("xp", 0)) > 0:
 		sv.add_child(_lbl(tr("XP_GAINED") % int(progress["xp"]), 14, Color(0.72, 0.62, 0.85)))

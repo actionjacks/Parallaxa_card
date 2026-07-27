@@ -88,3 +88,11 @@ dnia 1, osiagniecia, talie, edycje za Zaslony), P7 tytul "The Cards Do Not Lie".
 Weryfikacja: 40 testow headless, review adwersaryjny (18 znalezisk naprawionych), pelne
 przeklikniecia real-input: vanilla=DEFEAT (cel trudnosci), BOOST=VICTORY, ELITE=VICTORY, GUI wave.
 Nastepne: balans Zaslon na ludziach + telemetria x20, ceremonia jackpotu, prefabrykacja UI.
+
+## Faza C "Wiecej losow" (2026-07-27) — ZROBIONE
+Rotacja bossow z 22 Arkanow: 13 bossow (R1 Wieza/Rydwan/Sila, R2 Diabel/Wisielec/Sprawiedliwosc,
+R3 Ksiezyc/Sad/Gwiazda, final Swiat), kazdy z regula pola i klaimowalnym reliktem (prosty/ODWROCONY);
+6 nowych deterministycznych regul (podwojny cios, resist 20% w uczciwym preview, cap odrzutow,
+riposta, osad talii, regeneracja). ENDLESS "Za Swiatem": brama po zabiciu Swiata, Glebia = +50% HP /
++35% intencje / +1 enrage na petle; smierc w Glebi pozostaje WYGRANA. Keyword KORZENIE (blok-rampa).
+Osiagniecia 5 -> 21 (prestiz). Dedupe klaimu (ten sam relikt nigdy 2x prosto). Testy 24+23.

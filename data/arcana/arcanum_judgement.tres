@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/20_judgement.jpg" id="1_maeoc"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_ijlnw"]
+
+[resource]
+script = ExtResource("2_ijlnw")
+name_key = "ARCANUM_SADU"
+effect = 5
+effect_aspect = 3
+effect_mult = 1.3
+effect_value = 2
+art = ExtResource("1_maeoc")
+reversed_mult = 1.6
+reversed_value = 3

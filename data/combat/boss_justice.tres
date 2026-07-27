@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_justice.tres" id="1_0fusm"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/11_justice.jpg" id="2_5et0m"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_8ccwk"]
+
+[resource]
+script = ExtResource("3_8ccwk")
+name_key = "ENEMY_SPRAWIEDLIWOSC"
+max_hp = 740
+intents = PackedInt32Array(15, 19, 12)
+enrage_step = 4
+reward_rtec = 14
+is_boss = true
+rule = 8
+rule_key = "RULE_JUSTICE"
+art = ExtResource("2_5et0m")
+arcanum = ExtResource("1_0fusm")

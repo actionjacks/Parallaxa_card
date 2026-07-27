@@ -11,3 +11,6 @@ effect_aspect = 0
 effect_mult = 1.0
 effect_value = 6
 art = ExtResource("1_qg2ok")
+reversed_value = 12
+price = 1
+price_value = 6

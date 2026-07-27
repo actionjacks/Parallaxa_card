@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_star.tres" id="1_ptb0i"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/17_star.jpg" id="2_amyi8"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_5mf8y"]
+
+[resource]
+script = ExtResource("3_5mf8y")
+name_key = "ENEMY_GWIAZDA"
+max_hp = 1000
+intents = PackedInt32Array(19, 24, 16)
+enrage_step = 5
+reward_rtec = 16
+is_boss = true
+rule = 10
+rule_key = "RULE_STAR"
+art = ExtResource("2_amyi8")
+arcanum = ExtResource("1_ptb0i")

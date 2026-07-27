@@ -36,7 +36,10 @@ const ACH_ARCANA := {
 	"strength": ["ACH_UNTOUCHED", "res://data/arcana/arcanum_strength.tres"],
 	"hermit": ["ACH_OVERKILL", "res://data/arcana/arcanum_hermit.tres"],
 }
-const ACH_ORDER := ["ACH_DEATH_FLUSH", "ACH_UNTOUCHED", "ACH_OVERKILL", "ACH_MISER", "ACH_JOURNEY"]
+const ACH_ORDER := ["ACH_DEATH_FLUSH", "ACH_UNTOUCHED", "ACH_OVERKILL", "ACH_MISER", "ACH_JOURNEY",
+	"ACH_MAGNUM", "ACH_REVERSED", "ACH_ELITE", "ACH_TITAN", "ACH_DAILY", "ACH_BEYOND", "ACH_DEPTH2",
+	"ACH_VEIL_1", "ACH_VEIL_2", "ACH_VEIL_3", "ACH_VEIL_4", "ACH_VEIL_5",
+	"ACH_WIN_REAPER", "ACH_WIN_GARDENER", "ACH_WIN_ORACLE", "ACH_LEVEL10"]
 
 ## The TAROCISTA: the player's persistent reader-of-cards persona. Every won duel pays XP; levels
 ## grant a rank title and a small Sol stipend (prestige, not power -- difficulty stays honest).
@@ -111,6 +114,34 @@ func check_run_achievements(victory: bool) -> Array:
 		fresh.append("ACH_MISER")
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
+	# Wave C: the prestige ledger (no unlocks -- proof, not power).
+	if RunState.stat_best_hand >= Poker.Hand.MAGNUM_OPUS and grant_achievement("ACH_MAGNUM"):
+		fresh.append("ACH_MAGNUM")
+	var any_reversed := false
+	for a: ArcanumData in RunState.relics:
+		if a.is_reversed:
+			any_reversed = true
+	if any_reversed and grant_achievement("ACH_REVERSED"):
+		fresh.append("ACH_REVERSED")
+	if RunState.stat_elites_slain >= 1 and grant_achievement("ACH_ELITE"):
+		fresh.append("ACH_ELITE")
+	if RunState.stat_best_hit >= 1000 and grant_achievement("ACH_TITAN"):
+		fresh.append("ACH_TITAN")
+	if victory and RunState.daily_tag != "" and grant_achievement("ACH_DAILY"):
+		fresh.append("ACH_DAILY")
+	if RunState.depth >= 1 and grant_achievement("ACH_BEYOND"):
+		fresh.append("ACH_BEYOND")
+	if RunState.depth >= 2 and grant_achievement("ACH_DEPTH2"):
+		fresh.append("ACH_DEPTH2")
+	if victory:
+		for t in range(1, mini(RunState.veil, 5) + 1):
+			if grant_achievement("ACH_VEIL_%d" % t):
+				fresh.append("ACH_VEIL_%d" % t)
+		var deck_ach := {"reaper": "ACH_WIN_REAPER", "gardener": "ACH_WIN_GARDENER", "oracle": "ACH_WIN_ORACLE"}
+		if deck_ach.has(RunState.run_deck_id) and grant_achievement(deck_ach[RunState.run_deck_id]):
+			fresh.append(deck_ach[RunState.run_deck_id])
+	if level >= 10 and grant_achievement("ACH_LEVEL10"):
+		fresh.append("ACH_LEVEL10")
 	return fresh
 
 # ---------------------------------------------------------------- one-shot moments

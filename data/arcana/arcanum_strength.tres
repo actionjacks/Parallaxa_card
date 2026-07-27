@@ -9,3 +9,6 @@ name_key = "ARCANUM_SILY"
 effect = 1
 effect_aspect = 0
 art = ExtResource("1_ohxib")
+reversed_mult = 2.2
+price = 1
+price_value = 8
