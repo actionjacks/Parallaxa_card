@@ -43,10 +43,23 @@ var _prev_deck: int = -1
 var _prev_relics: int = -1
 
 func _ready() -> void:
-	RunState.begin(load(JOURNEY[0]))
+	Overlays.run_active = true
 	RunState.changed.connect(_update_status)
+	if RunState.load_pending:
+		RunState.load_pending = false
+		var omen_id := RunState.load_run()
+		for o in OMENS:
+			if o["id"] == omen_id:
+				_pending_omen = o
+		_build_shell()
+		_show_map()
+		return
+	RunState.begin(load(JOURNEY[0]))
 	_build_shell()
 	_start_run_flow()
+
+func _exit_tree() -> void:
+	Overlays.run_active = false
 
 ## A run opens with the Arcanum draft (pick your starting power); map afterwards.
 func _start_run_flow() -> void:
@@ -91,6 +104,8 @@ func _build_shell() -> void:
 	col.add_child(_stage)
 
 func _update_status() -> void:
+	if _hp_label == null:
+		return   # RunState.changed can fire (begin/load) before the shell is built
 	_hp_label.text = tr("RUN_HP") % [RunState.player_hp, RunState.player_max_hp]
 	_rtec_label.text = tr("RUN_RTEC") % RunState.rtec
 	_deck_label.text = tr("RUN_DECK") % RunState.deck.size()
@@ -138,6 +153,7 @@ func _mount(screen: Control) -> void:
 func _show_map() -> void:
 	_statusbar.visible = true
 	_update_status()
+	RunState.save_run(_pending_omen.get("id", ""))   # the map is the safe hub: always resumable
 	var root := _screen_column()
 	root.add_child(_title(tr(RunState.region.name_key)))
 
@@ -507,6 +523,7 @@ func _leave_shop() -> void:
 func _show_complete() -> void:
 	_statusbar.visible = true
 	_update_status()
+	RunState.delete_run_save()   # the Journey ended -- nothing to continue
 	var final := RunState.region_index + 1 >= JOURNEY.size()
 	var root := _screen_column()
 	if final:
@@ -552,6 +569,7 @@ func _continue_journey() -> void:
 	_show_map()
 
 func _show_defeat() -> void:
+	RunState.delete_run_save()   # death is final -- no continue
 	_statusbar.visible = true
 	_update_status()
 	var root := _screen_column()

@@ -277,6 +277,31 @@ DRAFT_TITLE,Choose your starting Arcanum,Wybierz startowe Arkanum
 DRAFT_HINT,The cards are laid out. One power will walk with you.,Karty rozłożone. Jedna moc pójdzie z tobą.
 DRAFT_TAKE,Wear it,Przywdziej
 FOOL_YOU,The Fool — that is you,Głupiec — to Ty
+PAUSE_TITLE,PAUSE,PAUZA
+PAUSE_RESUME,Resume,Wznów
+PAUSE_OPTIONS,Options,Opcje
+PAUSE_ABANDON,Save & exit to menu,Zapisz i wyjdź do menu
+PAUSE_QUIT,Quit game,Wyjdź z gry
+OVERVIEW_DECK,Deck (%d),Talia (%d)
+OVERVIEW_RELICS,Arcana,Arkana
+OVERVIEW_LEVELS,Hand levels,Poziomy układów
+OVERVIEW_JOURNEY,Journey,Podróż
+OVERVIEW_REGION,Region %d/%d — %s,Region %d/%d — %s
+OVERVIEW_NODE,Node %d/%d,Węzeł %d/%d
+OVERVIEW_STATS,Stats,Statystyki
+OVERVIEW_HINT,TAB / ESC closes,TAB / ESC zamyka
+INSPECT_CHIPS,Card material: %d chips,Materiał karty: %d chipsów
+INSPECT_GROWTH,Grown: +%d chips,Wyrosło: +%d chipsów
+INSPECT_CLOSE,Click / ESC closes,Klik / ESC zamyka
+MENU_TAGLINE,The cards do not lie.,Karty nie kłamią.
+MENU_NEW,New Journey,Nowa Podróż
+MENU_CONTINUE,Continue,Kontynuuj
+MENU_COLLECTION,Collection,Kolekcja
+MENU_OPTIONS,Options,Opcje
+MENU_QUIT,Quit,Wyjście
+COLLECTION_HINT,Right-click a card to inspect it.,Kliknij kartę prawym przyciskiem aby ją obejrzeć.
+COLLECTION_CARDS,Minor Arcana — playable cards,Małe Arkana — karty do gry
+COLLECTION_ARCANA,Major Arcana — powers and bosses,Wielkie Arkana — moce i bossowie
 OMEN_TITLE,Omen,Omen
 OMEN_TAKE,Accept,Przyjmij
 OMEN_SKIP,Leave it,Zostaw

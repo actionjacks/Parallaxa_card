@@ -116,6 +116,82 @@ func level_up_hand(hand: int) -> void:
 	hand_levels[hand] = int(hand_levels.get(hand, 0)) + 1
 	changed.emit()
 
+# ---------------------------------------------------------------- run save / continue
+## One-slot run persistence (user://run_save.cfg). Saved at every map arrival (the safe hub point);
+## deleted when the run ends. `load_pending` is set by the main menu's Continue button.
+
+const RUN_SAVE := "user://run_save.cfg"
+static var load_pending: bool = false
+
+func has_run_save() -> bool:
+	return FileAccess.file_exists(RUN_SAVE)
+
+func delete_run_save() -> void:
+	if has_run_save():
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(RUN_SAVE))
+
+func save_run(pending_omen_id: String = "") -> void:
+	var cf := ConfigFile.new()
+	cf.set_value("run", "region_path", region.resource_path if region != null else "")
+	cf.set_value("run", "region_index", region_index)
+	cf.set_value("run", "step", step)
+	cf.set_value("run", "hp", player_hp)
+	cf.set_value("run", "max_hp", player_max_hp)
+	cf.set_value("run", "rtec", rtec)
+	cf.set_value("run", "fights_won", fights_won)
+	cf.set_value("run", "hand_levels", hand_levels)
+	cf.set_value("run", "omen", pending_omen_id)
+	var relic_paths: Array = []
+	for a in relics:
+		relic_paths.append(a.resource_path)
+	cf.set_value("run", "relics", relic_paths)
+	var fight_paths: Array = []
+	for f in fights:
+		fight_paths.append(f.resource_path)
+	cf.set_value("run", "fights", fight_paths)
+	var cards: Array = []
+	for c in deck:
+		cards.append({"r": c.rank, "a": c.aspect, "k": c.keyword, "v": c.keyword_value, "e": c.edition})
+	cf.set_value("run", "deck", cards)
+	cf.save(RUN_SAVE)
+
+## Restores the saved run. Returns the pending omen id ("" when none). Deck growth (WZROST ramp)
+## is intentionally transient and resets on load.
+func load_run() -> String:
+	var cf := ConfigFile.new()
+	if cf.load(RUN_SAVE) != OK:
+		return ""
+	rng.randomize()
+	region = load(cf.get_value("run", "region_path", ""))
+	region_index = cf.get_value("run", "region_index", 0)
+	step = cf.get_value("run", "step", 0)
+	player_max_hp = cf.get_value("run", "max_hp", START_MAX_HP)
+	player_hp = cf.get_value("run", "hp", player_max_hp)
+	rtec = cf.get_value("run", "rtec", 0)
+	fights_won = cf.get_value("run", "fights_won", 0)
+	hand_levels = cf.get_value("run", "hand_levels", {})
+	relics = []
+	for p in cf.get_value("run", "relics", []):
+		var a = load(p)
+		if a != null:
+			relics.append(a)
+	fights = []
+	for p in cf.get_value("run", "fights", []):
+		var f = load(p)
+		if f != null:
+			fights.append(f)
+	deck = []
+	for d in cf.get_value("run", "deck", []):
+		var c := CardData.new()
+		c.rank = d["r"]
+		c.aspect = d["a"] as Aspects.Id
+		c.keyword = d["k"] as CardData.Keyword
+		c.keyword_value = d["v"]
+		c.edition = d["e"] as CardData.Edition
+		deck.append(c)
+	changed.emit()
+	return cf.get_value("run", "omen", "")
+
 func spend(cost: int) -> bool:
 	if rtec < cost:
 		return false

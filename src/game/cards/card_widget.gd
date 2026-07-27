@@ -58,7 +58,17 @@ static func build(card: CardData) -> PanelContainer:
 	panel.set_meta("border", sb.border_color)
 	panel.mouse_entered.connect(_on_hover.bind(panel, true))
 	panel.mouse_exited.connect(_on_hover.bind(panel, false))
+	panel.gui_input.connect(_route_rmb.bind(card))
 	return panel
+
+## RMB on ANY card, anywhere, opens the centered inspection overlay (todo.md UX brief).
+static func _route_rmb(ev: InputEvent, card: CardData) -> void:
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_RIGHT:
+		var ml := Engine.get_main_loop()
+		if ml is SceneTree:
+			var ov := (ml as SceneTree).root.get_node_or_null("Overlays")
+			if ov != null:
+				ov.inspect(card)
 
 ## Illustrated face: the RWS art fills the card, a dark scrim keeps the keyword/edition readable,
 ## and the rank sits in a corner badge -- like a real TCG frame.
