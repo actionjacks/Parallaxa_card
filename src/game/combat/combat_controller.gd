@@ -59,6 +59,7 @@ func current_intent() -> int:
 		return 0
 	# Enrage: each completed intent cycle raises the base, so stalling gets punished. Deterministic
 	# and always shown by the intent label -- the preview never lies about the incoming hit.
+	@warning_ignore("integer_division")
 	var cycle: int = _intent_index / enemy.intents.size()
 	return enemy.intents[_intent_index % enemy.intents.size()] + cycle * enemy.enrage_step
 

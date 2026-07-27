@@ -237,9 +237,9 @@ func _build_overlay() -> void:
 	restart.text = tr("COMBAT_RESTART")
 	restart.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	restart.pressed.connect(_on_restart)
-	var wrap := CenterContainer.new()
-	wrap.add_child(restart)
-	vb.add_child(wrap)
+	var wrap_c := CenterContainer.new()
+	wrap_c.add_child(restart)
+	vb.add_child(wrap_c)
 
 # ---------------------------------------------------------------- rendering
 
@@ -479,6 +479,7 @@ func _on_message(text_key: String, args: Array) -> void:
 			# The number grows with the hit and big hits shake the arena -- a 400 flush must FEEL
 			# bigger than a 30 pair, not just read bigger.
 			var dmg := int(args[1])
+			@warning_ignore("integer_division")
 			_popup("-" + str(dmg), Color(1.0, 0.5, 0.4), _enemy_fx_pos(), 26 + clampi(dmg / 12, 0, 22))
 			Sfx.play(&"hit", minf(0.0, -6.0 + dmg / 60.0), clampf(1.15 - dmg / 500.0, 0.7, 1.15))
 			if dmg >= 150:
@@ -545,10 +546,10 @@ func _on_ended(won: bool) -> void:
 
 # ---------------------------------------------------------------- helpers
 
-func _label(text: String, size: int, color: Color) -> Label:
+func _label(text: String, font_size: int, color: Color) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	return l
 
@@ -661,8 +662,8 @@ func _hit_flash() -> void:
 	tw.tween_property(r, "modulate:a", 0.0, 0.35)
 	tw.tween_callback(r.queue_free)
 
-func _popup(text: String, color: Color, at: Vector2, size: int = 26) -> void:
-	var l := _label(text, size, color)
+func _popup(text: String, color: Color, at: Vector2, font_size: int = 26) -> void:
+	var l := _label(text, font_size, color)
 	l.position = at
 	_fx.add_child(l)
 	var delay: float = _fx_index * 0.16

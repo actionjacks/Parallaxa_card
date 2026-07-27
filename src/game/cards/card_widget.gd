@@ -223,10 +223,10 @@ static func _tooltip(card: CardData) -> String:
 		t += "\n+ " + TranslationServer.translate(CardData.edition_name_key(card.edition))
 	return t
 
-static func _lbl(text: String, size: int, color: Color) -> Label:
+static func _lbl(text: String, font_size: int, color: Color) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE

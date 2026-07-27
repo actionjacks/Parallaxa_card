@@ -1211,6 +1211,7 @@ func _populate_resolutions() -> void:
 func _add_resolution_item(res: Vector2i) -> void:
 	var caption := "%d x %d" % [res.x, res.y]
 	if res.y % INTEGER_SCALE_BASE_HEIGHT == 0:
+		@warning_ignore("integer_division")
 		caption += " " + _t("SETTINGS_VIDEO_INTEGER_SCALE_SUFFIX", [res.y / INTEGER_SCALE_BASE_HEIGHT])
 	_resolution_option.add_item(caption)
 	_resolution_option.set_item_metadata(_resolution_option.item_count - 1, res)

@@ -253,6 +253,7 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 	# Economy legs from the design: thrift (1 per unused discard) then interest (1 per 5 held, cap 5).
 	_last_thrift = mini(unused_discards, 2)   # thrift capped: hoarding discards must not print money
 	RunState.rtec += _last_thrift
+	@warning_ignore("integer_division")
 	_last_interest = mini(RunState.rtec / 5, 5)
 	RunState.rtec += _last_interest
 	RunState.fights_won += 1
@@ -374,7 +375,7 @@ func _show_shop() -> void:
 	ench.add_theme_constant_override("separation", 10)
 	ench.add_child(_label(tr("SHOP_ENCHANT") % ENCHANT_COST, 15, Color(0.72, 0.76, 0.86)))
 	var can_ench := RunState.rtec >= ENCHANT_COST and RunState.deck.size() > 0
-	for ed in [CardData.Edition.FOIL, CardData.Edition.HOLO, CardData.Edition.POLYCHROME]:
+	for ed: CardData.Edition in [CardData.Edition.FOIL, CardData.Edition.HOLO, CardData.Edition.POLYCHROME]:
 		var eb := _button(tr(CardData.edition_name_key(ed)), _enchant.bind(ed))
 		eb.tooltip_text = _edition_desc(ed)
 		eb.disabled = not can_ench
@@ -428,7 +429,7 @@ func _thin_deck() -> void:
 		_show_shop()
 	_open_deck_picker(tr("PICK_REMOVE"), cb)
 
-func _enchant(edition: int) -> void:
+func _enchant(edition: CardData.Edition) -> void:
 	if RunState.rtec < ENCHANT_COST or RunState.deck.is_empty():
 		return
 	var cb := func(card: CardData) -> void:
@@ -482,9 +483,9 @@ func _open_deck_picker(title: String, on_pick: Callable) -> void:
 		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		panel.gui_input.connect(_on_picker_input.bind(card, overlay, on_pick))
 		grid.add_child(panel)
-	var wrap := CenterContainer.new()
-	wrap.add_child(_button(tr("COMMON_CANCEL"), _close_overlay.bind(overlay)))
-	col.add_child(wrap)
+	var wrap_c := CenterContainer.new()
+	wrap_c.add_child(_button(tr("COMMON_CANCEL"), _close_overlay.bind(overlay)))
+	col.add_child(wrap_c)
 
 func _on_picker_input(ev: InputEvent, card: CardData, overlay: Control, on_pick: Callable) -> void:
 	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
@@ -527,10 +528,10 @@ func _show_complete() -> void:
 			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
-	var wrap := CenterContainer.new()
+	var wrap_c := CenterContainer.new()
 	if not final:
 		root.add_child(_hint(tr("COMPLETE_HINT")))
-		wrap.add_child(_button(tr("COMPLETE_NEXT"), _continue_journey))
+		wrap_c.add_child(_button(tr("COMPLETE_NEXT"), _continue_journey))
 	else:
 		# The World has fallen: the Journey is complete -- the run is WON.
 		var rr := HBoxContainer.new()
@@ -540,8 +541,8 @@ func _show_complete() -> void:
 			rr.add_child(_relic_chip(a))
 		root.add_child(rr)
 		Sfx.play(&"win", -2.0)
-		wrap.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
-	root.add_child(wrap)
+		wrap_c.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
+	root.add_child(wrap_c)
 	_mount(root)
 
 func _continue_journey() -> void:
@@ -566,9 +567,9 @@ func _show_defeat() -> void:
 	root.add_child(death_wrap)
 	root.add_child(_big(tr("DEFEAT_TITLE"), Color(0.9, 0.4, 0.4)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
-	var wrap := CenterContainer.new()
-	wrap.add_child(_button(tr("DEFEAT_NEW"), _restart_run))
-	root.add_child(wrap)
+	var wrap_c := CenterContainer.new()
+	wrap_c.add_child(_button(tr("DEFEAT_NEW"), _restart_run))
+	root.add_child(wrap_c)
 	_mount(root)
 
 func _restart_run() -> void:
@@ -681,9 +682,9 @@ func _show_arcanum_draft() -> void:
 	root.add_child(row)
 	_arc_btn = _button(tr("DRAFT_TAKE"), _take_arcanum)
 	_arc_btn.disabled = true
-	var wrap := CenterContainer.new()
-	wrap.add_child(_arc_btn)
-	root.add_child(wrap)
+	var wrap_c := CenterContainer.new()
+	wrap_c.add_child(_arc_btn)
+	root.add_child(wrap_c)
 	_mount(root)
 
 func _arcanum_offer_panel(a: ArcanumData) -> PanelContainer:
@@ -756,16 +757,16 @@ func _big(text: String, color: Color) -> Label:
 func _hint(text: String) -> Label:
 	return _label_center(text, 15, Color(0.6, 0.6, 0.68))
 
-func _label_center(text: String, size: int, color: Color) -> Label:
-	var l := _label(text, size, color)
+func _label_center(text: String, font_size: int, color: Color) -> Label:
+	var l := _label(text, font_size, color)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return l
 
-func _label(text: String, size: int, color: Color) -> Label:
+func _label(text: String, font_size: int, color: Color) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	return l
 

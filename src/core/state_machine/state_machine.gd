@@ -138,20 +138,20 @@ func travel(to: StringName, msg: Dictionary = {}) -> void:
 
 
 ## Whether a child state with this name exists.
-func has_state(name: StringName) -> bool:
-	return _states.has(name)
+func has_state(state_name: StringName) -> bool:
+	return _states.has(state_name)
 
 
 ## The state node registered under [param name], or [code]null[/code].
-func get_state(name: StringName) -> State:
-	if not _states.has(name):
+func get_state(state_name: StringName) -> State:
+	if not _states.has(state_name):
 		return null
-	return _states[name]
+	return _states[state_name]
 
 
 ## Whether [param name] is the active state. Safe before the first transition.
-func is_in(name: StringName) -> bool:
-	return current != null and current.name == name
+func is_in(state_name: StringName) -> bool:
+	return current != null and current.name == state_name
 
 
 ## Name of the state active before the current one, or [code]&""[/code] if there is none.

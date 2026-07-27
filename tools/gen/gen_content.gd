@@ -32,8 +32,8 @@ func _make(specs: Array, prefix: String) -> Array:
 		var s: Array = specs[i]
 		var c := CardData.new()
 		c.rank = s[0]
-		c.aspect = s[1]
-		c.keyword = s[2]
+		c.aspect = s[1] as Aspects.Id
+		c.keyword = s[2] as CardData.Keyword
 		c.keyword_value = s[3]
 		var path := "%s%s_%02d.tres" % [CARD_DIR, prefix, i]
 		ResourceSaver.save(c, path)
@@ -66,8 +66,8 @@ func _region() -> void:
 	for s in pool_specs:
 		var arc := ArcanumData.new()
 		arc.name_key = s[0]
-		arc.effect = s[1]
-		arc.effect_aspect = s[2]
+		arc.effect = s[1] as ArcanumData.Effect
+		arc.effect_aspect = s[2] as Aspects.Id
 		arc.effect_mult = s[3]
 		arc.effect_value = s[4]
 		arc.art = load("res://assets/cards/arcana/%s.jpg" % s[5])
@@ -184,7 +184,7 @@ func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, bo
 	r.boss_arcanum = load(ARCANA_DIR + arc_file + ".tres")
 	ResourceSaver.save(r, REGION_DIR + file + ".tres")
 
-func _arcanum(name_key: String, aspect: int, mult: float) -> ArcanumData:
+func _arcanum(name_key: String, aspect: Aspects.Id, mult: float) -> ArcanumData:
 	var arc := ArcanumData.new()
 	arc.name_key = name_key
 	arc.effect = ArcanumData.Effect.MULT_IF_ASPECT
@@ -192,7 +192,7 @@ func _arcanum(name_key: String, aspect: int, mult: float) -> ArcanumData:
 	arc.effect_mult = mult
 	return arc
 
-func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: int, rule_key: String, enrage: int = 0) -> EnemyData:
+func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: EnemyData.Rule, rule_key: String, enrage: int = 0) -> EnemyData:
 	var e := EnemyData.new()
 	e.name_key = name_key
 	e.max_hp = hp
