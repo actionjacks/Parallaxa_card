@@ -76,7 +76,10 @@ fi
 # Wtedy schodzimy na LAVAPIPE (programowy Vulkan z Mesy): wolniej, ale zrzuty i harness dzialaja bez GPU.
 # Sprzet probujemy PIERWSZY, zeby nie placic wydajnoscia, gdy jest sprawny. Jesli ktos ustawil juz wlasny
 # VK_ICD_FILENAMES — nie nadpisujemy go, to jego decyzja.
-_uruchom() { DISPLAY="${EKRAN}" "${GODOT}" --path "${REPO}" "$@"; }
+# --audio-driver Dummy: Xvfb ukrywa OBRAZ, ale dzwiek szedlby normalnie na glosniki (PulseAudio
+# jest systemowe) — odkad gra ma muzyke w petli, zapomniana instancja testowa gralaby userowi
+# w tle w nieskonczonosc. Ukryte testy nigdy nie potrzebuja slyszalnego audio.
+_uruchom() { DISPLAY="${EKRAN}" "${GODOT}" --path "${REPO}" --audio-driver Dummy "$@"; }
 
 LVP="/usr/share/vulkan/icd.d/lvp_icd.x86_64.json"
 if [ -n "${VK_ICD_FILENAMES:-}" ] || [ ! -f "${LVP}" ]; then
