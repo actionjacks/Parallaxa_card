@@ -9,3 +9,6 @@ name_key = "ARCANUM_KSIEZYCA"
 effect = 2
 effect_value = 1
 art = ExtResource("1_ak5gv")
+reversed_value = 2
+price = 2
+price_value = 2

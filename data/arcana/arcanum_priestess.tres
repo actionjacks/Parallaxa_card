@@ -11,3 +11,6 @@ effect_aspect = 1
 effect_mult = 1.0
 effect_value = 1
 art = ExtResource("1_oaugx")
+reversed_value = 3
+price = 3
+price_value = 2

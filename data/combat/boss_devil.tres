@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("2_g22b2")
 name_key = "ENEMY_DIABEL"
-max_hp = 620
-intents = PackedInt32Array(14, 18, 12)
-enrage_step = 3
+max_hp = 780
+intents = PackedInt32Array(16, 20, 14)
+enrage_step = 4
 reward_rtec = 14
 is_boss = true
 rule = 2

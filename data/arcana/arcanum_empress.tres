@@ -11,3 +11,6 @@ effect_aspect = 4
 effect_mult = 1.0
 effect_value = 4
 art = ExtResource("1_da47x")
+reversed_value = 9
+price = 1
+price_value = 6

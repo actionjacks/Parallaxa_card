@@ -2,7 +2,9 @@ class_name Poker
 ## Pure poker-hand evaluation over a set of CardData (1..5 cards). Deterministic.
 ## Colours (aspects) act as suits: a flush is five cards of one aspect.
 
-enum Hand { HIGH_CARD, PAIR, TWO_PAIR, THREE, STRAIGHT, FLUSH, FULL_HOUSE, FOUR, STRAIGHT_FLUSH, FIVE }
+## MAGNUM_OPUS (appended, enum append-only): the secret apex -- five of a kind, all one Aspect.
+## Never dealt from the starter (max 3 of a rank there); only ENGINEERED via drafted duplicates.
+enum Hand { HIGH_CARD, PAIR, TWO_PAIR, THREE, STRAIGHT, FLUSH, FULL_HOUSE, FOUR, STRAIGHT_FLUSH, FIVE, MAGNUM_OPUS }
 
 ## Base [chips, mult] per hand — calibrated to Balatro level-1 values.
 const BASE: Dictionary = {
@@ -16,6 +18,7 @@ const BASE: Dictionary = {
 	Hand.FOUR: [60, 7],
 	Hand.STRAIGHT_FLUSH: [100, 8],
 	Hand.FIVE: [120, 12],
+	Hand.MAGNUM_OPUS: [160, 16],
 }
 
 const NAME_KEYS: Dictionary = {
@@ -29,6 +32,7 @@ const NAME_KEYS: Dictionary = {
 	Hand.FOUR: "HAND_FOUR",
 	Hand.STRAIGHT_FLUSH: "HAND_STRAIGHT_FLUSH",
 	Hand.FIVE: "HAND_FIVE",
+	Hand.MAGNUM_OPUS: "HAND_MAGNUM_OPUS",
 }
 
 ## Per-level base gains for each hand ("Star" consumables level hands up, Balatro-Planet style).
@@ -43,6 +47,7 @@ const LEVEL_UP: Dictionary = {
 	Hand.FOUR: [30, 3],
 	Hand.STRAIGHT_FLUSH: [40, 4],
 	Hand.FIVE: [50, 3],
+	Hand.MAGNUM_OPUS: [50, 5],
 }
 
 ## Base [chips, mult] for a hand at the given level (level 0 = the BASE table).
@@ -66,6 +71,9 @@ static func evaluate(cards: Array) -> int:
 	var top: int = freq[0]
 	var flush := _is_flush(cards)
 	var straight := _is_straight(cards, counts)
+	# One rank AND one Aspect: the Great Work. top==5 implies no straight, so no clash below.
+	if top == 5 and flush:
+		return Hand.MAGNUM_OPUS
 	if flush and straight:
 		return Hand.STRAIGHT_FLUSH
 	if top == 5:

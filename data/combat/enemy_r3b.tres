@@ -1,11 +1,13 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_xdqfg"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_14.jpg" id="1_bg53j"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_5pgd8"]
 
 [resource]
-script = ExtResource("1_xdqfg")
+script = ExtResource("2_5pgd8")
 name_key = "ENEMY_TYTAN"
-max_hp = 800
-intents = PackedInt32Array(18, 18, 18)
+max_hp = 1150
+intents = PackedInt32Array(22, 22, 22)
 enrage_step = 4
 reward_rtec = 9
+art = ExtResource("1_bg53j")

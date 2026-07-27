@@ -10,3 +10,5 @@ effect = 5
 effect_mult = 1.25
 effect_value = 1
 art = ExtResource("1_jllxh")
+reversed_mult = 1.6
+reversed_value = 3

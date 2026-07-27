@@ -19,6 +19,12 @@ func _initialize() -> void:
 	failures += _check_playstyle_relics()
 	failures += _check_hand_levels()
 	failures += _check_wave2_keywords()
+	failures += _check_magnum_opus()
+	failures += _check_lawina()
+	failures += _check_kombinat()
+	failures += _check_przeciazenie()
+	failures += _check_magician()
+	failures += _check_heal_budget()
 	if failures == 0:
 		print("test_scoring: PASS")
 		quit(0)
@@ -185,6 +191,59 @@ func _check_wave2_keywords() -> int:
 	var r4: Dictionary = Scoring.score([g], [])
 	fails += _expect("wzrost chips 14", r4["damage"] == 14)
 	return fails
+
+# Five 7s all Death -> MAGNUM_OPUS (not FIVE, not STRAIGHT_FLUSH). Mixed aspects stay FIVE.
+func _check_magnum_opus() -> int:
+	var mono: Array = []
+	var mixed: Array = []
+	for i in 5:
+		mono.append(_c(7, Aspects.Id.DEATH))
+		mixed.append(_c(7, Aspects.Id.DEATH if i < 4 else Aspects.Id.CHAOS))
+	var r1: Dictionary = Scoring.score(mono, [])
+	var r2: Dictionary = Scoring.score(mixed, [])
+	# base 160 + 5*7 = 195 chips x16 -> 3120
+	return _expect("magnum opus 3120 / five stays five",
+		r1["hand"] == Poker.Hand.MAGNUM_OPUS and r1["chips"] == 195 and r1["damage"] == 3120 \
+		and r2["hand"] == Poker.Hand.FIVE)
+
+# Lawina: pair of 7s, one Lawina Chaos + one plain Chaos -> retrig_total 14 re-scored x2 chaos.
+# chips = 10 (pair base) + 14 (cards) + 14*2 (retrigger) = 52, mult 2 -> 104.
+func _check_lawina() -> int:
+	var r: Dictionary = Scoring.score([
+		_c(7, Aspects.Id.CHAOS, CardData.Keyword.LAWINA, 0),
+		_c(7, Aspects.Id.CHAOS),
+	], [])
+	return _expect("lawina 104", r["chips"] == 52 and r["damage"] == 104)
+
+# Kombinat 50 at a trailing streak of 2 pairs -> x2.0. Pair of 8s: 10+16=26 chips, mult 2*2=4 -> 104.
+# A broken streak (last play differs) resets to x1.0.
+func _check_kombinat() -> int:
+	var cards: Array = [_c(8, Aspects.Id.MIND, CardData.Keyword.KOMBINAT, 50), _c(8, Aspects.Id.DEATH)]
+	var r1: Dictionary = Scoring.score(cards, [], {"hand_history": [Poker.Hand.PAIR, Poker.Hand.PAIR]})
+	var r2: Dictionary = Scoring.score(cards, [], {"hand_history": [Poker.Hand.PAIR, Poker.Hand.FLUSH]})
+	return _expect("kombinat streak x2 / reset x1",
+		is_equal_approx(r1["mult"], 4.0) and r1["damage"] == 104 \
+		and is_equal_approx(r2["mult"], 2.0) and r2["damage"] == 52)
+
+# Przeciazenie: one glass card doubles the Mult. Single 9 Chaos glass: 5+9=14 chips, mult 1*2 -> 28.
+func _check_przeciazenie() -> int:
+	var r: Dictionary = Scoring.score([_c(9, Aspects.Id.CHAOS, CardData.Keyword.PRZECIAZENIE, 3)], [])
+	return _expect("przeciazenie x2", is_equal_approx(r["mult"], 2.0) and r["damage"] == 28)
+
+# The Magician: amplifies OTHER relics' xMult (K=2 upright), never itself. Death x1.5 -> x2.0;
+# Magician self x1.15. Single Death 6: 11 chips; mult = 2.0*1.15 = 2.3 -> round(25.3)=25.
+func _check_magician() -> int:
+	var mag := ArcanumData.new()
+	mag.effect = ArcanumData.Effect.MAGNIFY
+	mag.effect_mult = 1.15
+	var r: Dictionary = Scoring.score([_c(6, Aspects.Id.DEATH)], [_death_arcanum(), mag])
+	return _expect("magician K2 (x2.0 * x1.15)", is_equal_approx(r["mult"], 2.3) and r["damage"] == 25)
+
+# Heal budget: Opatrznosc 5 with only 2 left in the pool -> heal 2, heal_raw 5.
+func _check_heal_budget() -> int:
+	var r: Dictionary = Scoring.score([_c(6, Aspects.Id.LIFE, CardData.Keyword.OPATRZNOSC, 5)], [],
+		{"heal_budget": 2})
+	return _expect("heal budget clamp 2/5", r["heal"] == 2 and r["heal_raw"] == 5)
 
 # Editions: Foil +15 chips, Holo +2 mult, Polychrome x1.3 mult. High card of a 5 = 10 chips base.
 func _check_editions() -> int:

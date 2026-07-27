@@ -11,20 +11,31 @@ extends Resource
 ## Wave 2 appended at the END (saved .tres store enum ints): NATURE Wzrost (grows each turn in hand)
 ## / Symbioza (chips per allied-colour card in the play); DEATH Pijawka (leech % of damage) /
 ## Klatwa (stacking +% damage debuff on the enemy).
-enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA }
+## Wave 3 (the exponential vector, appended): CHAOS Przeciazenie (x2 Mult glass card with a visible
+## durability counter -- shatters at 0) / Lawina (card chips re-score once per Chaos card, max 3);
+## MIND Kombinat (xMult grows per consecutive play of the same hand type).
+enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA, PRZECIAZENIE, LAWINA, KOMBINAT }
 
 ## Shop editions (bought with Rtec): Foil +chips, Holo +mult, Polychrome xmult.
 enum Edition { NONE, FOIL, HOLO, POLYCHROME }
 
+## Offer rarity: shop/reward odds and frame colour. Default COMMON keeps every existing .tres valid.
+enum Rarity { COMMON, RARE, LEGENDARY }
+
 @export var rank: int = 2                  ## 1 = Ace, 2..10 pips, 11 Page, 12 Knight, 13 Queen, 14 King
 @export var aspect: Aspects.Id = Aspects.Id.LIFE
 @export var keyword: Keyword = Keyword.NONE
-@export var keyword_value: int = 0         ## magnitude for Gnicie X / Oslona X
+@export var keyword_value: int = 0         ## magnitude for Gnicie X / Oslona X; PRZECIAZENIE: max durability
 @export var edition: Edition = Edition.NONE
+@export var rarity: Rarity = Rarity.COMMON
 
 ## Runtime ramp from the WZROST keyword: accumulated bonus chips. Not exported on purpose --
 ## a run-local state that resets when the card is duplicated into a new run.
 var growth: int = 0
+
+## Runtime wear from the PRZECIAZENIE keyword: plays survived. Persisted in the RUN save (not the
+## .tres) -- the glass cracks across fights within one run. durability left = keyword_value - wear.
+var wear: int = 0
 
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
@@ -59,6 +70,9 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.SYMBIOZA: return "KW_SYMBIOZA"
 		Keyword.PIJAWKA: return "KW_PIJAWKA"
 		Keyword.KLATWA: return "KW_KLATWA"
+		Keyword.PRZECIAZENIE: return "KW_PRZECIAZENIE"
+		Keyword.LAWINA: return "KW_LAWINA"
+		Keyword.KOMBINAT: return "KW_KOMBINAT"
 	return ""
 
 static func edition_name_key(e: int) -> String:
@@ -82,6 +96,9 @@ static func keyword_desc_key(kw: int) -> String:
 		Keyword.SYMBIOZA: return "KWD_SYMBIOZA"
 		Keyword.PIJAWKA: return "KWD_PIJAWKA"
 		Keyword.KLATWA: return "KWD_KLATWA"
+		Keyword.PRZECIAZENIE: return "KWD_PRZECIAZENIE"
+		Keyword.LAWINA: return "KWD_LAWINA"
+		Keyword.KOMBINAT: return "KWD_KOMBINAT"
 	return ""
 
 ## Aspect that a keyword thematically belongs to (for generated content / tinting).
@@ -93,4 +110,6 @@ static func keyword_aspect(kw: int) -> int:
 		Keyword.FURIA, Keyword.SPALENIE: return Aspects.Id.CHAOS
 		Keyword.BUJNOSC, Keyword.WZROST, Keyword.SYMBIOZA: return Aspects.Id.NATURE
 		Keyword.PIJAWKA, Keyword.KLATWA: return Aspects.Id.DEATH
+		Keyword.PRZECIAZENIE, Keyword.LAWINA: return Aspects.Id.CHAOS
+		Keyword.KOMBINAT: return Aspects.Id.MIND
 	return Aspects.Id.LIFE

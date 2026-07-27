@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_up5rr"]
+
+[resource]
+script = ExtResource("1_up5rr")
+rank = 4
+aspect = 2
+keyword = 4
+keyword_value = 1

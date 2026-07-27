@@ -8,3 +8,6 @@ script = ExtResource("2_cwu00")
 name_key = "ARCANUM_SMIERCI"
 effect = 1
 art = ExtResource("1_ist3x")
+reversed_mult = 2.2
+price = 1
+price_value = 8

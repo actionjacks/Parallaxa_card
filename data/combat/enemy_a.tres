@@ -1,11 +1,13 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_gla68"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_11.jpg" id="1_aym75"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_vx8wb"]
 
 [resource]
-script = ExtResource("1_gla68")
+script = ExtResource("2_vx8wb")
 name_key = "ENEMY_KULTYSTA"
-max_hp = 340
-intents = PackedInt32Array(8, 10, 6)
+max_hp = 520
+intents = PackedInt32Array(10, 13, 8)
 enrage_step = 2
 reward_rtec = 5
+art = ExtResource("1_aym75")

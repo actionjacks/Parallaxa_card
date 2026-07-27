@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/08_strength.jpg" id="1_ohxib"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_mk36w"]
+
+[resource]
+script = ExtResource("2_mk36w")
+name_key = "ARCANUM_SILY"
+effect = 1
+effect_aspect = 0
+art = ExtResource("1_ohxib")

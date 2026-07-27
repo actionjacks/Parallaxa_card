@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/01_magician.jpg" id="1_vjigu"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_80v2q"]
+
+[resource]
+script = ExtResource("2_80v2q")
+name_key = "ARCANUM_MAGA"
+effect = 6
+effect_aspect = 1
+effect_mult = 1.15
+art = ExtResource("1_vjigu")
+reversed_mult = 1.25
+price = 1
+price_value = 12

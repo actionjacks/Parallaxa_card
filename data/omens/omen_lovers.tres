@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="OmenData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/06_lovers.jpg" id="1_qpnuv"]
+[ext_resource type="Script" path="res://src/game/region/omen_data.gd" id="2_5wf5u"]
+
+[resource]
+script = ExtResource("2_5wf5u")
+id = "lovers"
+name_key = "OMEN_LOVERS"
+desc_key = "OMEN_LOVERS_DESC"
+art = ExtResource("1_qpnuv")
+requires_achievement = "ACH_DEATH_FLUSH"

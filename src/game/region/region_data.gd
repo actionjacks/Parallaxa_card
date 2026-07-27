@@ -12,3 +12,5 @@ extends Resource
 @export var boss_arcanum: ArcanumData
 @export var starting_arcanum: ArcanumData          ## legacy fallback when starting_pool is empty
 @export var starting_pool: Array[ArcanumData] = [] ## run start: draft 1 of 3 random picks from here
+@export var accent: Color = Color(0.6, 0.6, 0.65)  ## region identity tint: map header + backdrop
+@export var elite: EnemyData                       ## the region's elite (map fork: risk for loot)

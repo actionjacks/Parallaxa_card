@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("2_txj03")
 name_key = "ENEMY_KSIEZYC"
-max_hp = 860
-intents = PackedInt32Array(18, 22, 15)
-enrage_step = 4
+max_hp = 980
+intents = PackedInt32Array(20, 25, 17)
+enrage_step = 5
 reward_rtec = 16
 is_boss = true
 rule = 3

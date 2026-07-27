@@ -15,3 +15,4 @@ enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL 
 @export var rule: Rule = Rule.NONE
 @export var rule_key: String = ""         ## localization key describing the field-rule (bosses only)
 @export var art: Texture2D                ## arena portrait; bosses use their Major Arcana card
+@export var is_elite: bool = false        ## map-fork elite (reversed court card: art renders flipped)

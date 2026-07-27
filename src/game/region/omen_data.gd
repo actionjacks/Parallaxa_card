@@ -9,3 +9,4 @@ extends Resource
 @export var name_key: String = ""
 @export var desc_key: String = ""
 @export var art: Texture2D
+@export var requires_achievement: String = ""   ## Profile achievement id gating this omen ("" = always)

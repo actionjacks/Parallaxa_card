@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="OmenData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/19_sun.jpg" id="1_epb5s"]
+[ext_resource type="Script" path="res://src/game/region/omen_data.gd" id="2_vb0pm"]
+
+[resource]
+script = ExtResource("2_vb0pm")
+id = "sun"
+name_key = "OMEN_SUN"
+desc_key = "OMEN_SUN_DESC"
+art = ExtResource("1_epb5s")
+requires_achievement = "ACH_MISER"

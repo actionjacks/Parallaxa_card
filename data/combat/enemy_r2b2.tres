@@ -1,11 +1,13 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="1_0batl"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_10.jpg" id="1_hmha3"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_wbjqd"]
 
 [resource]
-script = ExtResource("1_0batl")
+script = ExtResource("2_wbjqd")
 name_key = "ENEMY_CHIMERA"
-max_hp = 540
-intents = PackedInt32Array(19, 0, 15)
+max_hp = 780
+intents = PackedInt32Array(24, 0, 19)
 enrage_step = 4
 reward_rtec = 7
+art = ExtResource("1_hmha3")

@@ -1,19 +1,22 @@
 [gd_resource type="Resource" script_class="RegionData" format=3]
 
-[ext_resource type="Resource" path="res://data/combat/boss_moon.tres" id="1_m07an"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_moon.tres" id="2_q86b7"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_fg0ro"]
-[ext_resource type="Resource" path="res://data/combat/enemy_r3a.tres" id="4_spak4"]
-[ext_resource type="Resource" path="res://data/combat/enemy_r3a2.tres" id="5_rwxfa"]
-[ext_resource type="Resource" path="res://data/combat/enemy_r3b.tres" id="6_sxt6e"]
-[ext_resource type="Resource" path="res://data/combat/enemy_r3b2.tres" id="7_oa7h5"]
-[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="8_jyg5y"]
-[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="9_l22p8"]
+[ext_resource type="Resource" path="res://data/combat/boss_moon.tres" id="1_q86b7"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_moon.tres" id="2_fg0ro"]
+[ext_resource type="Resource" path="res://data/combat/enemy_elite_r3.tres" id="3_spak4"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_rwxfa"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3a.tres" id="5_sxt6e"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3a2.tres" id="6_oa7h5"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3b.tres" id="7_jyg5y"]
+[ext_resource type="Resource" path="res://data/combat/enemy_r3b2.tres" id="8_l22p8"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="9_176sh"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="10_dmscr"]
 
 [resource]
-script = ExtResource("8_jyg5y")
+script = ExtResource("9_176sh")
 name_key = "REGION_03"
-fight_pool_1 = Array[ExtResource("3_fg0ro")]([ExtResource("4_spak4"), ExtResource("5_rwxfa")])
-fight_pool_2 = Array[ExtResource("3_fg0ro")]([ExtResource("6_sxt6e"), ExtResource("7_oa7h5")])
-boss = ExtResource("1_m07an")
-boss_arcanum = ExtResource("2_q86b7")
+fight_pool_1 = Array[ExtResource("4_rwxfa")]([ExtResource("5_sxt6e"), ExtResource("6_oa7h5")])
+fight_pool_2 = Array[ExtResource("4_rwxfa")]([ExtResource("7_jyg5y"), ExtResource("8_l22p8")])
+boss = ExtResource("1_q86b7")
+boss_arcanum = ExtResource("2_fg0ro")
+accent = Color(0.498, 0.706, 0.831, 1)
+elite = ExtResource("3_spak4")

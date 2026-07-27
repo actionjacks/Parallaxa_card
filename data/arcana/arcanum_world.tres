@@ -9,3 +9,6 @@ name_key = "ARCANUM_SWIATA"
 effect = 5
 effect_mult = 1.15
 art = ExtResource("1_cfbis")
+reversed_mult = 1.5
+price = 1
+price_value = 10
