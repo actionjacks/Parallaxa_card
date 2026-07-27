@@ -78,3 +78,13 @@ Run przez 3 regiony az do finalu. To zamienia 5-minutowy slice w ~20-30 min run 
 Zaczac od **M1** — bez pelnego luku runu gra pozostaje swietnym demo. M1 wykorzystuje w 100% to, co juz
 lezy gotowe (20 artow Arkanow, pule wrogow, system regul pola, kolekcje reliktow) i podwaja-potraja czas
 runu. Rownolegle drobne z M2 (odsetki + ☿/odrzut) — 1-2h, natychmiastowa glebia sklepu.
+
+## M-POP: Plan popularnosci P1-P7 (2026-07-27) — ZROBIONE
+Pelne wdrozenie docs/ANALIZA_POPULARNOSC.md wg specs w docs/specs/ (panel 4 projektantow):
+P1 trudnosc+Zaslony 1-5, P2 wektor wykladniczy (szklo/lawina/kombinat/Magnum Opus/Mag)+rzadkosci,
+P3 wrogowie=karty dworskie+muzyka proceduralna+akcenty regionow, P4 fork elity+boss-relikt
+prosty/ODWROCONY/dokupiony, P5 rozklad tarota+seed+powtorka losu, P6 meta odwrocona (pelna pula
+dnia 1, osiagniecia, talie, edycje za Zaslony), P7 tytul "The Cards Do Not Lie".
+Weryfikacja: 40 testow headless, review adwersaryjny (18 znalezisk naprawionych), pelne
+przeklikniecia real-input: vanilla=DEFEAT (cel trudnosci), BOOST=VICTORY, ELITE=VICTORY, GUI wave.
+Nastepne: balans Zaslon na ludziach + telemetria x20, ceremonia jackpotu, prefabrykacja UI.
