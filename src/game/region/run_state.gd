@@ -199,9 +199,13 @@ static func seed_text(s: int) -> String:
 	return h.substr(0, 4) + "-" + h.substr(4, 4)
 
 ## N distinct random cards from a pool (the variable-reward layer: drafts and shop offers).
+## SEED CONTRACT: consumes EXACTLY ONE draw of the main rng regardless of pool size or n -- the
+## actual sampling runs on a sub-generator seeded by that draw. Achievement/purchase-driven pool
+## growth therefore never shifts the rest of the run's random stream ("Repeat this fate" holds).
 func pick_offers(pool: Array, n: int) -> Array:
+	var sub := _sub_rng()
 	var idx: Array = range(pool.size())
-	_shuffle(idx)
+	_shuffle_with(idx, sub)
 	var out: Array = []
 	for i in mini(n, idx.size()):
 		out.append(pool[idx[i]])
@@ -209,22 +213,28 @@ func pick_offers(pool: Array, n: int) -> Array:
 
 ## Rarity-weighted card offers (rewards + shop). Odds per slot: 5% LEGENDARY / 25% RARE / 70%
 ## COMMON; an elite victory boosts the next offer to 12/43/45. Empty tiers fall back downward
-## (LEGENDARY -> RARE -> COMMON); no duplicates within one offer set.
+## (LEGENDARY -> RARE -> COMMON); no duplicates within one offer set. One main-rng draw total.
 func pick_tiered_offers(pool: Array, n: int, boosted: bool = false) -> Array:
+	var sub := _sub_rng()
 	var out: Array = []
 	for _slot in n:
-		var r := rng.randf()
+		var r := sub.randf()
 		var tier: int
 		if boosted:
 			tier = CardData.Rarity.LEGENDARY if r < 0.12 else (CardData.Rarity.RARE if r < 0.55 else CardData.Rarity.COMMON)
 		else:
 			tier = CardData.Rarity.LEGENDARY if r < 0.05 else (CardData.Rarity.RARE if r < 0.30 else CardData.Rarity.COMMON)
-		var pick := _pick_from_tier(pool, tier, out)
+		var pick := _pick_from_tier(pool, tier, out, sub)
 		if pick != null:
 			out.append(pick)
 	return out
 
-func _pick_from_tier(pool: Array, tier: int, taken: Array) -> CardData:
+func _sub_rng() -> RandomNumberGenerator:
+	var sub := RandomNumberGenerator.new()
+	sub.seed = int(rng.randi())
+	return sub
+
+func _pick_from_tier(pool: Array, tier: int, taken: Array, sub: RandomNumberGenerator) -> CardData:
 	var order: Array = [tier]
 	for fallback in [CardData.Rarity.RARE, CardData.Rarity.COMMON, CardData.Rarity.LEGENDARY]:
 		if not order.has(fallback):
@@ -235,12 +245,15 @@ func _pick_from_tier(pool: Array, tier: int, taken: Array) -> CardData:
 			if c.rarity == t and not taken.has(c):
 				bucket.append(c)
 		if not bucket.is_empty():
-			return bucket[rng.randi_range(0, bucket.size() - 1)]
+			return bucket[sub.randi_range(0, bucket.size() - 1)]
 	return null
 
 func _shuffle(arr: Array) -> void:
+	_shuffle_with(arr, rng)
+
+func _shuffle_with(arr: Array, r: RandomNumberGenerator) -> void:
 	for i in range(arr.size() - 1, 0, -1):
-		var j := rng.randi_range(0, i)
+		var j := r.randi_range(0, i)
 		var tmp = arr[i]
 		arr[i] = arr[j]
 		arr[j] = tmp
@@ -343,7 +356,9 @@ func load_run() -> String:
 	stat_regions_cleared = cf.get_value("run", "st_regions", 0)
 	stat_untouched_fights = cf.get_value("run", "st_untouched", 0)
 	stat_death_flush_kill = cf.get_value("run", "st_flush", false)
-	stat_max_rtec = cf.get_value("run", "st_maxrtec", 0)
+	# Merge, never stomp: a pre-update save has no st_maxrtec, but the rtec setter above already
+	# derived the provable high-water mark from the loaded Mercury.
+	stat_max_rtec = maxi(stat_max_rtec, cf.get_value("run", "st_maxrtec", 0))
 	stat_sol_earned = 0
 	relics = []
 	for entry in cf.get_value("run", "relics", []):

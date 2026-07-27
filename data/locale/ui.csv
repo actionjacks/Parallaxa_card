@@ -522,3 +522,6 @@ OMEN_LOVERS_DESC,Twin one card: add a copy of a chosen deck card.,Bliźniactwo: 
 OMEN_SUN,The Sun,Słońce
 OMEN_SUN_DESC,Warmth restores +12 HP.,Ciepło przywraca +12 HP.
 PICK_TWIN,Pick a card to TWIN,Wybierz kartę do ZDWOJENIA
+ARCANUM_CESARZA_BLURB,Defense: every play builds block.,Obrona: każde zagranie daje blok.
+ARCANUM_RYDWANU_BLURB,Aggro: Mind hands hit harder.,Agresja: układy Umysłu biją mocniej.
+LOG_DECK_ASHES,The deck burned itself to ash.,Talia spłonęła na popiół.

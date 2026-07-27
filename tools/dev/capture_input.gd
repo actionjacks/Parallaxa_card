@@ -8,6 +8,10 @@ const RUN := "res://src/game/region/run.tscn"
 var _rn: Node
 
 func _initialize() -> void:
+	# File isolation: automated runs must never pollute the player's real meta/save files.
+	# (Autoloads already read the real files into memory; every WRITE from here on is redirected.)
+	if OS.get_environment("TEST_PROFILE") == "":
+		OS.set_environment("TEST_PROFILE", "bot")
 	_go()
 
 func _frames(n: int) -> void:

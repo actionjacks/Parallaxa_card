@@ -15,6 +15,10 @@ var _boost := false
 var _take_elite := false
 
 func _initialize() -> void:
+	# File isolation: automated runs must never pollute the player's real meta/save files.
+	# (Autoloads already read the real files into memory; every WRITE from here on is redirected.)
+	if OS.get_environment("TEST_PROFILE") == "":
+		OS.set_environment("TEST_PROFILE", "bot")
 	# Godot's stdout is block-buffered into a pipe and LOST if the process is killed mid-run,
 	# so the driver also logs to a flushed file -- the only reliable trace when something hangs.
 	_logf = FileAccess.open("res://screenshots/pt2_log.txt", FileAccess.WRITE)

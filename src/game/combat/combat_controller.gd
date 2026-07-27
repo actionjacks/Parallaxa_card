@@ -92,14 +92,15 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	_refill()
 	state_changed.emit()
 
-## The enrage clock: the first authored cycle is exact, then EVERY further turn adds +step.
+## The enrage clock: the first authored cycle is exact, then EVERY further turn adds +step,
+## starting IMMEDIATELY on the first turn past the cycle (spec_difficulty par.3a prose).
 ## Deterministic and always shown by the intent label -- the preview never lies about the hit.
 func _intent_at(idx: int) -> int:
 	if enemy == null or enemy.intents.is_empty():
 		return 0
 	var n := enemy.intents.size()
 	var step := enemy.enrage_step + (1 if veil >= 3 else 0)
-	var over := maxi(0, idx - n)
+	var over := maxi(0, idx - n + 1)
 	return enemy.intents[idx % n] + over * step
 
 func current_intent() -> int:
@@ -200,6 +201,13 @@ func play(selected: Array) -> void:
 	if enemy_hp <= 0:
 		enemy_hp = 0
 		_finish(true)
+		return
+	# Deck burnout: an all-glass deck can shatter itself to nothing. With no cards anywhere the
+	# fight has no legal move left -- the deck burned out, the duel is lost (visible, not a hang).
+	if hand.is_empty() and _draw.is_empty() and _used.is_empty():
+		message.emit("LOG_DECK_ASHES", [])
+		player_hp = 0
+		_finish(false)
 		return
 	phase = "enemy"
 	state_changed.emit()

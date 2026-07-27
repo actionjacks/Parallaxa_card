@@ -478,10 +478,10 @@ func _update_selection_ui() -> void:
 			parts.append(tr("PREVIEW_SHATTER"))
 			break
 	_preview_extra.text = "    ".join(parts)
-	_breakdown_label.text = _mult_breakdown(int(r["hand"]), int(r["block"]))
+	_breakdown_label.text = _mult_breakdown(int(r["hand"]))
 
 ## Human-readable "why is the mult that value": leveled hand base + relic / Furia / Curse factors.
-func _mult_breakdown(hand: int, block: int) -> String:
+func _mult_breakdown(hand: int) -> String:
 	var lv := int(_levels.get(hand, 0))
 	var base_mult := float(Poker.leveled_base(hand, lv)[1])
 	var mods: Array = ["%s x%s" % [tr(Poker.name_key(hand)), String.num(base_mult, 1)]]
@@ -491,18 +491,23 @@ func _mult_breakdown(hand: int, block: int) -> String:
 	var has_furia := false
 	var polys := 0
 	var glass := 0
+	var card_block := 0
 	var kombinat_mult := 1.0
 	for c in _selected:
 		aspects[c.aspect] = true
 		if c.keyword == CardData.Keyword.FURIA:
 			has_furia = true
+		elif c.keyword == CardData.Keyword.OSLONA:
+			card_block += c.keyword_value
 		elif c.keyword == CardData.Keyword.PRZECIAZENIE:
 			glass += 1
 		elif c.keyword == CardData.Keyword.KOMBINAT:
 			kombinat_mult *= 1.0 + (c.keyword_value / 100.0) * controller.kombinat_streak(hand)
 		if c.edition == CardData.Edition.POLYCHROME:
 			polys += 1
-	if has_furia and block == 0:
+	# Furia's gate in Scoring runs BEFORE relic block is added -- mirror that here (card block
+	# only), or the breakdown would omit a x1.5 that IS in the scored damage.
+	if has_furia and card_block == 0:
 		mods.append("%s x1.5" % tr("KW_FURIA"))
 	if not is_equal_approx(kombinat_mult, 1.0):
 		mods.append("%s x%s" % [tr("KW_KOMBINAT"), String.num(kombinat_mult, 2)])

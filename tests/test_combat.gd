@@ -6,7 +6,7 @@ func _initialize() -> void:
 	var fails: int = 0
 	fails += _expect("normal block reduces (50 - (20-8) = 38)", _hp_after(EnemyData.Rule.NONE) == 38)
 	fails += _expect("tower ignores block (50 - 20 = 30)", _hp_after(EnemyData.Rule.TOWER_IGNORES_BLOCK) == 30)
-	fails += _expect("enrage: grace cycle exact, then +step per turn (10,10,12)", _enraged_intents() == [10, 10, 12])
+	fails += _expect("enrage: grace cycle exact, then +step per turn (10,12,14)", _enraged_intents() == [10, 12, 14])
 	fails += _expect("next_intent looks one turn ahead", _next_intent_check())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
@@ -75,16 +75,16 @@ func _next_intent_check() -> bool:
 	e.intents = PackedInt32Array([10, 20])
 	e.enrage_step = 3
 	ctrl.start(_flat_deck(12), e, [], 50, 50)
-	# turn 1: current 10, next 20 (still inside the grace cycle)
+	# turn 1 (idx 0): current 10, next 20 (still inside the grace cycle)
 	var ok := ctrl.current_intent() == 10 and ctrl.next_intent() == 20
 	ctrl.play([0])
 	ctrl.resolve_enemy_turn()
-	# turn 2: current 20 (idx 1), next = intents[0] + 0*3? idx 2, over = 0 -> 10... n=2: over=max(0,2-2)=0 -> 10
-	ok = ok and ctrl.current_intent() == 20 and ctrl.next_intent() == 10
+	# turn 2 (idx 1): current 20; next (idx 2) is the FIRST turn past the cycle -> 10 + 1*3 = 13
+	ok = ok and ctrl.current_intent() == 20 and ctrl.next_intent() == 13
 	ctrl.play([0])
 	ctrl.resolve_enemy_turn()
-	# turn 3 (idx 2): over 0 -> 10; next (idx 3): over 1 -> 20+3 = 23
-	ok = ok and ctrl.current_intent() == 10 and ctrl.next_intent() == 23
+	# turn 3 (idx 2): current 13; next (idx 3): over 2 -> 20 + 6 = 26
+	ok = ok and ctrl.current_intent() == 13 and ctrl.next_intent() == 26
 	return ok
 
 func _blood_tax_scaling() -> bool:

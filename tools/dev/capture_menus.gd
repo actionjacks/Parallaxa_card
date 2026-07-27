@@ -69,6 +69,10 @@ func _center(c: Control) -> Vector2:
 	return c.get_global_rect().get_center()
 
 func _initialize() -> void:
+	# File isolation: automated runs must never pollute the player's real meta/save files.
+	# (Autoloads already read the real files into memory; every WRITE from here on is redirected.)
+	if OS.get_environment("TEST_PROFILE") == "":
+		OS.set_environment("TEST_PROFILE", "bot")
 	_go()
 
 func _go() -> void:

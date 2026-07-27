@@ -71,10 +71,18 @@ func _exit_tree() -> void:
 ## A run opens with the Arcanum draft (pick your starting power); map afterwards.
 func _start_run_flow() -> void:
 	MusicLib.play(&"music_menu", 1.5)
+	_refresh_backdrop()   # a restarted/repeated run returns to region 1: drop the old accent
 	if RunState.region != null and not RunState.region.starting_pool.is_empty():
 		_show_arcanum_draft()
 	else:
 		_show_map()
+
+func _refresh_backdrop() -> void:
+	if _backdrop != null:
+		_backdrop.queue_free()
+	_backdrop = Backdrop.build(RunState.region.accent if RunState.region != null else Color(0, 0, 0, 0))
+	add_child(_backdrop)
+	move_child(_backdrop, 0)
 
 # ---------------------------------------------------------------- shell / status
 
@@ -174,6 +182,10 @@ func _show_map() -> void:
 	# The region header wears the region's accent (35% toward cream keeps 720p readability).
 	root.add_child(_label_center(tr(RunState.region.name_key), 30,
 		RunState.region.accent.lerp(Color(0.96, 0.92, 0.82), 0.35)))
+	# The road's partial rest (region transition) is announced here -- the map is its only screen.
+	if _last_rest > 0:
+		root.add_child(_hint(tr("REST_HEALED") % _last_rest))
+		_last_rest = 0
 
 	var ladder := HBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -599,23 +611,27 @@ func _show_boss_choice() -> void:
 	_statusbar.visible = true
 	_update_status()
 	var boss_arc: ArcanumData = RunState.region.boss_arcanum
-	_claim_offers = [
-		{"arc": boss_arc, "rev": false},
-		{"arc": boss_arc, "rev": true},
-	]
+	_claim_offers = []
+	if boss_arc != null:
+		_claim_offers.append({"arc": boss_arc, "rev": false})
+		_claim_offers.append({"arc": boss_arc, "rev": true})
 	var owned_keys: Array = []
 	for r: ArcanumData in RunState.relics:
 		owned_keys.append(r.name_key)
 	var alts: Array = []
 	for a: ArcanumData in Profile.boss_pool_arcana():
-		if not owned_keys.has(a.name_key) and a.name_key != boss_arc.name_key:
+		if not owned_keys.has(a.name_key) and (boss_arc == null or a.name_key != boss_arc.name_key):
 			alts.append(a)
 	if not alts.is_empty():
 		_claim_offers.append({"arc": RunState.pick_offers(alts, 1)[0], "rev": false})
+	if _claim_offers.is_empty():
+		_show_complete()   # legacy region without an authored boss arcanum: nothing to claim
+		return
 	_claim_panels.clear()
 	_claim_pick = -1
 	var root := _screen_column()
 	root.add_child(_title(tr("BOSSREW_TITLE")))
+	_add_econ_hints(root)   # boss wins earn overkill/thrift/interest/tax too -- show them here
 	root.add_child(_hint(tr("BOSSREW_HINT")))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -748,12 +764,7 @@ func _continue_journey() -> void:
 	var idx := RunState.region_index + 1
 	_pending_omen = null
 	_last_rest = RunState.enter_region(load(JOURNEY[idx]), idx)
-	# The backdrop takes on the new region's accent.
-	if _backdrop != null:
-		_backdrop.queue_free()
-	_backdrop = Backdrop.build(RunState.region.accent)
-	add_child(_backdrop)
-	move_child(_backdrop, 0)
+	_refresh_backdrop()   # the backdrop takes on the new region's accent
 	_show_map()
 
 ## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
@@ -819,8 +830,9 @@ func _load_omens() -> void:
 			_omens.append(o)
 
 func _roll_omen() -> void:
-	if _omens.is_empty():
-		_load_omens()
+	# Reloaded EVERY roll: achievement-gated omens really do join "from the next roll", and a
+	# save/continue mid-run sees the exact same pool as the uninterrupted session (seed contract).
+	_load_omens()
 	if not _omens.is_empty():
 		_pending_omen = RunState.pick_offers(_omens, 1)[0]
 
@@ -853,7 +865,27 @@ func _omen_block() -> Control:
 	return p
 
 func _accept_omen() -> void:
+	if _pending_omen == null:
+		return   # stale click (picker was cancelled or the omen already resolved)
 	var id: String = _pending_omen.id
+	# Picker-based omens keep the omen PENDING until a card is actually picked -- cancelling the
+	# picker returns to the map with the offer intact (no silent consumption, no null crash).
+	if id == "justice":
+		Sfx.play(&"card_select", -8.0)
+		var cb := func(card: CardData) -> void:
+			_pending_omen = null
+			RunState.remove_card(card)
+			_show_map()
+		_open_deck_picker(tr("PICK_REMOVE"), cb)
+		return
+	if id == "lovers":
+		Sfx.play(&"card_select", -8.0)
+		var twin := func(card: CardData) -> void:
+			_pending_omen = null
+			RunState.add_card(card)
+			_show_map()
+		_open_deck_picker(tr("PICK_TWIN"), twin)
+		return
 	_pending_omen = null
 	match id:
 		"star":
@@ -873,21 +905,6 @@ func _accept_omen() -> void:
 		"sun":
 			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 12)
 			Sfx.play(&"heal", -6.0)
-		"lovers":
-			# Twin one card: add a copy of a chosen deck card (the duplicate engine's best friend).
-			Sfx.play(&"card_select", -8.0)
-			var twin := func(card: CardData) -> void:
-				RunState.add_card(card)
-				_show_map()
-			_open_deck_picker(tr("PICK_TWIN"), twin)
-			return
-		"justice":
-			Sfx.play(&"card_select", -8.0)
-			var cb := func(card: CardData) -> void:
-				RunState.remove_card(card)
-				_show_map()
-			_open_deck_picker(tr("PICK_REMOVE"), cb)
-			return
 	RunState.changed.emit()
 	_show_map()
 
