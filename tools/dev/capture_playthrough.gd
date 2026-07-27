@@ -6,6 +6,9 @@ extends SceneTree
 const RUN := "res://src/game/region/run.tscn"
 var _rn: Node
 var _omen_shot := false
+var _map_shot := false
+var _shop_shot := false
+var _reward_shot := false
 var _fight_no := 0
 var _logf: FileAccess
 ## PT_BOOST=1 grants a power boost at run start: verifies the VICTORY path (boss claim screens,
@@ -203,6 +206,9 @@ func _handle_map() -> void:
 			return
 	var go = _button_with("MAP_GO")
 	if go != null:
+		if not _map_shot:
+			_map_shot = true
+			await _shoot("map")
 		await _click(_center(go))
 	await _frames(25)
 
@@ -311,6 +317,9 @@ func _go() -> void:
 		b = _button_with("REWARD_TAKE")
 		if b != null:
 			_log("[bc] reward")
+			if not _reward_shot:
+				_reward_shot = true
+				await _shoot("reward")
 			var rc := _reward_cards()
 			if rc.size() > 0:
 				await _click(_center(rc[0]))
@@ -326,6 +335,9 @@ func _go() -> void:
 		b = _button_with("SHOP_NEXT")
 		if b != null:
 			_log("[bc] shop rtec=%d" % rs.rtec)
+			if not _shop_shot:
+				_shop_shot = true
+				await _shoot("shop")
 			# spend like a player: hoarded Mercury converts into deck power
 			# Stars first (the growth engine), then cards, while rich
 			var star = _find(_rn, func(c): return c is Button \
