@@ -30,6 +30,7 @@ var hand_levels: Dictionary = {}  ## Poker.Hand -> level, raised by Star consuma
 var veil: int = 0                 ## this run's Veil tier (0 = plain road)
 var run_seed: int = 0             ## 32-bit seed of this run; 0 = not yet assigned
 var pending_overkill: int = 0     ## Mercury from the killing blow's excess (consumed by run.gd)
+var elite_taken: bool = false     ## this region's elite fork already fought (one elite per region)
 
 # --- run statistics (reset in begin(); saved in save_run; the spread screen reads them) ---
 var stat_damage_total: int = 0        ## sum of all scored play damage
@@ -75,6 +76,7 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 		relics.append(region.starting_arcanum)
 	step = 0
 	fights_won = 0
+	elite_taken = false
 	hand_levels = {}
 	stat_damage_total = 0
 	stat_best_hit = 0
@@ -149,6 +151,7 @@ func enter_region(p_region: RegionData, index: int) -> int:
 	region = p_region
 	region_index = index
 	step = 0
+	elite_taken = false
 	var missing := player_max_hp - player_hp
 	var pct := 0.25 if veil >= 2 else 0.40
 	var healed := clampi(maxi(5, int(floor(missing * pct))), 0, missing)
@@ -253,12 +256,17 @@ func level_up_hand(hand: int) -> void:
 const RUN_SAVE := "user://run_save.cfg"
 static var load_pending: bool = false
 
+## Bot/test isolation (mirrors Profile._path): automated runs never touch the player's save slot.
+static func _save_path() -> String:
+	var t := OS.get_environment("TEST_PROFILE")
+	return ("user://run_save_%s.cfg" % t) if t != "" else RUN_SAVE
+
 func has_run_save() -> bool:
-	return FileAccess.file_exists(RUN_SAVE)
+	return FileAccess.file_exists(_save_path())
 
 func delete_run_save() -> void:
 	if has_run_save():
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(RUN_SAVE))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(_save_path()))
 
 func save_run(pending_omen_id: String = "") -> void:
 	var cf := ConfigFile.new()
@@ -272,6 +280,7 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "hand_levels", hand_levels)
 	cf.set_value("run", "omen", pending_omen_id)
 	cf.set_value("run", "veil", veil)
+	cf.set_value("run", "elite_taken", elite_taken)
 	cf.set_value("run", "seed", run_seed)
 	cf.set_value("run", "rng_state", rng.state)
 	cf.set_value("run", "st_dmg", stat_damage_total)
@@ -296,13 +305,13 @@ func save_run(pending_omen_id: String = "") -> void:
 	for c in deck:
 		cards.append({"r": c.rank, "a": c.aspect, "k": c.keyword, "v": c.keyword_value, "e": c.edition, "y": c.rarity, "w": c.wear})
 	cf.set_value("run", "deck", cards)
-	cf.save(RUN_SAVE)
+	cf.save(_save_path())
 
 ## Restores the saved run. Returns the pending omen id ("" when none). Deck growth (WZROST ramp)
 ## is intentionally transient and resets on load; glass wear ("w") persists.
 func load_run() -> String:
 	var cf := ConfigFile.new()
-	if cf.load(RUN_SAVE) != OK:
+	if cf.load(_save_path()) != OK:
 		return ""
 	run_seed = cf.get_value("run", "seed", 0)
 	if run_seed == 0:                # pre-seed save: assign one so the spread can show it
@@ -315,6 +324,7 @@ func load_run() -> String:
 		rng.seed = run_seed
 		rng.state = cf.get_value("run", "rng_state", rng.state)
 	veil = cf.get_value("run", "veil", 0)
+	elite_taken = cf.get_value("run", "elite_taken", false)
 	region = load(cf.get_value("run", "region_path", ""))
 	region_index = cf.get_value("run", "region_index", 0)
 	step = cf.get_value("run", "step", 0)

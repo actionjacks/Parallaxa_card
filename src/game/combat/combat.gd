@@ -12,7 +12,9 @@ var standalone: bool = true
 var _start_hp: int = -1
 var _max_hp: int = -1
 var _levels: Dictionary = {}
+var _veil: int = 0
 var _prev_klatwa: int = 0
+var _heartbeat: AudioStreamPlayer   ## enrage stem: owned here, never a stolen pool voice
 
 var controller: CombatController
 var _deck: Array = []
@@ -28,6 +30,8 @@ var _enemy_name: Label
 var _enemy_hp_bar: ProgressBar
 var _enemy_hp_label: Label
 var _intent_label: Label
+var _next_intent_label: Label
+var _heal_pool_label: Label
 var _gnicie_label: Label
 var _klatwa_label: Label
 var _relic_row: HBoxContainer
@@ -62,7 +66,7 @@ var _preview_node: Control = null
 var _prev_intent: int = -999
 var _prev_gnicie: int = 0
 
-func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
@@ -70,6 +74,7 @@ func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp
 	_start_hp = start_hp
 	_max_hp = max_hp
 	_levels = p_levels
+	_veil = p_veil
 
 func _ready() -> void:
 	if standalone:
@@ -78,17 +83,21 @@ func _ready() -> void:
 		_deck = DeckLibrary.starter_deck()
 	_build_ui()
 	_start_emblem_idle()
+	MusicLib.play(&"music_boss" if _enemy.is_boss else &"music_combat", 0.8)
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
-	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil)
 
 # ---------------------------------------------------------------- UI construction
 
 func _build_ui() -> void:
-	add_child(Backdrop.build())
+	var accent := Color(0, 0, 0, 0)
+	if not standalone and RunState.region != null:
+		accent = RunState.region.accent
+	add_child(Backdrop.build(accent))
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -114,6 +123,8 @@ func _build_ui() -> void:
 	erow.add_child(_enemy_name)
 	_intent_label = _label("", 20, Color(1.0, 0.55, 0.45))
 	erow.add_child(_intent_label)
+	_next_intent_label = _label("", 14, Color(0.8, 0.5, 0.45))
+	erow.add_child(_next_intent_label)
 	var ehp := HBoxContainer.new()
 	ehp.add_theme_constant_override("separation", 8)
 	ev.add_child(ehp)
@@ -166,6 +177,8 @@ func _build_ui() -> void:
 	prow.add_child(_player_hp_label)
 	_block_label = _label("", 16, Color(0.6, 0.8, 1.0))
 	prow.add_child(_block_label)
+	_heal_pool_label = _label("", 14, Color(0.55, 0.85, 0.6))
+	prow.add_child(_heal_pool_label)
 	_turn_label = _label("", 16, Color(0.8, 0.8, 0.85))
 	prow.add_child(_turn_label)
 	_counters_label = _label("", 16, Color(0.62, 0.66, 0.74))
@@ -247,15 +260,23 @@ func _build_overlay() -> void:
 # ---------------------------------------------------------------- rendering
 
 func _render() -> void:
-	_enemy_name.text = tr(_enemy.name_key)
-	_enemy_hp_bar.max_value = _enemy.max_hp
+	# Elites are REVERSED court cards: the name wears the reversal tag.
+	_enemy_name.text = (tr("ELITE_NAME_FMT") % tr(_enemy.name_key)) if _enemy.is_elite else tr(_enemy.name_key)
+	_enemy_hp_bar.max_value = controller.enemy_max_hp
 	_set_bar(_enemy_hp_bar, controller.enemy_hp)
-	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, _enemy.max_hp]
-	var intent := controller.current_intent()
+	_enemy_hp_label.text = tr("COMBAT_HP") % [controller.enemy_hp, controller.enemy_max_hp]
+	# The intent as the player will FEEL it (pact + reversed-curse surcharges included) plus a
+	# one-step lookahead -- planning depth: save the burst for the telegraphed rest turn.
+	var intent := controller.intent_shown(controller.current_intent())
 	_intent_label.text = tr("COMBAT_INTENT") % intent
+	_next_intent_label.text = tr("COMBAT_INTENT_NEXT") % controller.intent_shown(controller.next_intent())
 	if _prev_intent != -999 and intent != _prev_intent:
 		_pulse(_intent_label)
 	_prev_intent = intent
+	var pool_left := controller.heal_cap - controller.heal_used
+	_heal_pool_label.text = tr("COMBAT_HEAL_BUDGET") % [pool_left, controller.heal_cap]
+	_heal_pool_label.add_theme_color_override("font_color",
+		Color(0.5, 0.5, 0.55) if pool_left <= 0 else Color(0.55, 0.85, 0.6))
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
 	if controller.enemy_gnicie > _prev_gnicie:
 		_pulse(_gnicie_label)
@@ -269,11 +290,16 @@ func _render() -> void:
 	for a in _relics:
 		_relic_row.add_child(_relic_chip(a))
 	var etint := Color(0.92, 0.5, 0.28) if _enemy.is_boss else Color(0.55, 0.7, 0.42)
+	if _enemy.is_elite:
+		etint = Color("b23a48")
 	var esb: StyleBoxFlat = _enemy_emblem.get_meta("style")
 	esb.border_color = etint
 	if _enemy.art != null:
-		# A real Major Arcana card stands in the arena (bosses ARE the card -- Fool's Journey).
+		# A real tarot card stands in the arena (bosses are Major Arcana, regulars are the Minor
+		# courts -- Fool's Journey). Elites hang REVERSED: the profaned card is the brand.
 		_emblem_art.texture = _enemy.art
+		_emblem_art.flip_h = _enemy.is_elite
+		_emblem_art.flip_v = _enemy.is_elite
 		_emblem_art.visible = true
 		_emblem_glyph.visible = false
 		# Sized to fit the 720p layout budget -- taller art pushed the hand/buttons off-screen.
@@ -434,8 +460,23 @@ func _update_selection_ui() -> void:
 		parts.append(tr("COMBAT_TAG_BLOCK") % int(r["block"]))
 	if int(r["heal"]) > 0:
 		parts.append(tr("COMBAT_TAG_HEAL") % int(r["heal"]))
+	if int(r.get("heal_raw", 0)) > int(r["heal"]):
+		parts.append(tr("COMBAT_TAG_HEAL_CAP"))
 	if int(r["gnicie"]) > 0:
 		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
+	# The covenant's showpiece: the preview ANNOUNCES the kill and its overkill payout.
+	if int(r["damage"]) >= controller.enemy_hp:
+		@warning_ignore("integer_division")
+		var bonus: int = clampi((int(r["damage"]) - controller.enemy_hp) / 50, 0, 5)
+		var lethal := tr("PREVIEW_LETHAL")
+		if bonus > 0:
+			lethal += "  " + tr("PREVIEW_OVERKILL") % bonus
+		parts.append(lethal)
+	# Glass warning: a selected Overload card at durability 1 will SHATTER with this play.
+	for card in _selected:
+		if card.keyword == CardData.Keyword.PRZECIAZENIE and card.keyword_value - card.wear <= 1:
+			parts.append(tr("PREVIEW_SHATTER"))
+			break
 	_preview_extra.text = "    ".join(parts)
 	_breakdown_label.text = _mult_breakdown(int(r["hand"]), int(r["block"]))
 
@@ -449,17 +490,36 @@ func _mult_breakdown(hand: int, block: int) -> String:
 	var aspects := {}
 	var has_furia := false
 	var polys := 0
+	var glass := 0
+	var kombinat_mult := 1.0
 	for c in _selected:
 		aspects[c.aspect] = true
 		if c.keyword == CardData.Keyword.FURIA:
 			has_furia = true
+		elif c.keyword == CardData.Keyword.PRZECIAZENIE:
+			glass += 1
+		elif c.keyword == CardData.Keyword.KOMBINAT:
+			kombinat_mult *= 1.0 + (c.keyword_value / 100.0) * controller.kombinat_streak(hand)
 		if c.edition == CardData.Edition.POLYCHROME:
 			polys += 1
 	if has_furia and block == 0:
 		mods.append("%s x1.5" % tr("KW_FURIA"))
+	if not is_equal_approx(kombinat_mult, 1.0):
+		mods.append("%s x%s" % [tr("KW_KOMBINAT"), String.num(kombinat_mult, 2)])
+	if glass > 0:
+		mods.append("%s x%d" % [tr("KW_PRZECIAZENIE"), int(pow(2, glass))])
+	# The Magician stretches other relics' xMult; show the EFFECTIVE factor, never a lie.
+	var k := 1.0
+	for relic in _relics:
+		if relic.effect == ArcanumData.Effect.MAGNIFY:
+			k = maxf(k, 3.0 if relic.is_reversed else 2.0)
 	for relic in _relics:
 		if relic.effect == ArcanumData.Effect.MULT_IF_ASPECT and aspects.has(relic.effect_aspect):
-			mods.append("%s x%s" % [tr(relic.name_key), String.num(relic.effect_mult, 1)])
+			mods.append("%s x%s" % [tr(relic.name_key), String.num(1.0 + (relic.effect_mult - 1.0) * k, 1)])
+		elif relic.effect == ArcanumData.Effect.PACT_MULT:
+			mods.append("%s x%s" % [tr(relic.name_key), String.num(1.0 + (relic.effect_mult - 1.0) * k, 2)])
+		elif relic.effect == ArcanumData.Effect.MAGNIFY:
+			mods.append("%s x%s" % [tr(relic.name_key), String.num(relic.effect_mult, 2)])
 	if polys > 0:
 		mods.append("%s x%s" % [tr("ED_POLYCHROME"), String.num(pow(1.3, polys), 1)])
 	return "Mult:  " + "   ".join(mods)
@@ -538,6 +598,11 @@ func _on_message(text_key: String, args: Array) -> void:
 			Sfx.play(&"rot", -6.0)
 		"LOG_CLEANSE":
 			_popup(tr("COMBAT_CLEANSED"), Color(0.75, 0.8, 1.0), _enemy_fx_pos(), 18)
+		"LOG_MOON_MEND":
+			_popup("+" + str(int(args[0])), Color(0.75, 0.8, 1.0), _enemy_fx_pos(), 20)
+			Sfx.play(&"heal", -8.0, 0.7)
+		"LOG_HEAL_CAPPED":
+			_popup(tr("COMBAT_HEAL_CAPPED"), Color(0.6, 0.62, 0.58), _player_fx_pos(), 16)
 		"LOG_ATTACK":
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
@@ -563,9 +628,37 @@ func _on_awaiting_enemy() -> void:
 	await tw.finished
 	if controller != null and controller.phase == "enemy":
 		controller.resolve_enemy_turn()
+		_update_heartbeat()
+
+## Enrage heartbeat stem: starts after the first full cycle, swells with each further cycle.
+## Driven purely by the deterministic intent index -- the fight's clock is audible.
+func _update_heartbeat() -> void:
+	if controller == null:
+		return
+	var c := controller.enrage_cycles()
+	if c < 1:
+		return
+	var target_db := minf(0.0, -10.0 + 3.0 * (c - 1))
+	if _heartbeat == null:
+		var stream := MusicLib.heartbeat_stream()
+		if stream == null:
+			return
+		_heartbeat = AudioStreamPlayer.new()
+		_heartbeat.bus = &"Music"
+		_heartbeat.stream = stream
+		add_child(_heartbeat)
+	if not _heartbeat.playing:
+		_heartbeat.volume_db = -40.0
+		_heartbeat.play()
+	create_tween().tween_property(_heartbeat, "volume_db", target_db, 0.5)
 
 func _on_ended(won: bool) -> void:
 	Sfx.play(&"win" if won else &"lose", -4.0)
+	MusicLib.stop(1.5 if won else 0.5)   # hard silence sells the death; the lose sfx stands alone
+	if _heartbeat != null and _heartbeat.playing:
+		var hb := create_tween()
+		hb.tween_property(_heartbeat, "volume_db", -60.0, 0.3)
+		hb.tween_callback(_heartbeat.stop)
 	if _emblem_idle != null:
 		_emblem_idle.kill()
 	if won:
@@ -574,6 +667,12 @@ func _on_ended(won: bool) -> void:
 		tw.parallel().tween_property(_enemy_emblem, "rotation", 0.3, 0.5)
 	await get_tree().create_timer(0.6).timeout   # let the HP bar finish draining + a death beat
 	if not standalone:
+		# Feed the run: statistics, the overkill payout and the permanently shattered glass.
+		RunState.record_fight(won, _enemy.name_key, controller)
+		RunState.pending_overkill = controller.overkill_rtec
+		if won:
+			for c in controller.destroyed_cards:
+				RunState.deck.erase(c)   # identity erase: combat holds the run's own instances
 		finished.emit(won, controller.player_hp, controller.discards_left)
 		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")

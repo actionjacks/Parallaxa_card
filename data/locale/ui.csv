@@ -226,7 +226,7 @@ HAND_FULL_HOUSE,Full House,Full
 HAND_FOUR,Four of a Kind,Kareta
 HAND_STRAIGHT_FLUSH,Straight Flush,Poker
 HAND_FIVE,Five of a Kind,Pięć jednakowych
-ENEMY_KULTYSTA,Rotting Cultist,Gnijący Kultysta
+ENEMY_KULTYSTA,"Page of Pentacles, Rotting Cultist","Paź Pentakli, Gnijący Kultysta"
 ARCANUM_SMIERCI,Arcanum of Death,Arkanum Śmierci
 COMBAT_PLAY,Play,Zagraj
 COMBAT_DISCARD,Discard (%d),Odrzuć (%d)
@@ -252,18 +252,18 @@ REGION_03,Region III — Summit,Region III — Szczyt
 REGION_04,The World,Świat
 COMPLETE_NEXT,Journey on,Ruszaj dalej
 VICTORY_TITLE,THE JOURNEY IS COMPLETE — YOU WIN,PODRÓŻ UKOŃCZONA — WYGRANA
-ENEMY_KAPLAN,Ember Priest,Kapłan Zgliszcz
-ENEMY_UPIOR,Ember Wraith,Upiór Zgliszcz
-ENEMY_RYCERZ,Ash Knight,Rycerz Popiołu
-ENEMY_CHIMERA,Cinder Chimera,Żużlowa Chimera
-ENEMY_STRAZNIK,Summit Warden,Strażnik Szczytu
-ENEMY_WIDMO,Peak Phantom,Widmo Grani
-ENEMY_TYTAN,Frost Titan,Tytan Szczytowy
-ENEMY_HERALD,Herald of the End,Herold Końca
+ENEMY_KAPLAN,"Knight of Cups, Ember Priest","Rycerz Kielichów, Kapłan Zgliszcz"
+ENEMY_UPIOR,"Knight of Swords, Ember Wraith","Rycerz Mieczy, Upiór Zgliszcz"
+ENEMY_RYCERZ,"Knight of Pentacles, Clad in Ash","Rycerz Pentakli, Zakuty w Popiół"
+ENEMY_CHIMERA,"Ten of Wands, Cinder Chimera","Dziesiątka Buław, Żużlowa Chimera"
+ENEMY_STRAZNIK,"Queen of Cups, Summit Warden","Królowa Kielichów, Strażniczka Szczytu"
+ENEMY_WIDMO,"Queen of Swords, Peak Phantom","Królowa Mieczy, Widmo Grani"
+ENEMY_TYTAN,"King of Pentacles, Frost Titan","Król Pentakli, Tytan Mrozu"
+ENEMY_HERALD,"King of Wands, Herald of the End","Król Buław, Herold Końca"
 ARCANUM_DIABLA_BOSS,Pact of the Devil,Pakt Diabła
 ARCANUM_KSIEZYCA,Arcanum of the Moon,Arkanum Księżyca
 ARCANUM_SWIATA,Arcanum of the World,Arkanum Świata
-ENEMY_CIEN,Wandering Shade,Zbłąkany Cień
+ENEMY_CIEN,"Page of Swords, Wandering Shade","Paź Mieczy, Zbłąkany Cień"
 ENEMY_WIEZA,The Tower,Wieża
 ENEMY_DIABEL,The Devil,Diabeł
 ENEMY_KSIEZYC,The Moon,Księżyc
@@ -293,7 +293,7 @@ OVERVIEW_HINT,TAB / ESC closes,TAB / ESC zamyka
 INSPECT_CHIPS,Card material: %d chips,Materiał karty: %d chipsów
 INSPECT_GROWTH,Grown: +%d chips,Wyrosło: +%d chipsów
 INSPECT_CLOSE,Click / ESC closes,Klik / ESC zamyka
-MENU_TAGLINE,The cards do not lie.,Karty nie kłamią.
+MENU_TAGLINE,Every reading comes true.,Każda wróżba się spełnia.
 MENU_NEW,New Journey,Nowa Podróż
 MENU_CONTINUE,Continue,Kontynuuj
 MENU_COLLECTION,Collection,Kolekcja
@@ -322,10 +322,10 @@ OMEN_JUSTICE,Justice,Sprawiedliwość
 OMEN_JUSTICE_DESC,Remove one card from your deck for free.,Usuń jedną kartę z talii za darmo.
 OMEN_TEMPERANCE,Temperance,Umiarkowanie
 OMEN_TEMPERANCE_DESC,"Balance: +6 HP, +2 ☿.","Równowaga: +6 HP, +2 ☿."
-RULE_TOWER,Tower: block does not protect (the walls fall),Wieża: blok nie chroni (walą się mury)
-RULE_DEVIL,Devil: every play costs 2 HP (a pact of blood),Diabeł: każde zagranie kosztuje 2 HP (pakt krwi)
-RULE_MOON,Moon: Rot washes away after each tick,Księżyc: Gnicie rozpływa się po każdym tyknięciu
-RULE_WORLD,"The World: walls fall, blood pact holds, the glow cleanses","Świat: mury padły, pakt krwi trwa, poświata oczyszcza"
+RULE_TOWER,"Tower: block does not protect, heal pool halved","Wieża: blok nie chroni, zapas leczenia o połowę mniejszy"
+RULE_DEVIL,Devil: each play costs blood — 2 HP +1 per cycle,Diabeł: każde zagranie kosztuje krew — 2 HP +1 za cykl
+RULE_MOON,"Moon: Rot washes away; deal under 60 a round and it mends 15","Księżyc: Gnicie się rozpływa; poniżej 60 obrażeń na rundę zasklepia 15"
+RULE_WORLD,The World: every previous rule at once,Świat: wszystkie poprzednie reguły naraz
 COMBAT_CLEANSED,cleansed,oczyszczone
 LOG_PACT,Pact: -%d,Pakt: -%d
 LOG_CLEANSE,The glow cleanses the Rot,Poświata oczyszcza Gnicie
@@ -348,8 +348,8 @@ ARC_FX_DISCARD,+%d discard every turn,+%d odrzut co turę
 ARC_FX_BLOCK,+%d Block with every play,+%d Bloku przy każdym zagraniu
 ARC_FX_HEAL,+%d HP with every play,+%d HP przy każdym zagraniu
 ARC_FX_PACT,"x%s Mult on every hand, but enemy hits hurt +%d more","x%s Mult na każdym układzie, ale ciosy wroga bolą +%d mocniej"
-ENEMY_WIEDZMA,Ash Witch,Popielna Wiedźma
-ENEMY_GOLEM,Cinder Golem,Żużlowy Golem
+ENEMY_WIEDZMA,"Page of Wands, Ash Witch","Paź Buław, Popielna Wiedźma"
+ENEMY_GOLEM,"Ten of Pentacles, Cinder Golem","Dziesiątka Pentakli, Żużlowy Golem"
 REWARD_HINT,Pick one card to add to your deck.,Wybierz jedną kartę do talii.
 SHOP_TITLE,Shop,Sklep
 SHOP_BUY,Buy (%d ☿),Kup (%d ☿)
@@ -396,3 +396,129 @@ KWD_KLATWA,The enemy takes +X% damage from your NEXT plays (stacks).,Wróg dosta
 COMBAT_KLATWA,Curse +%d%%,Klątwa +%d%%
 SHOP_STAR,Star: %s Lv%d → Lv%d,Gwiazda: %s Lv%d → Lv%d
 SHOP_STAR_BUY,Level up (%d ☿),Podnieś (%d ☿)
+ENEMY_ELITE_R1,"Queen of Pentacles, Barren Regent","Królowa Pentakli, Jałowa Regentka"
+ENEMY_ELITE_R2,"Queen of Wands, Pyre Queen","Królowa Buław, Pani Stosu"
+ENEMY_ELITE_R3,"King of Swords, Cold Verdict","Król Mieczy, Zimny Wyrok"
+ELITE_NAME_FMT,%s — Reversed,%s — Odwrócenie
+MAP_ELITE,Elite: %s,Elita: %s
+MAP_ELITE_TIP,"A harder duel, richer spoils: better card offers after the fight.","Trudniejszy pojedynek, lepszy łup: bogatsze oferty kart po walce."
+ELITE_LOOT,The elite's hoard: rarer cards in this offer.,Skarbiec elity: rzadsze karty w tej ofercie.
+COMBAT_INTENT_NEXT,Next: %d,Potem: %d
+COMBAT_HEAL_BUDGET,Heal pool %d/%d,Zapas leczenia %d/%d
+COMBAT_HEAL_CAPPED,heal capped,limit leczenia
+COMBAT_TAG_HEAL_CAP,(heal clipped by the pool),(leczenie przycięte przez zapas)
+LOG_HEAL_CAPPED,Heal capped: +%d (of +%d),Limit leczenia: +%d (z +%d)
+LOG_MOON_MEND,The Moon mends itself: +%d,Księżyc się zasklepia: +%d
+KW_PRZECIAZENIE,Overload,Przeciążenie
+KWD_PRZECIAZENIE,"x2 Mult. Cracks each time it is played; shatters and is lost at 0 (counter on the card).","x2 Mult. Pęka przy każdym zagraniu; przy 0 rozpada się i znika (licznik na karcie)."
+KW_LAWINA,Avalanche,Lawina
+KWD_LAWINA,Card chips score again once per Chaos card in the play (max 3).,Chipsy kart liczone ponownie za każdą kartę Chaosu w zagraniu (maks. 3).
+KW_KOMBINAT,Combine,Kombinat
+KWD_KOMBINAT,xMult grows for each consecutive play of the same hand type (caps at 4).,xMult rośnie za każde kolejne zagranie tego samego układu (maks. 4).
+HAND_MAGNUM_OPUS,Magnum Opus,Magnum Opus
+PREVIEW_SHATTER,A card will shatter!,Karta się rozpadnie!
+PREVIEW_LETHAL,LETHAL,ŚMIERTELNE
+PREVIEW_OVERKILL,+%d ☿ overkill,+%d ☿ za nadmiar
+REWARD_OVERKILL,Overkill: +%d ☿,Nadmiar obrażeń: +%d ☿
+REWARD_TAX,Reversed tax: -%d ☿,Danina odwróconych: -%d ☿
+ARCANUM_MAGA,The Magician,Mag
+ARCANUM_CESARZA,The Emperor,Cesarz
+ARCANUM_RYDWANU,The Chariot,Rydwan
+ARCANUM_SILY,Strength,Siła
+ARCANUM_PUSTELNIKA,The Hermit,Pustelnik
+ARC_FX_MAGNIFY,x%s Mult; other Arcana's xMult bonuses are doubled,x%s Mult; premie xMult innych Arkanów są podwojone
+ARC_FX_MAGNIFY_REV,x%s Mult; other Arcana's xMult bonuses are tripled,x%s Mult; premie xMult innych Arkanów są potrojone
+ARC_REVERSED_TAG,(Reversed) ,(Odwrócone) 
+ARC_PRICE_MAXHP,Price: -%d max HP,Cena: -%d maks. HP
+ARC_PRICE_TAX,Price: -%d ☿ after every fight,Cena: -%d ☿ po każdej walce
+ARC_PRICE_CURSE,Price: enemy hits hurt +%d more,Cena: ciosy wroga bolą o +%d mocniej
+BOSSREW_TITLE,Claim the Arcanum,Weź Arkanum
+BOSSREW_HINT,"Upright is safe. Reversed is stronger — and it collects.","Proste jest bezpieczne. Odwrócone jest silniejsze — i zbiera swoją cenę."
+BOSSREW_UPRIGHT,Upright,Proste
+BOSSREW_REVERSED,Reversed,Odwrócone
+CLAIM_TAKE,Claim,Zabierz
+ARCANUM_SMIERCI_BLURB,"Aggro: stack Death, hit big.","Agresja: stakuj Śmierć, bij mocno."
+ARCANUM_SLONCA_BLURB,Sustain: every play heals you.,Przetrwanie: każde zagranie leczy.
+ARCANUM_KAPLANKI_BLURB,"Control: more discards, better hands.","Kontrola: więcej odrzutów, lepsze układy."
+ARCANUM_DIABLA_BLURB,"Greed: power now, blood later.","Chciwość: moc teraz, krew później."
+ARCANUM_CESARZOWEJ_BLURB,Defense: every play builds block.,Obrona: każde zagranie daje blok.
+ARCANUM_MAGA_BLURB,Scaling: other Arcana hit harder.,Skalowanie: inne Arkana biją mocniej.
+ARCANUM_SILY_BLURB,Aggro: Life hands hit harder.,Agresja: układy Życia biją mocniej.
+ARCANUM_PUSTELNIKA_BLURB,Control: two extra discards.,Kontrola: dwa dodatkowe odrzuty.
+DRAFT_CONTEXT,Your Arcanum is a permanent passive for the entire run.,Arkanum to stały pasyw na cały run.
+MENU_TITLE,THE CARDS DO NOT LIE,KARTY NIE KŁAMIĄ
+SPREAD_WIN,THE CARDS DID NOT LIE,KARTY NIE SKŁAMAŁY
+SPREAD_LOSS,DEATH TURNS THE FINAL CARD,ŚMIERĆ ODWRACA OSTATNIĄ KARTĘ
+SPREAD_ARCANA,Arcana carried,Niesione Arkana
+SPREAD_HIT_TITLE,Greatest blow,Największy cios
+SPREAD_HIT_FOE,struck %s,poraził: %s
+SPREAD_BEST_HAND,Best hand: %s Lv%d,Najlepszy układ: %s Lv%d
+SPREAD_REGIONS,Regions cleared: %d/%d,Regiony zaliczone: %d/%d
+SPREAD_FIGHTS,Fights won: %d,Wygrane walki: %d
+SPREAD_DAMAGE,Damage dealt: %d,Zadane obrażenia: %d
+SPREAD_TURNS,Turns played: %d,Rozegrane tury: %d
+SPREAD_SALT,Salt earned: +%d,Zdobyta Sól: +%d
+SPREAD_SEED,Fate %s,Los %s
+SPREAD_SEED_HINT,click to copy,kliknij by skopiować
+SPREAD_SEED_COPIED,copied,skopiowano
+SPREAD_NEW,New fate,Nowy los
+SPREAD_REPEAT,Repeat this fate,Powtórz ten los
+SPREAD_MENU,Menu,Menu
+NEWRUN_TITLE,Prepare the spread,Przygotuj rozkład
+NEWRUN_DECK,Starter deck,Talia startowa
+NEWRUN_VEIL,Veil,Zasłona
+NEWRUN_VEIL_HINT,Higher Veils harden the journey.,Wyższe Zasłony utrudniają podróż.
+NEWRUN_BEGIN,Begin the journey,Rozpocznij podróż
+VEIL_BADGE,Veil %d,Zasłona %d
+VEIL_BEST,Best Veil: %d,Najwyższa Zasłona: %d
+VEIL_0,No Veil — the plain road,Bez Zasłony — zwykła droga
+VEIL_1,Veil I — Thin Thread,Zasłona I — Cienka Nić
+VEIL_2,Veil II — Hungry Road,Zasłona II — Głodna Droga
+VEIL_3,Veil III — Impatient Cards,Zasłona III — Niecierpliwe Karty
+VEIL_4,Veil IV — Greedy Market,Zasłona IV — Chciwy Targ
+VEIL_5,Veil V — True Night,Zasłona V — Prawdziwa Noc
+VEIL_1_DESC,Max HP 55 -> 48,Maks. HP 55 -> 48
+VEIL_2_DESC,"Rest heals 5, the road restores 25% of missing HP","Odpoczynek leczy 5, droga zwraca 25% brakującego HP"
+VEIL_3_DESC,Enemies enrage faster (+1 per turn past the first cycle),Wrogowie szaleją szybciej (+1 na turę po pierwszym cyklu)
+VEIL_4_DESC,"Shop prices +2, fight rewards -1","Ceny w sklepie +2, nagrody za walki -1"
+VEIL_5_DESC,"Boss HP +15%, heal pool 10","HP bossów +15%, zapas leczenia 10"
+COLLECTION_DECKS,Starter decks,Talie startowe
+COLLECTION_DECK_BUY,Unlock (%d Salt),Odblokuj (%d Soli)
+COLLECTION_DECK_OWNED,Owned,Posiadana
+COLLECTION_ARC_BUY,Add to boss offers (%d Salt),Dodaj do ofert bossów (%d Soli)
+COLLECTION_ARC_OWNED,In the boss pool,W puli bossów
+COLLECTION_ARC_ACH,Unlocked by: %s,Odblokowywane przez: %s
+COLLECTION_ED_GATE,Requires Veil %d beaten,Wymaga pokonania Zasłony %d
+COLLECTION_ACH,Achievements,Osiągnięcia
+ACH_DONE,Fulfilled,Spełnione
+ACH_UNDONE,Not yet,Jeszcze nie
+ACH_REWARD,Reward: %s,Nagroda: %s
+ACH_UNLOCKED,Achievement fulfilled: %s,Osiągnięcie spełnione: %s
+ACH_DEATH_FLUSH,Death's Hand,Ręka Śmierci
+ACH_DEATH_FLUSH_DESC,Finish a foe with a pure Death flush.,Dobij wroga czystym kolorem Śmierci.
+ACH_DEATH_FLUSH_REWARD,Omen: The Lovers,Omen: Kochankowie
+ACH_UNTOUCHED,Untouched,Nietknięty
+ACH_UNTOUCHED_DESC,Win a fight without losing a single HP.,Wygraj walkę nie tracąc ani punktu HP.
+ACH_UNTOUCHED_REWARD,Arcanum of Strength joins the opening draft.,Arkanum Siły dołącza do startowego draftu.
+ACH_OVERKILL,Overkill,Przesada
+ACH_OVERKILL_DESC,Deal 300 or more damage in a single play.,Zadaj 300 lub więcej obrażeń jednym zagraniem.
+ACH_OVERKILL_REWARD,The Hermit joins the opening draft.,Pustelnik dołącza do startowego draftu.
+ACH_MISER,Alchemist's Hoard,Skarbiec Alchemika
+ACH_MISER_DESC,Hold 25 ☿ at once (full interest).,Miej naraz 25 ☿ (pełne odsetki).
+ACH_MISER_REWARD,Omen: The Sun,Omen: Słońce
+ACH_JOURNEY,The Fool's Circle,Krąg Głupca
+ACH_JOURNEY_DESC,Complete the Journey — defeat The World.,Ukończ Podróż — pokonaj Świat.
+ACH_JOURNEY_REWARD,Starter deck: Oracle's Gambit,Talia startowa: Gambit Wyroczni
+DECK_CLASSIC,The Fool's Deck,Talia Głupca
+DECK_CLASSIC_DESC,"Balanced five-Aspect start; Death leans, all roads open.","Zbalansowany start pięciu Aspektów; Śmierć wiedzie, wszystkie drogi otwarte."
+DECK_REAPER,Reaper's Deal,Pakt Żniwiarza
+DECK_REAPER_DESC,"Death and Chaos: rot, harvest and burst.","Śmierć i Chaos: gnicie, żniwo i burst."
+DECK_GARDENER,Gardener's Path,Ścieżka Ogrodnika
+DECK_GARDENER_DESC,"Nature and Life: growth, block and sustain.","Natura i Życie: wzrost, blok i przetrwanie."
+DECK_ORACLE,Oracle's Gambit,Gambit Wyroczni
+DECK_ORACLE_DESC,Mind and Chaos: Echo scaling and fury.,Umysł i Chaos: skalowanie Echa i furia.
+OMEN_LOVERS,The Lovers,Kochankowie
+OMEN_LOVERS_DESC,Twin one card: add a copy of a chosen deck card.,Bliźniactwo: dodaj kopię wybranej karty z talii.
+OMEN_SUN,The Sun,Słońce
+OMEN_SUN_DESC,Warmth restores +12 HP.,Ciepło przywraca +12 HP.
+PICK_TWIN,Pick a card to TWIN,Wybierz kartę do ZDWOJENIA

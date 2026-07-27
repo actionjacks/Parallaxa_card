@@ -11,6 +11,7 @@ const JOURNEY: Array[String] = [
 	"res://data/regions/region_04.tres",
 ]
 const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
+const MENU_SCENE := "res://src/game/menu/menu.tscn"
 const BUY_COST := 5
 const THIN_COST := 3
 const ENCHANT_COST := 5
@@ -37,6 +38,11 @@ var _reward_take_btn: Button
 var _last_rest: int = 0
 var _last_interest: int = 0
 var _last_thrift: int = 0
+var _last_overkill: int = 0       ## Mercury from the killing blow's excess (shown once)
+var _last_tax: int = 0            ## reversed-Arcana tax paid after the fight (shown once)
+var _fight_elite: bool = false    ## the CURRENT encounter is the region's elite (map fork)
+var _elite_boost: bool = false    ## elite won -> the next card offers roll with boosted rarity
+var _veil_label: Label
 var _prev_hp: int = -1
 var _prev_rtec: int = -1
 var _prev_deck: int = -1
@@ -64,6 +70,7 @@ func _exit_tree() -> void:
 
 ## A run opens with the Arcanum draft (pick your starting power); map afterwards.
 func _start_run_flow() -> void:
+	MusicLib.play(&"music_menu", 1.5)
 	if RunState.region != null and not RunState.region.starting_pool.is_empty():
 		_show_arcanum_draft()
 	else:
@@ -71,8 +78,12 @@ func _start_run_flow() -> void:
 
 # ---------------------------------------------------------------- shell / status
 
+var _backdrop: Control
+
 func _build_shell() -> void:
-	add_child(Backdrop.build())
+	_backdrop = Backdrop.build(RunState.region.accent if RunState.region != null else Color(0, 0, 0, 0))
+	add_child(_backdrop)
+	move_child(_backdrop, 0)
 
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -96,7 +107,8 @@ func _build_shell() -> void:
 	_rtec_label = _label("", 16, Color(0.85, 0.8, 0.55))
 	_deck_label = _label("", 16, Color(0.75, 0.78, 0.85))
 	_relics_label = _label("", 16, Color(0.72, 0.62, 0.85))
-	for l in [_hp_label, _rtec_label, _deck_label, _relics_label]:
+	_veil_label = _label("", 16, Color(0.72, 0.55, 0.9))
+	for l in [_hp_label, _rtec_label, _deck_label, _relics_label, _veil_label]:
 		sb.add_child(l)
 
 	_stage = Control.new()
@@ -111,6 +123,7 @@ func _update_status() -> void:
 	_rtec_label.text = tr("RUN_RTEC") % RunState.rtec
 	_deck_label.text = tr("RUN_DECK") % RunState.deck.size()
 	_relics_label.text = tr("RUN_RELICS") % RunState.relics.size()
+	_veil_label.text = (tr("VEIL_BADGE") % RunState.veil) if RunState.veil > 0 else ""
 	if _prev_hp != -1:   # pulse whatever changed (green up / red down) so the player sees why
 		if RunState.player_hp != _prev_hp:
 			_pulse_stat(_hp_label, RunState.player_hp > _prev_hp)
@@ -154,9 +167,13 @@ func _mount(screen: Control) -> void:
 func _show_map() -> void:
 	_statusbar.visible = true
 	_update_status()
+	MusicLib.play(&"music_menu", 1.5)   # the table between deals
+	Profile.check_run_achievements(false)   # mid-run pops: new omens/arcana apply from the next roll
 	RunState.save_run(_pending_omen.id if _pending_omen != null else "")   # the map is the safe hub: always resumable
 	var root := _screen_column()
-	root.add_child(_title(tr(RunState.region.name_key)))
+	# The region header wears the region's accent (35% toward cream keeps 720p readability).
+	root.add_child(_label_center(tr(RunState.region.name_key), 30,
+		RunState.region.accent.lerp(Color(0.96, 0.92, 0.82), 0.35)))
 
 	var ladder := HBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -188,15 +205,23 @@ func _show_map() -> void:
 	var ctrls := HBoxContainer.new()
 	ctrls.alignment = BoxContainer.ALIGNMENT_CENTER
 	ctrls.add_theme_constant_override("separation", 12)
-	var go := _button(tr("MAP_GO"), _start_encounter)
+	var go := _button(tr("MAP_GO"), _start_encounter.bind(false))
 	go.custom_minimum_size = Vector2(160, 40)
 	ctrls.add_child(go)
+	# The fork: this region's ELITE -- a reversed court card guarding better loot. One per region,
+	# only at non-boss rungs. Risk is priced openly: name, reward hint, nothing hidden.
+	if RunState.region.elite != null and not RunState.elite_taken and RunState.step < RunState.fights.size():
+		var el := _button(tr("MAP_ELITE") % tr(RunState.region.elite.name_key), _start_encounter.bind(true))
+		el.custom_minimum_size = Vector2(160, 40)
+		el.tooltip_text = tr("MAP_ELITE_TIP")
+		el.add_theme_color_override("font_color", Color(0.95, 0.55, 0.5))
+		ctrls.add_child(el)
 	ctrls.add_child(_button(tr("VIEW_DECK"), _view_deck))
 	root.add_child(ctrls)
 	_mount(root)
 
 func _relic_chip(a: ArcanumData) -> Control:
-	var p := _panel(Color(0.11, 0.09, 0.14), Aspects.color(a.effect_aspect))
+	var p := _panel(Color(0.11, 0.09, 0.14), Color("b23a48") if a.is_reversed else Aspects.color(a.effect_aspect))
 	p.tooltip_text = tr(a.name_key) + "\n" + a.describe()
 	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var row := HBoxContainer.new()
@@ -205,14 +230,18 @@ func _relic_chip(a: ArcanumData) -> Control:
 	p.add_child(row)
 	if a.art != null:
 		var t := TextureRect.new()
-		t.texture = a.art
-		t.custom_minimum_size = Vector2(22, 38)
 		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.texture = a.art
+		t.custom_minimum_size = Vector2(22, 38)
+		if a.is_reversed:
+			t.flip_h = true
+			t.flip_v = true   # reversed relics hang upside down everywhere they appear
+			t.modulate = Color(1.0, 0.82, 0.84)
 		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(t)
-	var l := _label(tr(a.name_key), 14, Color(0.85, 0.8, 0.92))
+	var l := _label(tr(a.name_key), 14, Color(0.95, 0.7, 0.72) if a.is_reversed else Color(0.85, 0.8, 0.92))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(l)
 	return p
@@ -249,41 +278,64 @@ func _node_chip(text: String, subtitle: String, current: bool, done: bool, is_bo
 # ---------------------------------------------------------------- COMBAT
 
 func _current_enemy() -> EnemyData:
+	if _fight_elite:
+		return RunState.region.elite
 	if RunState.step < RunState.fights.size():
 		return RunState.fights[RunState.step]
 	return RunState.region.boss
 
-func _start_encounter() -> void:
+func _start_encounter(elite: bool = false) -> void:
+	_fight_elite = elite
 	_statusbar.visible = false
 	var combat: Node = load(COMBAT_SCENE).instantiate()
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
-		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels)
+		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil)
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
 func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> void:
+	var was_elite := _fight_elite
+	_fight_elite = false
 	if not won:
-		_show_defeat()
+		_show_spread(false)
 		return
 	RunState.player_hp = remaining_hp
-	RunState.rtec += _current_enemy().reward_rtec
+	var reward := _current_enemy().reward_rtec if not was_elite else RunState.region.elite.reward_rtec
+	if RunState.veil >= 4:
+		reward = maxi(1, reward - 1)   # Veil IV: Greedy Market
+	RunState.rtec += reward
+	# Overkill pays: the killing blow's excess arrived from combat as pending Mercury.
+	_last_overkill = RunState.pending_overkill
+	RunState.rtec += _last_overkill
+	RunState.pending_overkill = 0
 	# Economy legs from the design: thrift (1 per unused discard) then interest (1 per 5 held, cap 5).
 	_last_thrift = mini(unused_discards, 2)   # thrift capped: hoarding discards must not print money
 	RunState.rtec += _last_thrift
 	@warning_ignore("integer_division")
 	_last_interest = mini(RunState.rtec / 5, 5)
 	RunState.rtec += _last_interest
+	# Reversed-Arcana tax: RTEC_TAX prices bill after every won fight (visible on the next screen).
+	_last_tax = 0
+	for a: ArcanumData in RunState.relics:
+		if a.is_reversed and a.price == ArcanumData.Price.RTEC_TAX:
+			_last_tax += a.price_value
+	if _last_tax > 0:
+		RunState.rtec = maxi(0, RunState.rtec - _last_tax)
 	RunState.fights_won += 1
+	if was_elite:
+		RunState.elite_taken = true
+		_elite_boost = true   # the elite's prize: this rung's card offers roll with boosted rarity
 	if RunState.step >= RunState.fights.size():
-		RunState.claim_relic(RunState.region.boss_arcanum)
-		_show_complete()
+		RunState.stat_regions_cleared += 1
+		_show_boss_choice()
 		return
 	_last_rest = RunState.rest()   # recover between fights so the run isn't a one-HP knife-edge
 	_roll_omen()                   # the road reveals an omen; it waits on the map screen
 	if RunState.step == 0:
 		_show_reward()
 	else:
-		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
+		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3, _elite_boost)
+		_elite_boost = false
 		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost = 1
 		_show_shop()
@@ -296,19 +348,18 @@ func _show_reward() -> void:
 	_reward_panels.clear()
 	_reward_cards.clear()
 	_reward_pick = -1
-	var offers: Array = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
+	var offers: Array = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3, _elite_boost)
+	var boosted := _elite_boost
+	_elite_boost = false
 	var rested := _last_rest
 	_last_rest = 0
 	var root := _screen_column()
 	root.add_child(_title(tr("REWARD_TITLE")))
+	if boosted:
+		root.add_child(_hint(tr("ELITE_LOOT")))
 	if rested > 0:
 		root.add_child(_hint(tr("REST_HEALED") % rested))
-	if _last_thrift > 0:
-		root.add_child(_hint(tr("ECON_THRIFT") % _last_thrift))
-		_last_thrift = 0
-	if _last_interest > 0:
-		root.add_child(_hint(tr("ECON_INTEREST") % _last_interest))
-		_last_interest = 0
+	_add_econ_hints(root)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
@@ -349,6 +400,26 @@ func _skip_reward() -> void:
 	RunState.step += 1
 	_show_map()
 
+## One-shot economy hints (overkill / thrift / interest / reversed tax) shown after a fight.
+func _add_econ_hints(root: VBoxContainer) -> void:
+	if _last_overkill > 0:
+		root.add_child(_hint(tr("REWARD_OVERKILL") % _last_overkill))
+		_last_overkill = 0
+	if _last_thrift > 0:
+		root.add_child(_hint(tr("ECON_THRIFT") % _last_thrift))
+		_last_thrift = 0
+	if _last_interest > 0:
+		root.add_child(_hint(tr("ECON_INTEREST") % _last_interest))
+		_last_interest = 0
+	if _last_tax > 0:
+		var t := _label_center(tr("REWARD_TAX") % _last_tax, 15, Color(0.9, 0.45, 0.45))
+		root.add_child(t)
+		_last_tax = 0
+
+## Veil IV (Greedy Market): every shop service costs +2.
+func _cost(base: int) -> int:
+	return base + (2 if RunState.veil >= 4 else 0)
+
 # ---------------------------------------------------------------- SHOP
 
 func _show_shop() -> void:
@@ -357,17 +428,12 @@ func _show_shop() -> void:
 	var rested := _last_rest
 	_last_rest = 0
 	if _shop_offers.is_empty():
-		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)
+		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
 		root.add_child(_hint(tr("REST_HEALED") % rested))
-	if _last_thrift > 0:
-		root.add_child(_hint(tr("ECON_THRIFT") % _last_thrift))
-		_last_thrift = 0
-	if _last_interest > 0:
-		root.add_child(_hint(tr("ECON_INTEREST") % _last_interest))
-		_last_interest = 0
+	_add_econ_hints(root)
 
 	# --- buy offers ---
 	var row := HBoxContainer.new()
@@ -378,8 +444,8 @@ func _show_shop() -> void:
 		item.alignment = BoxContainer.ALIGNMENT_CENTER
 		item.add_theme_constant_override("separation", 6)
 		item.add_child(CardWidget.build(card))
-		var buy := _button(tr("SHOP_BUY") % BUY_COST, _buy.bind(card))
-		buy.disabled = RunState.rtec < BUY_COST
+		var buy := _button(tr("SHOP_BUY") % _cost(BUY_COST), _buy.bind(card))
+		buy.disabled = RunState.rtec < _cost(BUY_COST)
 		var w := CenterContainer.new()
 		w.add_child(buy)
 		item.add_child(w)
@@ -390,8 +456,8 @@ func _show_shop() -> void:
 	var ench := HBoxContainer.new()
 	ench.alignment = BoxContainer.ALIGNMENT_CENTER
 	ench.add_theme_constant_override("separation", 10)
-	ench.add_child(_label(tr("SHOP_ENCHANT") % ENCHANT_COST, 15, Color(0.72, 0.76, 0.86)))
-	var can_ench := RunState.rtec >= ENCHANT_COST and RunState.deck.size() > 0
+	ench.add_child(_label(tr("SHOP_ENCHANT") % _cost(ENCHANT_COST), 15, Color(0.72, 0.76, 0.86)))
+	var can_ench := RunState.rtec >= _cost(ENCHANT_COST) and RunState.deck.size() > 0
 	for ed: CardData.Edition in [CardData.Edition.FOIL, CardData.Edition.HOLO, CardData.Edition.POLYCHROME]:
 		var eb := _button(tr(CardData.edition_name_key(ed)), _enchant.bind(ed))
 		eb.tooltip_text = _edition_desc(ed)
@@ -410,8 +476,8 @@ func _show_shop() -> void:
 		srow.add_child(slabel)
 		var sdesc := _label("(+%d chips, +%d Mult)" % [int(up[0]), int(up[1])], 13, Color(0.7, 0.72, 0.6))
 		srow.add_child(sdesc)
-		var sbuy := _button(tr("SHOP_STAR_BUY") % STAR_COST, _buy_star)
-		sbuy.disabled = RunState.rtec < STAR_COST
+		var sbuy := _button(tr("SHOP_STAR_BUY") % _cost(STAR_COST), _buy_star)
+		sbuy.disabled = RunState.rtec < _cost(STAR_COST)
 		srow.add_child(sbuy)
 		root.add_child(srow)
 
@@ -424,40 +490,40 @@ func _show_shop() -> void:
 	var reroll := _button(tr("SHOP_REROLL") % _shop_reroll_cost, _reroll_shop)
 	reroll.disabled = RunState.rtec < _shop_reroll_cost
 	controls.add_child(reroll)
-	var thin := _button(tr("SHOP_THIN") % THIN_COST, _thin_deck)
-	thin.disabled = RunState.rtec < THIN_COST or RunState.deck.size() <= 5
+	var thin := _button(tr("SHOP_THIN") % _cost(THIN_COST), _thin_deck)
+	thin.disabled = RunState.rtec < _cost(THIN_COST) or RunState.deck.size() <= 5
 	controls.add_child(thin)
 	controls.add_child(_button(tr("SHOP_NEXT"), _leave_shop))
 	root.add_child(controls)
 	_mount(root)
 
 func _buy(card: CardData) -> void:
-	if RunState.spend(BUY_COST):
+	if RunState.spend(_cost(BUY_COST)):
 		RunState.add_card(card)
 		Sfx.play(&"coin", -4.0)
 		_show_shop()  # refresh prices / affordability
 
 func _thin_deck() -> void:
-	if RunState.rtec < THIN_COST or RunState.deck.size() <= 5:
+	if RunState.rtec < _cost(THIN_COST) or RunState.deck.size() <= 5:
 		return
 	var cb := func(card: CardData) -> void:
-		RunState.spend(THIN_COST)
+		RunState.spend(_cost(THIN_COST))
 		RunState.remove_card(card)
 		_show_shop()
 	_open_deck_picker(tr("PICK_REMOVE"), cb)
 
 func _enchant(edition: CardData.Edition) -> void:
-	if RunState.rtec < ENCHANT_COST or RunState.deck.is_empty():
+	if RunState.rtec < _cost(ENCHANT_COST) or RunState.deck.is_empty():
 		return
 	var cb := func(card: CardData) -> void:
 		card.edition = edition
-		RunState.spend(ENCHANT_COST)
+		RunState.spend(_cost(ENCHANT_COST))
 		RunState.changed.emit()
 		_show_shop()
 	_open_deck_picker(tr("PICK_ENCHANT"), cb)
 
 func _buy_star() -> void:
-	if _shop_star >= 0 and RunState.spend(STAR_COST):
+	if _shop_star >= 0 and RunState.spend(_cost(STAR_COST)):
 		RunState.level_up_hand(_shop_star)
 		Sfx.play(&"coin", -4.0, 1.2)
 		_shop_star = -1   # one Star per visit
@@ -465,7 +531,7 @@ func _buy_star() -> void:
 
 func _reroll_shop() -> void:
 	if RunState.spend(_shop_reroll_cost):
-		_shop_offers = RunState.pick_offers(DeckLibrary.reward_pool(), 3)   # the slot-machine pull
+		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)   # the slot-machine pull
 		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost += 1
 		_show_shop()
@@ -519,86 +585,205 @@ func _leave_shop() -> void:
 	RunState.step += 1
 	_show_map()
 
-# ---------------------------------------------------------------- COMPLETE / DEFEAT
+# ---------------------------------------------------------------- BOSS CLAIM (1-of-2/3)
 
-func _show_complete() -> void:
+var _claim_offers: Array = []      ## [{arcanum, reversed}]
+var _claim_panels: Array = []
+var _claim_pick: int = -1
+var _claim_btn: Button
+
+## The boss reward is a CHOICE: the Arcanum upright, the same card REVERSED (stronger + a visible
+## price -- the profaned-card brand), and, when the player widened the pool with Sol, one purchased
+## Arcanum as a third option.
+func _show_boss_choice() -> void:
 	_statusbar.visible = true
 	_update_status()
-	RunState.delete_run_save()   # the Journey ended -- nothing to continue
-	var final := RunState.region_index + 1 >= JOURNEY.size()
+	var boss_arc: ArcanumData = RunState.region.boss_arcanum
+	_claim_offers = [
+		{"arc": boss_arc, "rev": false},
+		{"arc": boss_arc, "rev": true},
+	]
+	var owned_keys: Array = []
+	for r: ArcanumData in RunState.relics:
+		owned_keys.append(r.name_key)
+	var alts: Array = []
+	for a: ArcanumData in Profile.boss_pool_arcana():
+		if not owned_keys.has(a.name_key) and a.name_key != boss_arc.name_key:
+			alts.append(a)
+	if not alts.is_empty():
+		_claim_offers.append({"arc": RunState.pick_offers(alts, 1)[0], "rev": false})
+	_claim_panels.clear()
+	_claim_pick = -1
 	var root := _screen_column()
+	root.add_child(_title(tr("BOSSREW_TITLE")))
+	root.add_child(_hint(tr("BOSSREW_HINT")))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 28)
+	for i in _claim_offers.size():
+		var offer: Dictionary = _claim_offers[i]
+		var panel := _claim_panel(offer["arc"], offer["rev"])
+		panel.gui_input.connect(_on_claim_input.bind(i))
+		_claim_panels.append(panel)
+		row.add_child(panel)
+	root.add_child(row)
+	_claim_btn = _button(tr("CLAIM_TAKE"), _take_claim)
+	_claim_btn.custom_minimum_size = Vector2(200, 40)
+	_claim_btn.disabled = true
+	var wrap_c := CenterContainer.new()
+	wrap_c.add_child(_claim_btn)
+	root.add_child(wrap_c)
+	_mount(root)
+
+func _claim_panel(a: ArcanumData, reversed: bool) -> PanelContainer:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.1, 0.1, 0.14)
+	sb.set_border_width_all(2)
+	sb.border_color = Color("b23a48") if reversed else Aspects.color(a.effect_aspect)
+	sb.set_corner_radius_all(4)
+	for side in ["left", "top", "right", "bottom"]:
+		sb.set("content_margin_" + side, 10)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	p.set_meta("style", sb)
+	p.set_meta("border", sb.border_color)
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 6)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(vb)
+	if a.art != null:
+		var t := TextureRect.new()
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		t.texture = a.art
+		t.custom_minimum_size = Vector2(128, 222)
+		if reversed:
+			t.flip_h = true
+			t.flip_v = true      # the profaned card hangs upside down
+			t.modulate = Color(1.0, 0.82, 0.84)
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vb.add_child(t)
+	var cap := _label(tr("BOSSREW_REVERSED") if reversed else tr("BOSSREW_UPRIGHT"), 13,
+		Color("ff5a4d") if reversed else Color(0.7, 0.74, 0.68))
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(cap)
+	var name_l := _label(tr(a.name_key), 16, Color(0.92, 0.88, 0.95))
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(name_l)
+	# Describe the variant the player would GET (materialize a throwaway preview instance).
+	var preview: ArcanumData = a.duplicate()
+	preview.source_path = a.source_path if a.source_path != "" else a.resource_path
+	if reversed:
+		preview.is_reversed = true
+		if preview.reversed_mult > 0.0:
+			preview.effect_mult = preview.reversed_mult
+		if preview.reversed_value >= 0:
+			preview.effect_value = preview.reversed_value
+	var desc_l := _label(preview.describe(), 13,
+		Color("ff9a8d") if reversed else Aspects.color(a.effect_aspect))
+	desc_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_l.autowrap_mode = TextServer.AUTOWRAP_WORD
+	desc_l.custom_minimum_size = Vector2(220, 0)
+	vb.add_child(desc_l)
+	return p
+
+func _on_claim_input(ev: InputEvent, index: int) -> void:
+	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+		_claim_pick = index
+		for i in _claim_panels.size():
+			var sb: StyleBoxFlat = _claim_panels[i].get_meta("style")
+			sb.border_color = Color.WHITE if i == index else _claim_panels[i].get_meta("border")
+			sb.set_border_width_all(3 if i == index else 2)
+		_claim_btn.disabled = false
+		Sfx.play(&"card_select", -8.0)
+
+func _take_claim() -> void:
+	if _claim_pick < 0:
+		return
+	var offer: Dictionary = _claim_offers[_claim_pick]
+	RunState.claim_relic(offer["arc"], offer["rev"])
+	Sfx.play(&"coin", -6.0)
+	_show_complete(RunState.relics[RunState.relics.size() - 1])
+
+# ---------------------------------------------------------------- COMPLETE / SPREAD
+
+func _show_complete(claimed: ArcanumData = null) -> void:
+	_statusbar.visible = true
+	_update_status()
+	var final := RunState.region_index + 1 >= JOURNEY.size()
 	if final:
-		root.add_child(_big(tr("VICTORY_TITLE"), Color(0.95, 0.85, 0.5)))
-	else:
-		root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
-	var relic := RunState.region.boss_arcanum
+		_show_spread(true)
+		return
+	var root := _screen_column()
+	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
+	var relic := claimed if claimed != null else RunState.region.boss_arcanum
 	if relic != null:
 		if relic.art != null:
 			# The claimed Arcanum is shown as the actual card -- you beat it, now you wear it.
 			var t := TextureRect.new()
-			t.texture = relic.art
-			t.custom_minimum_size = Vector2(160, 277)
 			t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			t.texture = relic.art
+			t.custom_minimum_size = Vector2(160, 277)
+			if relic.is_reversed:
+				t.flip_h = true
+				t.flip_v = true
+				t.modulate = Color(1.0, 0.82, 0.84)
 			var wrap_art := CenterContainer.new()
 			wrap_art.add_child(t)
 			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
-	if final:
-		var earned := Profile.earn_run_reward(true, RunState.fights_won)
-		root.add_child(_label_center(tr("META_EARNED") % [earned, Profile.sol], 15, Color(0.9, 0.85, 0.6)))
+	root.add_child(_hint(tr("COMPLETE_HINT")))
 	var wrap_c := CenterContainer.new()
-	if not final:
-		root.add_child(_hint(tr("COMPLETE_HINT")))
-		wrap_c.add_child(_button(tr("COMPLETE_NEXT"), _continue_journey))
-	else:
-		# The World has fallen: the Journey is complete -- the run is WON.
-		var rr := HBoxContainer.new()
-		rr.alignment = BoxContainer.ALIGNMENT_CENTER
-		rr.add_theme_constant_override("separation", 8)
-		for a in RunState.relics:
-			rr.add_child(_relic_chip(a))
-		root.add_child(rr)
-		Sfx.play(&"win", -2.0)
-		wrap_c.add_child(_button(tr("COMPLETE_NEW"), _restart_run))
+	wrap_c.add_child(_button(tr("COMPLETE_NEXT"), _continue_journey))
 	root.add_child(wrap_c)
 	_mount(root)
 
 func _continue_journey() -> void:
 	var idx := RunState.region_index + 1
 	_pending_omen = null
-	RunState.enter_region(load(JOURNEY[idx]), idx)
+	_last_rest = RunState.enter_region(load(JOURNEY[idx]), idx)
+	# The backdrop takes on the new region's accent.
+	if _backdrop != null:
+		_backdrop.queue_free()
+	_backdrop = Backdrop.build(RunState.region.accent)
+	add_child(_backdrop)
+	move_child(_backdrop, 0)
 	_show_map()
 
-func _show_defeat() -> void:
-	RunState.delete_run_save()   # death is final -- no continue
-	_statusbar.visible = true
-	_update_status()
-	var root := _screen_column()
-	# Death XIII greets the fallen -- the card reads the outcome for you.
-	var death_art := TextureRect.new()
-	death_art.texture = load("res://assets/cards/arcana/13_death.jpg")
-	death_art.custom_minimum_size = Vector2(150, 260)
-	death_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	death_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	death_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	var death_wrap := CenterContainer.new()
-	death_wrap.add_child(death_art)
-	root.add_child(death_wrap)
-	root.add_child(_big(tr("DEFEAT_TITLE"), Color(0.9, 0.4, 0.4)))
-	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
-	var earned := Profile.earn_run_reward(false, RunState.fights_won)
-	if earned > 0:
-		root.add_child(_label_center(tr("META_EARNED") % [earned, Profile.sol], 15, Color(0.9, 0.85, 0.6)))
-	var wrap_c := CenterContainer.new()
-	wrap_c.add_child(_button(tr("DEFEAT_NEW"), _restart_run))
-	root.add_child(wrap_c)
-	_mount(root)
+## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
+## recording and the achievement sweep all happen HERE, exactly once per run.
+func _show_spread(victory: bool) -> void:
+	_statusbar.visible = false
+	RunState.delete_run_save()
+	RunState.stat_sol_earned = Profile.earn_run_reward(victory, RunState.fights_won, RunState.veil)
+	if victory:
+		Profile.record_victory(RunState.veil)
+	var fresh: Array = Profile.check_run_achievements(victory)
+	var s := SpreadScreen.build(victory, fresh)
+	s.new_run.connect(_restart_run)
+	s.repeat_run.connect(_repeat_fate)
+	s.to_menu.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))
+	MusicLib.play(&"music_menu", 3.0)
+	_mount(s)
+	Sfx.play(&"win" if victory else &"lose", -2.0)
+
+## Same seed, same Veil: the deterministic contract makes "one more try" a real rematch.
+func _repeat_fate() -> void:
+	_pending_omen = null
+	RunState.next_veil = RunState.veil
+	var s := RunState.run_seed
+	RunState.begin(load(JOURNEY[0]), s)
+	_start_run_flow()
 
 func _restart_run() -> void:
 	_pending_omen = null
+	RunState.next_veil = RunState.veil   # fresh seed, same tier (the menu changes tiers)
 	RunState.begin(load(JOURNEY[0]))   # a new Journey always starts at the first region
 	_start_run_flow()
 
@@ -627,7 +812,11 @@ func _load_omens() -> void:
 	files.sort()
 	for f in files:
 		if f.ends_with(".tres"):
-			_omens.append(load("res://data/omens/" + f))
+			var o: OmenData = load("res://data/omens/" + f)
+			# Achievement-gated omens join the road pool only once earned (meta widens).
+			if o.requires_achievement != "" and not Profile.has_achievement(o.requires_achievement):
+				continue
+			_omens.append(o)
 
 func _roll_omen() -> void:
 	if _omens.is_empty():
@@ -681,6 +870,17 @@ func _accept_omen() -> void:
 			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 6)
 			RunState.rtec += 2
 			Sfx.play(&"heal", -6.0)
+		"sun":
+			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 12)
+			Sfx.play(&"heal", -6.0)
+		"lovers":
+			# Twin one card: add a copy of a chosen deck card (the duplicate engine's best friend).
+			Sfx.play(&"card_select", -8.0)
+			var twin := func(card: CardData) -> void:
+				RunState.add_card(card)
+				_show_map()
+			_open_deck_picker(tr("PICK_TWIN"), twin)
+			return
 		"justice":
 			Sfx.play(&"card_select", -8.0)
 			var cb := func(card: CardData) -> void:
@@ -698,11 +898,16 @@ func _skip_omen() -> void:
 func _show_arcanum_draft() -> void:
 	_statusbar.visible = true
 	_update_status()
-	_arc_offers = RunState.pick_offers(RunState.region.starting_pool, 3)
+	MusicLib.play(&"music_menu", 1.5)
+	# Achievement Arcana widen the opening pool (meta adds options, never removes them).
+	var pool: Array = RunState.region.starting_pool.duplicate()
+	pool.append_array(Profile.draft_extra_arcana())
+	_arc_offers = RunState.pick_offers(pool, 3)
 	_arc_panels.clear()
 	_arc_pick = -1
 	var root := _screen_column()
 	root.add_child(_title(tr("DRAFT_TITLE")))
+	root.add_child(_hint(tr("DRAFT_CONTEXT")))
 	root.add_child(_hint(tr("DRAFT_HINT")))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -752,6 +957,12 @@ func _arcanum_offer_panel(a: ArcanumData) -> PanelContainer:
 	var name_l := _label(tr(a.name_key), 16, Color(0.92, 0.88, 0.95))
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(name_l)
+	# Playstyle blurb (first-60s context): what it plays like, before the exact numbers.
+	var bk := a.blurb_key()
+	if tr(bk) != bk:
+		var blurb := _label(tr(bk), 12, Color(0.62, 0.64, 0.72))
+		blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(blurb)
 	var desc_l := _label(a.describe(), 13, Aspects.color(a.effect_aspect))
 	desc_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(desc_l)

@@ -125,6 +125,16 @@ func enrage_cycles() -> int:
 func preview(selected: Array) -> Dictionary:
 	return Scoring.score(_cards_from(selected), relics, _ctx())
 
+## Trailing streak of the given hand type in this fight's play history (Kombinat display).
+func kombinat_streak(hand_type: int) -> int:
+	var streak := 0
+	for i in range(_hand_history.size() - 1, -1, -1):
+		if int(_hand_history[i]) == hand_type:
+			streak += 1
+		else:
+			break
+	return mini(streak, 4)
+
 func play(selected: Array) -> void:
 	if phase != "player" or selected.is_empty():
 		return

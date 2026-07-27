@@ -2,14 +2,18 @@ class_name Backdrop
 ## A shared themed background so screens don't float in flat black. An ash-toned vertical gradient
 ## plus a radial vignette. Built in code (no art assets). Add it first so it sits behind everything.
 
-static func build() -> Control:
+static func build(accent: Color = Color(0, 0, 0, 0)) -> Control:
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+	# Region identity: the bottom ember stop leans toward the region accent (subtle, 18%).
+	var bottom := Color(0.10, 0.06, 0.045)
+	if accent.a > 0.0:
+		bottom = bottom.lerp(accent, 0.18)
 	var grad := Gradient.new()
 	grad.set_color(0, Color(0.055, 0.045, 0.05))   # top: cold ash
-	grad.set_color(1, Color(0.10, 0.06, 0.045))    # bottom: faint ember warmth
+	grad.set_color(1, bottom)                      # bottom: faint ember warmth, region-tinted
 	var gt := GradientTexture2D.new()
 	gt.gradient = grad
 	gt.fill_from = Vector2(0.5, 0.0)

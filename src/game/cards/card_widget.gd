@@ -53,13 +53,53 @@ static func build(card: CardData) -> PanelContainer:
 		_build_art_face(panel, card, art, col)
 	else:
 		_build_plain_face(panel, card, col)
+	# Frame priority: edition colour > rarity colour > aspect colour.
 	if card.edition != CardData.Edition.NONE:
 		sb.border_color = _ed_color(card.edition)   # editioned cards glow in their edition colour
+	elif card.rarity != CardData.Rarity.COMMON:
+		sb.border_color = rarity_color(card.rarity)
+	if card.rarity == CardData.Rarity.LEGENDARY:
+		_start_legend_glow(panel, sb)
+	if card.keyword == CardData.Keyword.PRZECIAZENIE:
+		_add_durability_pip(panel, card)
 	panel.set_meta("border", sb.border_color)
 	panel.mouse_entered.connect(_on_hover.bind(panel, true))
 	panel.mouse_exited.connect(_on_hover.bind(panel, false))
 	panel.gui_input.connect(_route_rmb.bind(card))
 	return panel
+
+static func rarity_color(r: int) -> Color:
+	match r:
+		CardData.Rarity.RARE: return Color("8fb8d8")
+		CardData.Rarity.LEGENDARY: return Color("f2c14e")
+	return Color.WHITE
+
+## Legendary frames breathe: a slow border-alpha sine, purely cosmetic.
+static func _start_legend_glow(panel: PanelContainer, sb: StyleBoxFlat) -> void:
+	var tw := panel.create_tween().set_loops()
+	tw.tween_method(func(a: float) -> void:
+		sb.border_color = Color(sb.border_color, a), 1.0, 0.7, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_method(func(a: float) -> void:
+		sb.border_color = Color(sb.border_color, a), 0.7, 1.0, 0.6).set_trans(Tween.TRANS_SINE)
+
+## Glass (Przeciazenie) wears a VISIBLE durability counter -- the covenant forbids surprises.
+## (PanelContainer forces children to the full rect, so the pip anchors inside a raw overlay.)
+static func _add_durability_pip(panel: PanelContainer, card: CardData) -> void:
+	var overlay := Control.new()
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(overlay)
+	var left := maxi(0, card.keyword_value - card.wear)
+	var pip := _lbl("*%d" % left, 13, Color("ff5a4d") if left <= 1 else Color("e8e8f0"))
+	pip.anchor_left = 1.0
+	pip.anchor_right = 1.0
+	pip.anchor_top = 1.0
+	pip.anchor_bottom = 1.0
+	pip.offset_left = -26
+	pip.offset_right = -2
+	pip.offset_top = -20
+	pip.offset_bottom = -2
+	pip.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	overlay.add_child(pip)
 
 ## RMB on ANY card, anywhere, opens the centered inspection overlay (todo.md UX brief).
 static func _route_rmb(ev: InputEvent, card: CardData) -> void:

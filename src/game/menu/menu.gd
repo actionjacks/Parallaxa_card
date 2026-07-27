@@ -1,6 +1,8 @@
 extends Control
-## Main menu / title screen (todo.md): tarot-and-mysticism themed. New Journey / Continue (enabled
-## when a run save exists) / Collection (browse every card + Arcana, RMB inspects) / Options / Quit.
+## Main menu / title screen: tarot-and-mysticism themed. The game's display title is the thesis
+## ("The Cards Do Not Lie"); PARALLAXA stays as the small series tag. New Journey opens the run
+## setup (starter deck + Veil) once there is anything to choose; Collection browses every card,
+## deck, Arcanum and achievement. RMB inspects cards anywhere.
 
 const RUN_SCENE := "res://src/game/region/run.tscn"
 const SETTINGS_SCENE := "res://src/ui/settings/settings_menu.tscn"
@@ -12,12 +14,17 @@ const TITLE_CARDS: Array[String] = [
 	"res://assets/cards/arcana/18_moon.jpg",
 	"res://assets/cards/arcana/21_world.jpg",
 ]
+const DECK_ORDER: Array[String] = ["classic", "reaper", "gardener", "oracle"]
 
 var _collection: Control
+var _setup: Control
+var _setup_deck: String = "classic"
+var _setup_veil: int = 0
 
 func _ready() -> void:
 	Overlays.run_active = false
 	add_child(Backdrop.build())
+	MusicLib.play(&"music_menu", 2.0)
 
 	# title card fan: slightly rotated arcana behind the title, like a spread being dealt
 	var fan := Control.new()
@@ -43,7 +50,10 @@ func _ready() -> void:
 	col.add_theme_constant_override("separation", 14)
 	add_child(col)
 
-	var title := _lbl("PARALLAXA", 64, Color(0.95, 0.9, 0.75))
+	var series := _lbl("PARALLAXA", 15, Color(0.5, 0.47, 0.58))   # series tag, literal (brand)
+	series.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(series)
+	var title := _lbl(tr("MENU_TITLE"), 54, Color(0.95, 0.9, 0.75))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)
 	var sub := _lbl(tr("MENU_TAGLINE"), 16, Color(0.65, 0.6, 0.72))
@@ -59,7 +69,17 @@ func _ready() -> void:
 	col.add_child(_menu_btn(tr("MENU_OPTIONS"), _open_options))
 	col.add_child(_menu_btn(tr("MENU_QUIT"), func() -> void: get_tree().quit()))
 
+# ---------------------------------------------------------------- new run setup
+
 func _new_run() -> void:
+	# Fresh profile with nothing to choose: zero-friction direct start.
+	if Profile.wins == 0 and Profile.available_decks().size() == 1:
+		RunState.next_veil = 0
+		_begin_run()
+		return
+	_open_setup()
+
+func _begin_run() -> void:
 	RunState.load_pending = false
 	RunState.delete_run_save()
 	get_tree().change_scene_to_file(RUN_SCENE)
@@ -67,6 +87,113 @@ func _new_run() -> void:
 func _continue_run() -> void:
 	RunState.load_pending = true
 	get_tree().change_scene_to_file(RUN_SCENE)
+
+## Run setup overlay: pick the starter deck and the Veil (ascension tier).
+func _open_setup() -> void:
+	if _setup != null:
+		return
+	_setup_deck = Profile.selected_deck if Profile.available_decks().has(Profile.selected_deck) else "classic"
+	_setup_veil = 0
+	_setup = Control.new()
+	_setup.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.88)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_setup.add_child(dim)
+	var v := VBoxContainer.new()
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_theme_constant_override("separation", 16)
+	_setup.add_child(v)
+	v.add_child(_center_lbl(tr("NEWRUN_TITLE"), 26, Color(0.93, 0.89, 0.8)))
+
+	v.add_child(_center_lbl(tr("NEWRUN_DECK"), 16, Color(0.75, 0.72, 0.82)))
+	var drow := HBoxContainer.new()
+	drow.alignment = BoxContainer.ALIGNMENT_CENTER
+	drow.add_theme_constant_override("separation", 10)
+	var avail: Array = Profile.available_decks()
+	for id in DECK_ORDER:
+		if not avail.has(id):
+			continue
+		var p := _toggle_panel(tr(DeckLibrary.deck_name_key(id)), tr(DeckLibrary.deck_desc_key(id)))
+		p.gui_input.connect(func(ev: InputEvent) -> void:
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				_setup_deck = id
+				_refresh_setup_toggles(drow, null))
+		p.set_meta("id", id)
+		drow.add_child(p)
+	v.add_child(drow)
+
+	var vrow := HBoxContainer.new()
+	if Profile.wins > 0:
+		v.add_child(_center_lbl(tr("NEWRUN_VEIL"), 16, Color(0.72, 0.55, 0.9)))
+		vrow.alignment = BoxContainer.ALIGNMENT_CENTER
+		vrow.add_theme_constant_override("separation", 8)
+		for tier in Profile.veil_selectable_max() + 1:
+			var chip := _toggle_panel(str(tier), "")
+			chip.custom_minimum_size = Vector2(44, 36)
+			chip.tooltip_text = tr("VEIL_%d" % tier) + ("\n" + tr("VEIL_%d_DESC" % tier) if tier > 0 else "")
+			chip.gui_input.connect(func(ev: InputEvent) -> void:
+				if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+					_setup_veil = tier
+					_refresh_setup_toggles(null, vrow))
+			chip.set_meta("id", str(tier))
+			vrow.add_child(chip)
+		v.add_child(vrow)
+		v.add_child(_center_lbl(tr("NEWRUN_VEIL_HINT"), 13, Color(0.6, 0.6, 0.68)))
+
+	var begin := _menu_btn(tr("NEWRUN_BEGIN"), func() -> void:
+		Profile.selected_deck = _setup_deck
+		Profile.save_profile()
+		RunState.next_veil = _setup_veil
+		_begin_run())
+	begin.custom_minimum_size = Vector2(240, 44)
+	v.add_child(begin)
+	var cancel := _menu_btn(tr("COMMON_CANCEL"), func() -> void:
+		_setup.queue_free()
+		_setup = null)
+	v.add_child(cancel)
+	add_child(_setup)
+	_refresh_setup_toggles(drow, vrow)
+
+func _refresh_setup_toggles(drow: Control, vrow: Control) -> void:
+	if drow != null:
+		for ch in drow.get_children():
+			_set_toggled(ch, ch.get_meta("id") == _setup_deck)
+	if vrow != null:
+		for ch in vrow.get_children():
+			_set_toggled(ch, ch.get_meta("id") == str(_setup_veil))
+
+func _toggle_panel(title: String, desc: String) -> PanelContainer:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.1, 0.1, 0.14)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.35, 0.35, 0.45)
+	sb.set_corner_radius_all(4)
+	for side in ["left", "top", "right", "bottom"]:
+		sb.set("content_margin_" + side, 8)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(170, 56)
+	p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	p.set_meta("style", sb)
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(vb)
+	var t := _lbl(title, 15, Color(0.92, 0.88, 0.95))
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(t)
+	if desc != "":
+		var d := _lbl(desc, 11, Color(0.62, 0.64, 0.72))
+		d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(d)
+	return p
+
+func _set_toggled(p: Control, on: bool) -> void:
+	var sb: StyleBoxFlat = p.get_meta("style")
+	sb.border_color = Color.WHITE if on else Color(0.35, 0.35, 0.45)
+	sb.set_border_width_all(3 if on else 2)
 
 func _open_options() -> void:
 	var s: Control = load(SETTINGS_SCENE).instantiate()
@@ -76,7 +203,10 @@ func _open_options() -> void:
 	if s.has_method("open"):
 		s.open()
 
-## Collection: every playable card (starter + reward pool) and every Arcanum. RMB inspects cards.
+# ---------------------------------------------------------------- collection
+
+## Collection: starter decks (with permanent edition upgrades, Veil-gated), the full card pool,
+## every Arcanum (with Sol sinks that WIDEN the boss pool) and the achievement ledger.
 func _open_collection() -> void:
 	if _collection != null:
 		return
@@ -99,6 +229,8 @@ func _open_collection() -> void:
 	v.add_child(head)
 	head.add_child(_lbl(tr("MENU_COLLECTION"), 26, Color(0.93, 0.89, 0.8)))
 	head.add_child(_lbl(tr("META_SOL") % Profile.sol, 20, Color(0.9, 0.85, 0.6)))
+	if Profile.best_veil >= 0:
+		head.add_child(_lbl(tr("VEIL_BEST") % Profile.best_veil, 16, Color(0.72, 0.55, 0.9)))
 	v.add_child(_lbl(tr("COLLECTION_HINT"), 13, Color(0.6, 0.6, 0.68)))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -108,66 +240,70 @@ func _open_collection() -> void:
 	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(inner)
 
-	# --- starter deck: PERMANENT edition upgrades (the visual evolution ladder) ---
-	inner.add_child(_lbl(tr("COLLECTION_STARTER"), 18, Color(0.85, 0.82, 0.9)))
-	var sgrid := HFlowContainer.new()
-	sgrid.add_theme_constant_override("h_separation", 8)
-	sgrid.add_theme_constant_override("v_separation", 8)
-	sgrid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	inner.add_child(sgrid)
-	var starter := DeckLibrary.starter_deck()   # profile editions already applied
-	for i in starter.size():
-		var box := VBoxContainer.new()
-		box.alignment = BoxContainer.ALIGNMENT_CENTER
-		box.add_theme_constant_override("separation", 4)
-		box.add_child(CardWidget.build(starter[i]))
-		var nxt := Profile.next_starter_edition(i)
-		if nxt == CardData.Edition.NONE:
-			box.add_child(_lbl(tr("COLLECTION_MAXED"), 10, Color(0.6, 0.62, 0.55)))
+	# --- starter decks: sidegrades + the permanent edition ladder (Veil-gated) ---
+	inner.add_child(_lbl(tr("COLLECTION_DECKS"), 18, Color(0.85, 0.82, 0.9)))
+	var avail: Array = Profile.available_decks()
+	for id in DECK_ORDER:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 16)
+		inner.add_child(row)
+		row.add_child(_lbl(tr(DeckLibrary.deck_name_key(id)), 16, Color(0.92, 0.88, 0.95)))
+		var dk := tr(DeckLibrary.deck_desc_key(id))
+		if dk != DeckLibrary.deck_desc_key(id):
+			row.add_child(_lbl(dk, 12, Color(0.62, 0.64, 0.72)))
+		if avail.has(id):
+			if id != "classic":
+				row.add_child(_lbl(tr("COLLECTION_DECK_OWNED"), 12, Color(0.6, 0.85, 0.6)))
+		elif Profile.ACH_DECKS.has(id):
+			row.add_child(_lbl(tr("COLLECTION_ARC_ACH") % tr(Profile.ACH_DECKS[id]), 12, Color(0.75, 0.7, 0.82)))
 		else:
-			var cost: int = Profile.EDITION_COST[nxt]
-			var up := _lbl_btn(tr("COLLECTION_UPGRADE") % [tr(CardData.edition_name_key(nxt)), cost],
-				_upgrade_starter.bind(i))
-			up.disabled = Profile.sol < cost
-			box.add_child(up)
-		sgrid.add_child(box)
+			var bb := _lbl_btn(tr("COLLECTION_DECK_BUY") % Profile.DECK_COST, _buy_deck.bind(id))
+			bb.disabled = Profile.sol < Profile.DECK_COST
+			row.add_child(bb)
+		var sgrid := HFlowContainer.new()
+		sgrid.add_theme_constant_override("h_separation", 8)
+		sgrid.add_theme_constant_override("v_separation", 8)
+		sgrid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		inner.add_child(sgrid)
+		var cards := DeckLibrary.starter_deck_by_id(id)
+		for i in cards.size():
+			var box := VBoxContainer.new()
+			box.alignment = BoxContainer.ALIGNMENT_CENTER
+			box.add_theme_constant_override("separation", 4)
+			var w := CardWidget.build(cards[i])
+			if not avail.has(id):
+				w.modulate = Color(0.45, 0.45, 0.5)
+			box.add_child(w)
+			if avail.has(id):
+				var nxt := Profile.next_starter_edition(id, i)
+				if nxt == CardData.Edition.NONE:
+					box.add_child(_lbl(tr("COLLECTION_MAXED"), 10, Color(0.6, 0.62, 0.55)))
+				elif not Profile.edition_allowed(nxt):
+					box.add_child(_lbl(tr("COLLECTION_ED_GATE") % int(Profile.EDITION_VEIL_GATE[nxt]), 10, Color(0.6, 0.55, 0.62)))
+				else:
+					var cost: int = Profile.EDITION_COST[nxt]
+					var up := _lbl_btn(tr("COLLECTION_UPGRADE") % [tr(CardData.edition_name_key(nxt)), cost],
+						_upgrade_starter.bind(id, i))
+					up.disabled = Profile.sol < cost
+					box.add_child(up)
+			sgrid.add_child(box)
 
-	# --- reward pool: unlocked cards + meta-locked wave-2 cards to buy in ---
+	# --- reward pool: everything, day one (the meta never subtracts) ---
 	inner.add_child(_lbl(tr("COLLECTION_CARDS"), 18, Color(0.85, 0.82, 0.9)))
 	var grid := HFlowContainer.new()
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inner.add_child(grid)
-	var locked_cards: Array = []
 	var seen := {}
 	for card in DeckLibrary.full_reward_pool():
 		var key := Profile.card_key(card)
 		if seen.has(key):
 			continue
 		seen[key] = true
-		if Profile.is_unlocked(card):
-			grid.add_child(CardWidget.build(card))
-		else:
-			locked_cards.append(card)
-	if not locked_cards.is_empty():
-		inner.add_child(_lbl(tr("COLLECTION_LOCKED"), 15, Color(0.75, 0.7, 0.82)))
-		var lgrid := HFlowContainer.new()
-		lgrid.add_theme_constant_override("h_separation", 8)
-		lgrid.add_theme_constant_override("v_separation", 8)
-		inner.add_child(lgrid)
-		for card in locked_cards:
-			var box := VBoxContainer.new()
-			box.alignment = BoxContainer.ALIGNMENT_CENTER
-			box.add_theme_constant_override("separation", 4)
-			var w := CardWidget.build(card)
-			w.modulate = Color(0.45, 0.45, 0.5)   # dimmed: not yet part of the pool
-			box.add_child(w)
-			var ub := _lbl_btn(tr("COLLECTION_UNLOCK") % Profile.UNLOCK_COST, _unlock_card.bind(card))
-			ub.disabled = Profile.sol < Profile.UNLOCK_COST
-			box.add_child(ub)
-			lgrid.add_child(box)
+		grid.add_child(CardWidget.build(card))
 
+	# --- Arcana: the worn powers; Sol buys new ones INTO the boss pool ---
 	inner.add_child(_lbl(tr("COLLECTION_ARCANA"), 18, Color(0.85, 0.82, 0.9)))
 	var agrid := HFlowContainer.new()
 	agrid.add_theme_constant_override("h_separation", 10)
@@ -188,7 +324,37 @@ func _open_collection() -> void:
 		t.tooltip_text = tr(a.name_key) + "\n" + a.describe()
 		box.add_child(t)
 		box.add_child(_lbl(tr(a.name_key), 11, Color(0.8, 0.75, 0.88)))
+		var shop_id := _shop_arcana_id(path)
+		var ach_id := _ach_arcana_id(path)
+		if shop_id != "":
+			if Profile.owned_arcana.has(shop_id):
+				box.add_child(_lbl(tr("COLLECTION_ARC_OWNED"), 11, Color(0.6, 0.85, 0.6)))
+			else:
+				t.modulate = Color(0.45, 0.45, 0.5)
+				var ab := _lbl_btn(tr("COLLECTION_ARC_BUY") % Profile.ARCANA_COST, _buy_arcana.bind(shop_id))
+				ab.disabled = Profile.sol < Profile.ARCANA_COST
+				box.add_child(ab)
+		elif ach_id != "":
+			if not Profile.has_achievement(Profile.ACH_ARCANA[ach_id][0]):
+				t.modulate = Color(0.45, 0.45, 0.5)
+				box.add_child(_lbl(tr("COLLECTION_ARC_ACH") % tr(Profile.ACH_ARCANA[ach_id][0]), 10, Color(0.75, 0.7, 0.82)))
 		agrid.add_child(box)
+
+	# --- achievements: the ledger of proofs ---
+	inner.add_child(_lbl(tr("COLLECTION_ACH"), 18, Color(0.85, 0.82, 0.9)))
+	for ach in Profile.ACH_ORDER:
+		var done: bool = Profile.has_achievement(ach)
+		var arow := VBoxContainer.new()
+		arow.add_theme_constant_override("separation", 2)
+		inner.add_child(arow)
+		var hl := HBoxContainer.new()
+		hl.add_theme_constant_override("separation", 12)
+		arow.add_child(hl)
+		hl.add_child(_lbl(tr(ach), 15, Color(0.95, 0.85, 0.5) if done else Color(0.55, 0.55, 0.62)))
+		hl.add_child(_lbl(tr("ACH_DONE") if done else tr("ACH_UNDONE"), 12,
+			Color(0.6, 0.85, 0.6) if done else Color(0.55, 0.55, 0.62)))
+		arow.add_child(_lbl(tr(ach + "_DESC"), 12, Color(0.68, 0.7, 0.78)))
+		arow.add_child(_lbl(tr("ACH_REWARD") % tr(ach + "_REWARD"), 12, Color(0.72, 0.62, 0.85)))
 
 	var close := _menu_btn(tr("COMMON_CLOSE"), func() -> void:
 		_collection.queue_free()
@@ -198,13 +364,30 @@ func _open_collection() -> void:
 	v.add_child(wrap_c)
 	add_child(_collection)
 
-func _unlock_card(card: CardData) -> void:
-	if Profile.unlock(card):
+func _shop_arcana_id(path: String) -> String:
+	for id in Profile.SHOP_ARCANA:
+		if Profile.SHOP_ARCANA[id] == path:
+			return id
+	return ""
+
+func _ach_arcana_id(path: String) -> String:
+	for id in Profile.ACH_ARCANA:
+		if Profile.ACH_ARCANA[id][1] == path:
+			return id
+	return ""
+
+func _buy_deck(id: String) -> void:
+	if Profile.buy_deck(id):
 		Sfx.play(&"coin", -4.0)
 		_reopen_collection()
 
-func _upgrade_starter(index: int) -> void:
-	if Profile.upgrade_starter(index):
+func _buy_arcana(id: String) -> void:
+	if Profile.buy_arcana(id):
+		Sfx.play(&"coin", -4.0)
+		_reopen_collection()
+
+func _upgrade_starter(deck_id: String, index: int) -> void:
+	if Profile.upgrade_starter(deck_id, index):
 		Sfx.play(&"coin", -4.0, 1.2)
 		_reopen_collection()
 
@@ -246,6 +429,11 @@ func _menu_btn(text: String, cb: Callable) -> Button:
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	b.pressed.connect(cb)
 	return b
+
+func _center_lbl(text: String, font_size: int, color: Color) -> Label:
+	var l := _lbl(text, font_size, color)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
 
 func _lbl(text: String, font_size: int, color: Color) -> Label:
 	var l := Label.new()

@@ -8,6 +8,11 @@ var _rn: Node
 var _omen_shot := false
 var _fight_no := 0
 var _logf: FileAccess
+## PT_BOOST=1 grants a power boost at run start: verifies the VICTORY path (boss claim screens,
+## region transitions, the winning spread) without pretending the base difficulty is beatable
+## by this deliberately-weak bot. PT_ELITE=1 makes the bot take elite forks when offered.
+var _boost := false
+var _take_elite := false
 
 func _initialize() -> void:
 	# Godot's stdout is block-buffered into a pipe and LOST if the process is killed mid-run,
@@ -181,6 +186,17 @@ func _handle_map() -> void:
 		if b != null:
 			await _click(_center(b))
 		await _frames(12)
+	if _take_elite:
+		var rs := root.get_node("RunState")
+		var elite_text := ""
+		if rs.region != null and rs.region.elite != null:
+			elite_text = TranslationServer.translate("MAP_ELITE") % TranslationServer.translate(rs.region.elite.name_key)
+		var el = _find(_rn, func(c): return c is Button and c.text == elite_text and c.is_visible_in_tree())
+		if el != null:
+			_log("[bc] taking the ELITE fork")
+			await _click(_center(el))
+			await _frames(25)
+			return
 	var go = _button_with("MAP_GO")
 	if go != null:
 		await _click(_center(go))
@@ -194,11 +210,36 @@ func _foes() -> String:
 	return " | ".join(names)
 
 func _go() -> void:
+	_boost = OS.get_environment("PT_BOOST") == "1"
+	_take_elite = OS.get_environment("PT_ELITE") == "1"
 	await _frames(2)
 	_rn = load(RUN).instantiate()
 	root.add_child(_rn)
 	await _frames(20)
 	var rs := root.get_node("RunState")
+	if _boost:
+		# Victory-path harness: a deck a good player COULD assemble by region 2 (glass + avalanche
+		# + leveled hands + funded shop). The UI is still driven by real clicks.
+		for i in 3:
+			var g := CardData.new()
+			g.rank = 7
+			g.aspect = Aspects.Id.DEATH
+			g.rarity = CardData.Rarity.RARE
+			rs.deck.append(g)
+		var glass := CardData.new()
+		glass.rank = 9
+		glass.aspect = Aspects.Id.CHAOS
+		glass.keyword = CardData.Keyword.PRZECIAZENIE
+		glass.keyword_value = 3
+		rs.deck.append(glass)
+		var law := CardData.new()
+		law.rank = 7
+		law.aspect = Aspects.Id.CHAOS
+		law.keyword = CardData.Keyword.LAWINA
+		rs.deck.append(law)
+		rs.hand_levels = {Poker.Hand.PAIR: 3, Poker.Hand.THREE: 3, Poker.Hand.FLUSH: 4, Poker.Hand.FIVE: 2}
+		rs.rtec = 30
+		_log("[pt2] BOOST active: +5 cards, leveled hands, 30 rtec")
 	_log("[pt2] region 1 foes: " + _foes())
 	var result := "TIMEOUT"
 	var guard := 0
@@ -215,6 +256,19 @@ func _go() -> void:
 			_log("[bc] draft")
 			await _pass_draft()
 			continue
+		# Boss claim: pick the REVERSED option on odd regions (exercises both paths), else upright.
+		var claim = _button_with("CLAIM_TAKE")
+		if claim != null:
+			var pick: int = 1 if (rs.region_index % 2 == 1 and _rn._claim_panels.size() > 1) else 0
+			_log("[bc] boss claim: option %d of %d" % [pick, _rn._claim_panels.size()])
+			await _shoot("claim_r%d" % (rs.region_index + 1))
+			if _rn._claim_panels.size() > pick:
+				await _click(_center(_rn._claim_panels[pick]))
+			claim = _button_with("CLAIM_TAKE")
+			if claim != null and not claim.disabled:
+				await _click(_center(claim))
+			await _frames(15)
+			continue
 		var b = _button_with("COMPLETE_NEXT")
 		if b != null:
 			_log("[pt2] region %d cleared (hp=%d rtec=%d relics=%d)" % [rs.region_index + 1, rs.player_hp, rs.rtec, rs.relics.size()])
@@ -223,14 +277,14 @@ func _go() -> void:
 			await _frames(20)
 			_log("[pt2] region %d foes: " % (rs.region_index + 1) + _foes())
 			continue
-		# classify end screens by their TITLE labels (the restart buttons share one caption)
-		if _find(_rn, func(c): return c is Label and c.text == tr("DEFEAT_TITLE") and c.is_visible_in_tree()) != null:
+		# classify end screens by the SPREAD titles (win and loss share the same layout)
+		if _find(_rn, func(c): return c is Label and c.text == tr("SPREAD_LOSS") and c.is_visible_in_tree()) != null:
 			result = "DEFEAT"
-			await _shoot("defeat")
+			await _shoot("spread_loss")
 			break
-		if _find(_rn, func(c): return c is Label and c.text == tr("VICTORY_TITLE") and c.is_visible_in_tree()) != null:
+		if _find(_rn, func(c): return c is Label and c.text == tr("SPREAD_WIN") and c.is_visible_in_tree()) != null:
 			result = "VICTORY"
-			await _shoot("victory")
+			await _shoot("spread_win")
 			break
 		b = _button_with("REWARD_TAKE")
 		if b != null:
