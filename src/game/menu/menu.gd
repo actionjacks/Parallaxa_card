@@ -94,7 +94,11 @@ func _open_collection() -> void:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	margin.add_child(v)
-	v.add_child(_lbl(tr("MENU_COLLECTION"), 26, Color(0.93, 0.89, 0.8)))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 24)
+	v.add_child(head)
+	head.add_child(_lbl(tr("MENU_COLLECTION"), 26, Color(0.93, 0.89, 0.8)))
+	head.add_child(_lbl(tr("META_SOL") % Profile.sol, 20, Color(0.9, 0.85, 0.6)))
 	v.add_child(_lbl(tr("COLLECTION_HINT"), 13, Color(0.6, 0.6, 0.68)))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -104,19 +108,65 @@ func _open_collection() -> void:
 	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(inner)
 
+	# --- starter deck: PERMANENT edition upgrades (the visual evolution ladder) ---
+	inner.add_child(_lbl(tr("COLLECTION_STARTER"), 18, Color(0.85, 0.82, 0.9)))
+	var sgrid := HFlowContainer.new()
+	sgrid.add_theme_constant_override("h_separation", 8)
+	sgrid.add_theme_constant_override("v_separation", 8)
+	sgrid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.add_child(sgrid)
+	var starter := DeckLibrary.starter_deck()   # profile editions already applied
+	for i in starter.size():
+		var box := VBoxContainer.new()
+		box.alignment = BoxContainer.ALIGNMENT_CENTER
+		box.add_theme_constant_override("separation", 4)
+		box.add_child(CardWidget.build(starter[i]))
+		var nxt := Profile.next_starter_edition(i)
+		if nxt == CardData.Edition.NONE:
+			box.add_child(_lbl(tr("COLLECTION_MAXED"), 10, Color(0.6, 0.62, 0.55)))
+		else:
+			var cost: int = Profile.EDITION_COST[nxt]
+			var up := _lbl_btn(tr("COLLECTION_UPGRADE") % [tr(CardData.edition_name_key(nxt)), cost],
+				_upgrade_starter.bind(i))
+			up.disabled = Profile.sol < cost
+			box.add_child(up)
+		sgrid.add_child(box)
+
+	# --- reward pool: unlocked cards + meta-locked wave-2 cards to buy in ---
 	inner.add_child(_lbl(tr("COLLECTION_CARDS"), 18, Color(0.85, 0.82, 0.9)))
 	var grid := HFlowContainer.new()
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inner.add_child(grid)
+	var locked_cards: Array = []
 	var seen := {}
-	for card in DeckLibrary.starter_deck() + DeckLibrary.reward_pool():
-		var key := "%d_%d_%d_%d" % [card.rank, card.aspect, card.keyword, card.keyword_value]
+	for card in DeckLibrary.full_reward_pool():
+		var key := Profile.card_key(card)
 		if seen.has(key):
 			continue
 		seen[key] = true
-		grid.add_child(CardWidget.build(card))
+		if Profile.is_unlocked(card):
+			grid.add_child(CardWidget.build(card))
+		else:
+			locked_cards.append(card)
+	if not locked_cards.is_empty():
+		inner.add_child(_lbl(tr("COLLECTION_LOCKED"), 15, Color(0.75, 0.7, 0.82)))
+		var lgrid := HFlowContainer.new()
+		lgrid.add_theme_constant_override("h_separation", 8)
+		lgrid.add_theme_constant_override("v_separation", 8)
+		inner.add_child(lgrid)
+		for card in locked_cards:
+			var box := VBoxContainer.new()
+			box.alignment = BoxContainer.ALIGNMENT_CENTER
+			box.add_theme_constant_override("separation", 4)
+			var w := CardWidget.build(card)
+			w.modulate = Color(0.45, 0.45, 0.5)   # dimmed: not yet part of the pool
+			box.add_child(w)
+			var ub := _lbl_btn(tr("COLLECTION_UNLOCK") % Profile.UNLOCK_COST, _unlock_card.bind(card))
+			ub.disabled = Profile.sol < Profile.UNLOCK_COST
+			box.add_child(ub)
+			lgrid.add_child(box)
 
 	inner.add_child(_lbl(tr("COLLECTION_ARCANA"), 18, Color(0.85, 0.82, 0.9)))
 	var agrid := HFlowContainer.new()
@@ -147,6 +197,30 @@ func _open_collection() -> void:
 	wrap_c.add_child(close)
 	v.add_child(wrap_c)
 	add_child(_collection)
+
+func _unlock_card(card: CardData) -> void:
+	if Profile.unlock(card):
+		Sfx.play(&"coin", -4.0)
+		_reopen_collection()
+
+func _upgrade_starter(index: int) -> void:
+	if Profile.upgrade_starter(index):
+		Sfx.play(&"coin", -4.0, 1.2)
+		_reopen_collection()
+
+func _reopen_collection() -> void:
+	if _collection != null:
+		_collection.queue_free()
+		_collection = null
+	_open_collection()
+
+func _lbl_btn(text: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.add_theme_font_size_override("font_size", 11)
+	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	b.pressed.connect(cb)
+	return b
 
 func _arcana_paths() -> Array:
 	var out: Array = []

@@ -30,6 +30,7 @@ ScreenEffects="*res://src/autoload/screen_effects.gd"
 CursorManager="*res://src/autoload/cursor_manager.gd"
 RunState="*res://src/game/region/run_state.gd"
 Overlays="*res://src/game/ui/overlays.gd"
+Profile="*res://src/game/meta/profile.gd"
 
 [display]
 

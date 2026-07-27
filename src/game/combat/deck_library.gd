@@ -6,10 +6,36 @@ const STARTER_PATH := "res://data/decks/starter.tres"
 const REWARD_POOL_PATH := "res://data/decks/reward_pool.tres"
 
 static func starter_deck() -> Array:
-	return _cards(STARTER_PATH)
+	var cards := _cards(STARTER_PATH)
+	# Permanent meta upgrades: the profile's starter editions apply to every new run.
+	var prof := _profile()
+	if prof != null:
+		for i in cards.size():
+			var ed: int = prof.starter_editions.get(i, CardData.Edition.NONE)
+			if ed != CardData.Edition.NONE:
+				cards[i].edition = ed as CardData.Edition
+	return cards
 
 static func reward_pool() -> Array:
+	var cards := _cards(REWARD_POOL_PATH)
+	# Wave-2 keyword cards stay out of the pool until bought in the Collection (meta unlocks).
+	var prof := _profile()
+	if prof == null:
+		return cards
+	var out: Array = []
+	for c in cards:
+		if prof.is_unlocked(c):
+			out.append(c)
+	return out
+
+static func full_reward_pool() -> Array:
 	return _cards(REWARD_POOL_PATH)
+
+static func _profile() -> Node:
+	var ml := Engine.get_main_loop()
+	if ml is SceneTree:
+		return (ml as SceneTree).root.get_node_or_null("Profile")
+	return null
 
 static func _cards(path: String) -> Array:
 	var deck: DeckData = load(path)

@@ -10,9 +10,10 @@ const DECK_DIR := "res://data/decks/"
 const ENEMY_DIR := "res://data/combat/"
 const ARCANA_DIR := "res://data/arcana/"
 const REGION_DIR := "res://data/regions/"
+const OMEN_DIR := "res://data/omens/"
 
 func _initialize() -> void:
-	for d in [CARD_DIR, DECK_DIR, ENEMY_DIR, ARCANA_DIR, REGION_DIR]:
+	for d in [CARD_DIR, DECK_DIR, ENEMY_DIR, ARCANA_DIR, REGION_DIR, OMEN_DIR]:
 		if not DirAccess.dir_exists_absolute(d):
 			DirAccess.make_dir_recursive_absolute(d)
 	var starter := _make(_starter(), "s")
@@ -20,6 +21,7 @@ func _initialize() -> void:
 	_deck("starter", "DECK_STARTER", starter)
 	_deck("reward_pool", "DECK_REWARD_POOL", pool)
 	_region()
+	_omens()
 	print("gen_content: %d starter + %d pool cards, enemies + arcana + region_01 written"
 		% [starter.size(), pool.size()])
 	quit(0)
@@ -203,6 +205,23 @@ func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: boo
 	e.rule_key = rule_key
 	e.enrage_step = enrage
 	return e
+
+## Road omens as editor-authorable resources (effects resolve in run.gd by id).
+func _omens() -> void:
+	var specs := [
+		["star", "OMEN_STAR", "OMEN_STAR_DESC", "17_star"],
+		["wheel", "OMEN_WHEEL", "OMEN_WHEEL_DESC", "10_wheel_of_fortune"],
+		["hanged", "OMEN_HANGED", "OMEN_HANGED_DESC", "12_hanged_man"],
+		["justice", "OMEN_JUSTICE", "OMEN_JUSTICE_DESC", "11_justice"],
+		["temperance", "OMEN_TEMPERANCE", "OMEN_TEMPERANCE_DESC", "14_temperance"],
+	]
+	for s in specs:
+		var o := OmenData.new()
+		o.id = s[0]
+		o.name_key = s[1]
+		o.desc_key = s[2]
+		o.art = load("res://assets/cards/arcana/%s.jpg" % s[3])
+		ResourceSaver.save(o, OMEN_DIR + "omen_%s.tres" % s[0])
 
 # ---- specs ----
 

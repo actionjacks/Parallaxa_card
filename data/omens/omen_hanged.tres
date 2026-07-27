@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="OmenData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/12_hanged_man.jpg" id="1_gjhem"]
+[ext_resource type="Script" path="res://src/game/region/omen_data.gd" id="2_gsb4d"]
+
+[resource]
+script = ExtResource("2_gsb4d")
+id = "hanged"
+name_key = "OMEN_HANGED"
+desc_key = "OMEN_HANGED_DESC"
+art = ExtResource("1_gjhem")

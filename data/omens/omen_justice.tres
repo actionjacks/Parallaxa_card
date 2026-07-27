@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="OmenData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/11_justice.jpg" id="1_y84dg"]
+[ext_resource type="Script" path="res://src/game/region/omen_data.gd" id="2_dbl0f"]
+
+[resource]
+script = ExtResource("2_dbl0f")
+id = "justice"
+name_key = "OMEN_JUSTICE"
+desc_key = "OMEN_JUSTICE_DESC"
+art = ExtResource("1_y84dg")

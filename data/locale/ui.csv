@@ -302,6 +302,13 @@ MENU_QUIT,Quit,Wyjście
 COLLECTION_HINT,Right-click a card to inspect it.,Kliknij kartę prawym przyciskiem aby ją obejrzeć.
 COLLECTION_CARDS,Minor Arcana — playable cards,Małe Arkana — karty do gry
 COLLECTION_ARCANA,Major Arcana — powers and bosses,Wielkie Arkana — moce i bossowie
+META_SOL,Salt: %d,Sól: %d
+META_EARNED,Salt earned: +%d (total %d),Zdobyta Sól: +%d (razem %d)
+COLLECTION_LOCKED,Locked cards — buy them into the reward pool,Zablokowane karty — wykup je do puli nagród
+COLLECTION_UNLOCK,Unlock (%d Salt),Odblokuj (%d Soli)
+COLLECTION_STARTER,Starter deck — permanent upgrades,Talia startowa — trwałe ulepszenia
+COLLECTION_UPGRADE,Upgrade to %s (%d Salt),Ulepsz do %s (%d Soli)
+COLLECTION_MAXED,Fully evolved,W pełni rozwinięta
 OMEN_TITLE,Omen,Omen
 OMEN_TAKE,Accept,Przyjmij
 OMEN_SKIP,Leave it,Zostaw

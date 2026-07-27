@@ -48,8 +48,9 @@ func _ready() -> void:
 	if RunState.load_pending:
 		RunState.load_pending = false
 		var omen_id := RunState.load_run()
-		for o in OMENS:
-			if o["id"] == omen_id:
+		_load_omens()
+		for o in _omens:
+			if o.id == omen_id:
 				_pending_omen = o
 		_build_shell()
 		_show_map()
@@ -153,7 +154,7 @@ func _mount(screen: Control) -> void:
 func _show_map() -> void:
 	_statusbar.visible = true
 	_update_status()
-	RunState.save_run(_pending_omen.get("id", ""))   # the map is the safe hub: always resumable
+	RunState.save_run(_pending_omen.id if _pending_omen != null else "")   # the map is the safe hub: always resumable
 	var root := _screen_column()
 	root.add_child(_title(tr(RunState.region.name_key)))
 
@@ -178,7 +179,7 @@ func _show_map() -> void:
 			rr.add_child(_relic_chip(a))
 		root.add_child(rr)
 
-	if not _pending_omen.is_empty():
+	if _pending_omen != null:
 		var ow := CenterContainer.new()
 		ow.add_child(_omen_block())
 		root.add_child(ow)
@@ -545,6 +546,9 @@ func _show_complete() -> void:
 			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
+	if final:
+		var earned := Profile.earn_run_reward(true, RunState.fights_won)
+		root.add_child(_label_center(tr("META_EARNED") % [earned, Profile.sol], 15, Color(0.9, 0.85, 0.6)))
 	var wrap_c := CenterContainer.new()
 	if not final:
 		root.add_child(_hint(tr("COMPLETE_HINT")))
@@ -564,7 +568,7 @@ func _show_complete() -> void:
 
 func _continue_journey() -> void:
 	var idx := RunState.region_index + 1
-	_pending_omen = {}
+	_pending_omen = null
 	RunState.enter_region(load(JOURNEY[idx]), idx)
 	_show_map()
 
@@ -585,13 +589,16 @@ func _show_defeat() -> void:
 	root.add_child(death_wrap)
 	root.add_child(_big(tr("DEFEAT_TITLE"), Color(0.9, 0.4, 0.4)))
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
+	var earned := Profile.earn_run_reward(false, RunState.fights_won)
+	if earned > 0:
+		root.add_child(_label_center(tr("META_EARNED") % [earned, Profile.sol], 15, Color(0.9, 0.85, 0.6)))
 	var wrap_c := CenterContainer.new()
 	wrap_c.add_child(_button(tr("DEFEAT_NEW"), _restart_run))
 	root.add_child(wrap_c)
 	_mount(root)
 
 func _restart_run() -> void:
-	_pending_omen = {}
+	_pending_omen = null
 	RunState.begin(load(JOURNEY[0]))   # a new Journey always starts at the first region
 	_start_run_flow()
 
@@ -607,18 +614,26 @@ var _arc_btn: Button
 # choice. Uses the reward-layer RNG only for WHICH omen appears; effects are exact.
 # TODO(editor-first): move to .tres once the shape settles.
 
-const OMENS: Array = [
-	{"id": "star", "art": "res://assets/cards/arcana/17_star.jpg", "name": "OMEN_STAR", "desc": "OMEN_STAR_DESC"},
-	{"id": "wheel", "art": "res://assets/cards/arcana/10_wheel_of_fortune.jpg", "name": "OMEN_WHEEL", "desc": "OMEN_WHEEL_DESC"},
-	{"id": "hanged", "art": "res://assets/cards/arcana/12_hanged_man.jpg", "name": "OMEN_HANGED", "desc": "OMEN_HANGED_DESC"},
-	{"id": "justice", "art": "res://assets/cards/arcana/11_justice.jpg", "name": "OMEN_JUSTICE", "desc": "OMEN_JUSTICE_DESC"},
-	{"id": "temperance", "art": "res://assets/cards/arcana/14_temperance.jpg", "name": "OMEN_TEMPERANCE", "desc": "OMEN_TEMPERANCE_DESC"},
-]
+## Omens live as editor-authorable .tres (data/omens/); effects resolve here by id.
+var _omens: Array = []
+var _pending_omen: OmenData = null
 
-var _pending_omen: Dictionary = {}
+func _load_omens() -> void:
+	_omens.clear()
+	var dir := DirAccess.open("res://data/omens")
+	if dir == null:
+		return
+	var files := dir.get_files()
+	files.sort()
+	for f in files:
+		if f.ends_with(".tres"):
+			_omens.append(load("res://data/omens/" + f))
 
 func _roll_omen() -> void:
-	_pending_omen = RunState.pick_offers(OMENS, 1)[0]
+	if _omens.is_empty():
+		_load_omens()
+	if not _omens.is_empty():
+		_pending_omen = RunState.pick_offers(_omens, 1)[0]
 
 func _omen_block() -> Control:
 	var p := _panel(Color(0.1, 0.09, 0.13), Color(0.7, 0.6, 0.85))
@@ -626,7 +641,7 @@ func _omen_block() -> Control:
 	row.add_theme_constant_override("separation", 14)
 	p.add_child(row)
 	var t := TextureRect.new()
-	t.texture = load(_pending_omen["art"])
+	t.texture = _pending_omen.art
 	t.custom_minimum_size = Vector2(64, 111)
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -636,12 +651,12 @@ func _omen_block() -> Control:
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 6)
 	row.add_child(vb)
-	vb.add_child(_label(tr("OMEN_TITLE") + ": " + tr(_pending_omen["name"]), 17, Color(0.9, 0.85, 0.95)))
-	vb.add_child(_label(tr(_pending_omen["desc"]), 14, Color(0.72, 0.74, 0.82)))
+	vb.add_child(_label(tr("OMEN_TITLE") + ": " + tr(_pending_omen.name_key), 17, Color(0.9, 0.85, 0.95)))
+	vb.add_child(_label(tr(_pending_omen.desc_key), 14, Color(0.72, 0.74, 0.82)))
 	var btns := HBoxContainer.new()
 	btns.add_theme_constant_override("separation", 10)
 	var take := _button(tr("OMEN_TAKE"), _accept_omen)
-	if _pending_omen["id"] == "hanged" and RunState.player_hp <= 5:
+	if _pending_omen.id == "hanged" and RunState.player_hp <= 5:
 		take.disabled = true   # the trade would kill you; the card refuses
 	btns.add_child(take)
 	btns.add_child(_button(tr("OMEN_SKIP"), _skip_omen))
@@ -649,8 +664,8 @@ func _omen_block() -> Control:
 	return p
 
 func _accept_omen() -> void:
-	var id: String = _pending_omen["id"]
-	_pending_omen = {}
+	var id: String = _pending_omen.id
+	_pending_omen = null
 	match id:
 		"star":
 			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 10)
@@ -677,7 +692,7 @@ func _accept_omen() -> void:
 	_show_map()
 
 func _skip_omen() -> void:
-	_pending_omen = {}
+	_pending_omen = null
 	_show_map()
 
 func _show_arcanum_draft() -> void:

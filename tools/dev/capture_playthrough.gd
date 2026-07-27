@@ -169,8 +169,8 @@ func _pass_draft() -> void:
 	await _frames(15)
 
 func _handle_map() -> void:
-	if not _rn._pending_omen.is_empty():
-		var oid: String = _rn._pending_omen["id"]
+	if _rn._pending_omen != null:
+		var oid: String = _rn._pending_omen.id
 		_log("[pt2] omen: " + oid)
 		if not _omen_shot:
 			await _shoot("omen")
