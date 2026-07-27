@@ -42,7 +42,11 @@ var _player_hp_bar: ProgressBar
 var _player_hp_label: Label
 var _block_label: Label
 var _turn_label: Label
-var _hand_row: HBoxContainer
+var _hand_row: HandFan
+var _drag_card: CardData = null
+var _drag_panel: Control = null
+var _drag_offset := Vector2.ZERO
+var _drag_active := false
 var _play_btn: Button
 var _discard_btn: Button
 var _overlay: Control
@@ -167,10 +171,9 @@ func _build_ui() -> void:
 	_counters_label = _label("", 16, Color(0.62, 0.66, 0.74))
 	prow.add_child(_counters_label)
 
-	# --- hand ---
-	_hand_row = HBoxContainer.new()
-	_hand_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_hand_row.add_theme_constant_override("separation", 8)
+	# --- hand: a Hearthstone-style fan (todo.md), not a flat row ---
+	_hand_row = HandFan.new()
+	_hand_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_child(_hand_row)
 
 	# --- controls ---
@@ -302,6 +305,7 @@ func _reconcile_hand() -> void:
 		if not _widgets.has(card):
 			var panel := _make_card(card)
 			_hand_row.add_child(panel)
+			panel.position = Vector2(_hand_row.size.x - 60.0, 30.0)   # dealt in from the deck side
 			_widgets[card] = panel
 			_animate_draw(panel)
 	for i in want.size():
@@ -310,6 +314,7 @@ func _reconcile_hand() -> void:
 		if not want.has(card):
 			_selected.erase(card)
 	_refresh_card_styles()
+	_hand_row.relayout()
 
 func _make_card(card: CardData) -> Control:
 	var panel := CardWidget.build(card)
@@ -345,22 +350,56 @@ func _hide_card_preview() -> void:
 
 # ---------------------------------------------------------------- interaction
 
+## Click toggles selection; DRAGGING a card up onto the arena selects it (todo.md drag&drop),
+## dropping it back into the hand cancels. The fan snaps everything home afterwards.
 func _on_card_input(event: InputEvent, card: CardData) -> void:
 	if controller.phase != "player":
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if _selected.has(card):
-			_selected.erase(card)
-			Sfx.play(&"card_select", -8.0, 0.85)
-		elif _selected.size() < 5:
-			_selected.append(card)
-			Sfx.play(&"card_select", -8.0)
-		_refresh_card_styles()
-		_update_selection_ui()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_drag_card = card
+			_drag_panel = _widgets.get(card)
+			_drag_active = false
+			if _drag_panel != null:
+				_drag_offset = _drag_panel.get_global_mouse_position() - _drag_panel.global_position
+		else:
+			var was_drag := _drag_active
+			var dropped_on_arena := false
+			if was_drag and _drag_panel != null:
+				dropped_on_arena = _drag_panel.get_global_mouse_position().y < _hand_row.get_global_rect().position.y - 4.0
+				_drag_panel.z_index = 0
+			_drag_card = null
+			_drag_panel = null
+			_drag_active = false
+			if was_drag:
+				if dropped_on_arena and not _selected.has(card) and _selected.size() < 5:
+					_selected.append(card)
+					Sfx.play(&"card_select", -8.0)
+				_refresh_card_styles()
+				_update_selection_ui()
+				return
+			# plain click: toggle
+			if _selected.has(card):
+				_selected.erase(card)
+				Sfx.play(&"card_select", -8.0, 0.85)
+			elif _selected.size() < 5:
+				_selected.append(card)
+				Sfx.play(&"card_select", -8.0)
+			_refresh_card_styles()
+			_update_selection_ui()
+	elif event is InputEventMouseMotion and _drag_card == card and _drag_panel != null:
+		var mouse := _drag_panel.get_global_mouse_position()
+		if not _drag_active and (mouse - (_drag_panel.global_position + _drag_offset)).length() > 14.0:
+			_drag_active = true
+			_drag_panel.z_index = 2
+			_drag_panel.rotation_degrees = 0.0
+		if _drag_active:
+			_drag_panel.global_position = mouse - _drag_offset
 
 func _refresh_card_styles() -> void:
 	for card in _widgets:
 		CardWidget.set_selected(_widgets[card], _selected.has(card))
+	_hand_row.relayout()
 
 func _selected_indices() -> Array:
 	var out: Array = []

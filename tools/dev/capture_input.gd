@@ -115,6 +115,36 @@ func _go() -> void:
 	print("[in] card index %d->%d  pos %s->%s" % [idx_before, card0.get_index(), str(pos_before), str(card0.global_position)])
 	print("[in] HOVER FLICKER (fixed cursor, 30 frames): enter=%d exit=%d" % [counts.enter, counts.exit])
 
+	# --- DRAG&DROP: drag a card up onto the arena -> it becomes selected ---
+	var c2: Control = cards[2]
+	var start := _center(c2)
+	_motion(start)
+	await _frames(2)
+	var dwn := InputEventMouseButton.new()
+	dwn.button_index = MOUSE_BUTTON_LEFT
+	dwn.pressed = true
+	dwn.position = start
+	dwn.global_position = start
+	dwn.button_mask = MOUSE_BUTTON_MASK_LEFT
+	Input.parse_input_event(dwn)
+	await _frames(2)
+	for stp in 8:
+		_motion(start + Vector2(0, -30.0 * (stp + 1)))
+		await _frames(2)
+	var up := InputEventMouseButton.new()
+	up.button_index = MOUSE_BUTTON_LEFT
+	up.pressed = false
+	up.position = start + Vector2(0, -240)
+	up.global_position = start + Vector2(0, -240)
+	Input.parse_input_event(up)
+	await _frames(6)
+	print("[in] drag-select onto arena: selected=%d (expected 1)" % combat._selected.size())
+	await _shoot("06_drag")
+	combat._selected.clear()
+	combat._refresh_card_styles()
+	combat._update_selection_ui()
+	await _frames(4)
+
 	# --- play the WHOLE fight with real clicks until we win ---
 	var guard := 0
 	while guard < 90:

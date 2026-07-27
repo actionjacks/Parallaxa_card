@@ -160,6 +160,7 @@ static func set_selected(panel: PanelContainer, on: bool) -> void:
 		sb.bg_color = BG
 		sb.set_border_width_all(2)
 	panel.set_meta("base_scale", Vector2(1.1, 1.1) if on else Vector2.ONE)
+	panel.set_meta("sel", on)   # HandFan half-raises selected cards (the staged play)
 	var t := panel.create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	t.tween_property(panel, "scale", panel.get_meta("base_scale"), 0.10)
 
