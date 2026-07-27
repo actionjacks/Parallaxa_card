@@ -38,6 +38,13 @@ const ACH_ARCANA := {
 }
 const ACH_ORDER := ["ACH_DEATH_FLUSH", "ACH_UNTOUCHED", "ACH_OVERKILL", "ACH_MISER", "ACH_JOURNEY"]
 
+## The TAROCISTA: the player's persistent reader-of-cards persona. Every won duel pays XP; levels
+## grant a rank title and a small Sol stipend (prestige, not power -- difficulty stays honest).
+const RANKS := ["TAROT_RANK_1", "TAROT_RANK_2", "TAROT_RANK_3", "TAROT_RANK_4",
+	"TAROT_RANK_5", "TAROT_RANK_6", "TAROT_RANK_7", "TAROT_RANK_8"]
+const RANK_LEVELS := [1, 3, 5, 8, 12, 17, 23, 30]   ## level at which each rank begins
+const LEVELUP_SOL := 10
+
 var sol: int = 0
 var wins: int = 0
 var best_veil: int = -1            ## highest Veil beaten; -1 = never won
@@ -46,6 +53,13 @@ var owned_decks: Array = []        ## SHOP_DECKS ids bought with Sol
 var selected_deck: String = "classic"
 var owned_arcana: Array = []       ## SHOP_ARCANA ids bought with Sol (join the boss offer pool)
 var starter_editions: Dictionary = {}   ## "deckid:index" -> CardData.Edition (permanent)
+var level: int = 1
+var xp: int = 0                    ## progress INTO the current level
+var life: Dictionary = {}          ## lifetime statistics ledger (see LIFE_KEYS)
+
+## Lifetime stat keys, in display order (values are ints; missing = 0).
+const LIFE_KEYS := ["runs", "wins", "deaths", "fights", "elites", "bosses",
+	"damage", "best_hit", "turns", "sol_earned", "arcana", "reversed"]
 
 func _ready() -> void:
 	load_profile()
@@ -97,6 +111,77 @@ func check_run_achievements(victory: bool) -> Array:
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
 	return fresh
+
+# ---------------------------------------------------------------- tarocista (XP / levels / life)
+
+func life_stat(key: String) -> int:
+	return int(life.get(key, 0))
+
+func _life_add(key: String, amount: int) -> void:
+	life[key] = life_stat(key) + amount
+
+func _life_max(key: String, value: int) -> void:
+	life[key] = maxi(life_stat(key), value)
+
+## XP needed to finish the given level (a gentle ramp; no cap -- the reader keeps reading).
+static func xp_to_next(lv: int) -> int:
+	return 100 + (lv - 1) * 60
+
+## XP one won duel pays: deeper regions pay more, elites double, bosses triple.
+static func fight_xp(is_boss: bool, is_elite: bool, region_index: int) -> int:
+	var base := 8 + 4 * region_index
+	if is_boss:
+		return base * 3
+	if is_elite:
+		return base * 2
+	return base
+
+## Grant XP; returns the number of levels gained (each pays LEVELUP_SOL Sol). Saved by callers
+## via record_run_end/save_profile -- mid-run grants persist with the next profile write.
+func add_xp(amount: int) -> int:
+	xp += amount
+	var gained := 0
+	while xp >= xp_to_next(level):
+		xp -= xp_to_next(level)
+		level += 1
+		gained += 1
+		sol += LEVELUP_SOL
+	if gained > 0:
+		changed.emit()
+	return gained
+
+## The tarocista's current rank title key.
+func rank_key() -> String:
+	var out: String = RANKS[0]
+	for i in RANKS.size():
+		if level >= RANK_LEVELS[i]:
+			out = RANKS[i]
+	return out
+
+## End-of-run ledger: folds the run's statistics into the lifetime ledger and pays the run-end
+## XP bonus. Called EXACTLY once per run end (the spread screen). Returns {"xp": int, "levels": int}.
+func record_run_end(victory: bool) -> Dictionary:
+	_life_add("runs", 1)
+	_life_add("wins", 1 if victory else 0)
+	_life_add("deaths", 0 if victory else 1)
+	_life_add("fights", RunState.fights_won)
+	_life_add("elites", RunState.stat_elites_slain)
+	_life_add("bosses", RunState.stat_regions_cleared)
+	_life_add("damage", RunState.stat_damage_total)
+	_life_max("best_hit", RunState.stat_best_hit)
+	_life_add("turns", RunState.stat_turns_total)
+	_life_add("sol_earned", RunState.stat_sol_earned)
+	_life_add("arcana", RunState.relics.size())
+	var reversed_count := 0
+	for a: ArcanumData in RunState.relics:
+		if a.is_reversed:
+			reversed_count += 1
+	_life_add("reversed", reversed_count)
+	var bonus := (100 + 10 * RunState.veil) if victory else 15
+	var levels := add_xp(bonus)
+	save_profile()
+	changed.emit()
+	return {"xp": bonus, "levels": levels}
 
 func buy_deck(id: String) -> bool:
 	if owned_decks.has(id) or not SHOP_DECKS.has(id) or sol < DECK_COST:
@@ -182,6 +267,9 @@ func save_profile() -> void:
 	cf.set_value("meta", "selected_deck", selected_deck)
 	cf.set_value("meta", "owned_arcana", owned_arcana)
 	cf.set_value("meta", "starter_editions", starter_editions)
+	cf.set_value("meta", "level", level)
+	cf.set_value("meta", "xp", xp)
+	cf.set_value("meta", "life", life)
 	cf.save(_path())
 
 func load_profile() -> void:
@@ -211,3 +299,6 @@ func load_profile() -> void:
 	selected_deck = cf.get_value("meta", "selected_deck", "classic")
 	owned_arcana = cf.get_value("meta", "owned_arcana", [])
 	starter_editions = cf.get_value("meta", "starter_editions", {})
+	level = cf.get_value("meta", "level", 1)
+	xp = cf.get_value("meta", "xp", 0)
+	life = cf.get_value("meta", "life", {})

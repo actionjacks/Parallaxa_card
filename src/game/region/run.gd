@@ -40,6 +40,8 @@ var _last_interest: int = 0
 var _last_thrift: int = 0
 var _last_overkill: int = 0       ## Mercury from the killing blow's excess (shown once)
 var _last_tax: int = 0            ## reversed-Arcana tax paid after the fight (shown once)
+var _last_xp: int = 0             ## tarocista XP from the last won duel (shown once)
+var _last_levels: int = 0         ## levels gained by that XP (celebrated once)
 var _fight_elite: bool = false    ## the CURRENT encounter is the region's elite (map fork)
 var _elite_boost: bool = false    ## elite won -> the next card offers roll with boosted rarity
 var _veil_label: Label
@@ -334,8 +336,13 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 	if _last_tax > 0:
 		RunState.rtec = maxi(0, RunState.rtec - _last_tax)
 	RunState.fights_won += 1
+	# The tarocista reads on: every won duel pays XP (elites double, bosses triple, depth scales).
+	var is_boss := RunState.step >= RunState.fights.size() and not was_elite
+	_last_xp = Profile.fight_xp(is_boss, was_elite, RunState.region_index)
+	_last_levels = Profile.add_xp(_last_xp)
 	if was_elite:
 		RunState.elite_taken = true
+		RunState.stat_elites_slain += 1
 		_elite_boost = true   # the elite's prize: this rung's card offers roll with boosted rarity
 	if RunState.step >= RunState.fights.size():
 		RunState.stat_regions_cleared += 1
@@ -427,6 +434,13 @@ func _add_econ_hints(root: VBoxContainer) -> void:
 		var t := _label_center(tr("REWARD_TAX") % _last_tax, 15, Color(0.9, 0.45, 0.45))
 		root.add_child(t)
 		_last_tax = 0
+	if _last_xp > 0:
+		root.add_child(_hint(tr("XP_GAINED") % _last_xp))
+		_last_xp = 0
+	if _last_levels > 0:
+		root.add_child(_label_center(tr("XP_LEVEL_UP") % [Profile.level, tr(Profile.rank_key())],
+			16, Color(0.95, 0.85, 0.5)))
+		_last_levels = 0
 
 ## Veil IV (Greedy Market): every shop service costs +2.
 func _cost(base: int) -> int:
@@ -776,7 +790,8 @@ func _show_spread(victory: bool) -> void:
 	if victory:
 		Profile.record_victory(RunState.veil)
 	var fresh: Array = Profile.check_run_achievements(victory)
-	var s := SpreadScreen.build(victory, fresh)
+	var progress: Dictionary = Profile.record_run_end(victory)   # lifetime ledger + run-end XP
+	var s := SpreadScreen.build(victory, fresh, progress)
 	s.new_run.connect(_restart_run)
 	s.repeat_run.connect(_repeat_fate)
 	s.to_menu.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))

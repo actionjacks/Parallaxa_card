@@ -44,6 +44,7 @@ var stat_untouched_fights: int = 0    ## fights WON with zero damage taken (incl
 var stat_death_flush_kill: bool = false  ## killing blow was a 5-card mono-Death flush-family hand
 var stat_max_rtec: int = 0            ## highest Mercury ever held this run
 var stat_sol_earned: int = 0          ## set exactly once by the spread screen
+var stat_elites_slain: int = 0        ## elite forks won this run
 
 ## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
 ## Seeded per run so "Repeat this fate" replays the exact same offers under the same choices.
@@ -89,6 +90,7 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	stat_death_flush_kill = false
 	stat_max_rtec = 0
 	stat_sol_earned = 0
+	stat_elites_slain = 0
 	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
 	fights = []
 	if region != null:
@@ -306,6 +308,7 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "st_untouched", stat_untouched_fights)
 	cf.set_value("run", "st_flush", stat_death_flush_kill)
 	cf.set_value("run", "st_maxrtec", stat_max_rtec)
+	cf.set_value("run", "st_elites", stat_elites_slain)
 	var relic_entries: Array = []
 	for a in relics:
 		relic_entries.append({"p": a.source_path if a.source_path != "" else a.resource_path, "r": a.is_reversed})
@@ -359,6 +362,7 @@ func load_run() -> String:
 	# Merge, never stomp: a pre-update save has no st_maxrtec, but the rtec setter above already
 	# derived the provable high-water mark from the loaded Mercury.
 	stat_max_rtec = maxi(stat_max_rtec, cf.get_value("run", "st_maxrtec", 0))
+	stat_elites_slain = cf.get_value("run", "st_elites", 0)
 	stat_sol_earned = 0
 	relics = []
 	for entry in cf.get_value("run", "relics", []):

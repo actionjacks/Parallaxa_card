@@ -525,3 +525,30 @@ PICK_TWIN,Pick a card to TWIN,Wybierz kartę do ZDWOJENIA
 ARCANUM_CESARZA_BLURB,Defense: every play builds block.,Obrona: każde zagranie daje blok.
 ARCANUM_RYDWANU_BLURB,Aggro: Mind hands hit harder.,Agresja: układy Umysłu biją mocniej.
 LOG_DECK_ASHES,The deck burned itself to ash.,Talia spłonęła na popiół.
+MENU_CHARACTER,Tarot Reader,Tarocista
+CHAR_TITLE,THE TAROT READER,TAROCISTA
+CHAR_LEVEL,Level %d,Poziom %d
+CHAR_XP,%d / %d XP,%d / %d PD
+CHAR_STATS,The Ledger of Readings,Księga Odczytań
+XP_GAINED,Experience: +%d,Doświadczenie: +%d
+XP_LEVEL_UP,LEVEL %d — %s!,POZIOM %d — %s!
+TAROT_RANK_1,Fairground Fortune-Teller,Wróżbita Jarmarczny
+TAROT_RANK_2,Student of the Cards,Uczeń Kart
+TAROT_RANK_3,Reader of Fates,Czytacz Losów
+TAROT_RANK_4,Tarot Reader,Tarocista
+TAROT_RANK_5,Master of Spreads,Mistrz Rozkładów
+TAROT_RANK_6,Chosen of the Arcana,Wybraniec Arkanów
+TAROT_RANK_7,Voice of Fate,Głos Fatum
+TAROT_RANK_8,Arch-Tarocist,Arcytarocista
+LIFE_RUNS,Journeys begun,Rozpoczęte podróże
+LIFE_WINS,Journeys completed,Ukończone podróże
+LIFE_DEATHS,Deaths,Śmierci
+LIFE_FIGHTS,Duels won,Wygrane pojedynki
+LIFE_ELITES,Elites felled,Powalone elity
+LIFE_BOSSES,Arcana defeated,Pokonane Arkana
+LIFE_DAMAGE,Total damage dealt,Łączne zadane obrażenia
+LIFE_BEST_HIT,Greatest single blow,Największy pojedynczy cios
+LIFE_TURNS,Turns played,Rozegrane tury
+LIFE_SOL_EARNED,Salt earned,Zdobyta Sól
+LIFE_ARCANA,Arcana carried,Niesione Arkana
+LIFE_REVERSED,Reversed pacts taken,Przyjęte odwrócone pakty

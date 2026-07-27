@@ -11,13 +11,13 @@ signal to_menu
 const CARD_W := 124.0
 const CARD_H := 215.0
 
-static func build(victory: bool, fresh_achievements: Array) -> SpreadScreen:
+static func build(victory: bool, fresh_achievements: Array, progress: Dictionary = {}) -> SpreadScreen:
 	var s := SpreadScreen.new()
 	s.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	s._build(victory, fresh_achievements)
+	s._build(victory, fresh_achievements, progress)
 	return s
 
-func _build(victory: bool, fresh: Array) -> void:
+func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 	var title := _lbl(tr("SPREAD_WIN") if victory else tr("SPREAD_LOSS"), 42,
 		Color(0.95, 0.85, 0.5) if victory else Color(0.9, 0.4, 0.4))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -103,6 +103,11 @@ func _build(victory: bool, fresh: Array) -> void:
 		tr("SPREAD_SALT") % RunState.stat_sol_earned,
 	]:
 		sv.add_child(_lbl(line, 15, Color(0.78, 0.78, 0.85)))
+	# The tarocista's progress: run-end XP, and the fanfare line when a level fell.
+	if int(progress.get("xp", 0)) > 0:
+		sv.add_child(_lbl(tr("XP_GAINED") % int(progress["xp"]), 14, Color(0.72, 0.62, 0.85)))
+	if int(progress.get("levels", 0)) > 0:
+		sv.add_child(_lbl(tr("XP_LEVEL_UP") % [Profile.level, tr(Profile.rank_key())], 15, Color(0.95, 0.85, 0.5)))
 	for id: String in fresh:
 		sv.add_child(_lbl(tr("ACH_UNLOCKED") % tr(id), 14, Color(0.95, 0.85, 0.5)))
 	add_child(stats)

@@ -90,6 +90,15 @@ func _go() -> void:
 		var cl = _button_with("COMMON_CLOSE")
 		if cl != null:
 			await _click(_center(cl))
+	await _frames(5)
+	var chr = _button_with("MENU_CHARACTER")
+	if chr != null:
+		await _click(_center(chr))
+		await _frames(10)
+		await _shoot("06_character")
+		var cl2 = _button_with("COMMON_CLOSE")
+		if cl2 != null:
+			await _click(_center(cl2))
 	menu.queue_free()
 	await _frames(5)
 

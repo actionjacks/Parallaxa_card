@@ -184,8 +184,10 @@ static func _build_plain_face(panel: PanelContainer, card: CardData, col: Color)
 static func _on_hover(panel: PanelContainer, entering: bool) -> void:
 	# Draw above neighbours WITHOUT reordering the container. move_to_front() would move the card
 	# to the end of the HBox, so it jumps out from under the cursor -> exit -> back -> flicker.
-	panel.z_index = 1 if entering else 0
-	var target: Vector2 = panel.get_meta("base_scale") * (1.15 if entering else 1.0)
+	panel.z_index = 2 if entering else 0
+	# Hand cards opt into a bigger, readable grow (HandFan sets "hover_scale"); grids stay subtle.
+	var grow: float = panel.get_meta("hover_scale", 1.15)
+	var target: Vector2 = panel.get_meta("base_scale") * (grow if entering else 1.0)
 	var t := panel.create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	t.tween_property(panel, "scale", target, 0.10)
 

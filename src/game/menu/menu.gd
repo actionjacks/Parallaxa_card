@@ -66,6 +66,7 @@ func _ready() -> void:
 	cont.disabled = not RunState.has_run_save()
 	col.add_child(cont)
 	col.add_child(_menu_btn(tr("MENU_COLLECTION"), _open_collection))
+	col.add_child(_menu_btn(tr("MENU_CHARACTER"), _open_character))
 	col.add_child(_menu_btn(tr("MENU_OPTIONS"), _open_options))
 	col.add_child(_menu_btn(tr("MENU_QUIT"), func() -> void: get_tree().quit()))
 
@@ -202,6 +203,100 @@ func _open_options() -> void:
 		s.closed.connect(s.queue_free)
 	if s.has_method("open"):
 		s.open()
+
+# ---------------------------------------------------------------- character (the TAROCISTA)
+
+var _character: Control
+
+## The tarocista's sheet: portrait (the Hierophant -- the reader of mysteries), rank + level,
+## an XP bar, and the lifetime ledger of everything the cards have witnessed.
+func _open_character() -> void:
+	if _character != null:
+		return
+	_character = Control.new()
+	_character.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.88)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_character.add_child(dim)
+	var wrap := CenterContainer.new()
+	wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_character.add_child(wrap)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 36)
+	wrap.add_child(row)
+
+	# --- left: the persona ---
+	var left := VBoxContainer.new()
+	left.alignment = BoxContainer.ALIGNMENT_CENTER
+	left.add_theme_constant_override("separation", 8)
+	row.add_child(left)
+	var portrait := TextureRect.new()
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	portrait.texture = load("res://assets/cards/arcana/05_hierophant.jpg")
+	portrait.custom_minimum_size = Vector2(220, 381)
+	left.add_child(portrait)
+	var name_l := _lbl(tr("CHAR_TITLE"), 24, Color(0.95, 0.9, 0.75))
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left.add_child(name_l)
+	var rank_l := _lbl(tr(Profile.rank_key()), 17, Color(0.72, 0.62, 0.85))
+	rank_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left.add_child(rank_l)
+	var lv_l := _lbl(tr("CHAR_LEVEL") % Profile.level, 15, Color(0.8, 0.8, 0.86))
+	lv_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left.add_child(lv_l)
+	# XP bar toward the next level
+	var need := Profile.xp_to_next(Profile.level)
+	var bar := ProgressBar.new()
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(220, 16)
+	bar.max_value = need
+	bar.value = Profile.xp
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.06, 0.06, 0.09)
+	bg.set_corner_radius_all(3)
+	var fg := StyleBoxFlat.new()
+	fg.bg_color = Color(0.72, 0.62, 0.85)
+	fg.set_corner_radius_all(3)
+	bar.add_theme_stylebox_override("background", bg)
+	bar.add_theme_stylebox_override("fill", fg)
+	left.add_child(bar)
+	var xp_l := _lbl(tr("CHAR_XP") % [Profile.xp, need], 13, Color(0.6, 0.6, 0.68))
+	xp_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	left.add_child(xp_l)
+
+	# --- right: the lifetime ledger ---
+	var sbx := StyleBoxFlat.new()
+	sbx.bg_color = Color(0.09, 0.085, 0.12)
+	sbx.set_border_width_all(2)
+	sbx.border_color = Color(0.45, 0.4, 0.55)
+	sbx.set_corner_radius_all(4)
+	for side in ["left", "top", "right", "bottom"]:
+		sbx.set("content_margin_" + side, 18)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", sbx)
+	panel.custom_minimum_size = Vector2(420, 0)
+	row.add_child(panel)
+	var sv := VBoxContainer.new()
+	sv.add_theme_constant_override("separation", 7)
+	panel.add_child(sv)
+	sv.add_child(_lbl(tr("CHAR_STATS"), 20, Color(0.93, 0.89, 0.8)))
+	for key: String in Profile.LIFE_KEYS:
+		var line := HBoxContainer.new()
+		sv.add_child(line)
+		var kl := _lbl(tr("LIFE_" + key.to_upper()), 14, Color(0.72, 0.74, 0.82))
+		kl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(kl)
+		line.add_child(_lbl(str(Profile.life_stat(key)), 14, Color(0.92, 0.88, 0.8)))
+	sv.add_child(_lbl(tr("VEIL_BEST") % maxi(Profile.best_veil, 0), 13, Color(0.72, 0.55, 0.9)))
+	sv.add_child(_lbl(tr("META_SOL") % Profile.sol, 13, Color(0.9, 0.85, 0.6)))
+	var close := _menu_btn(tr("COMMON_CLOSE"), func() -> void:
+		_character.queue_free()
+		_character = null)
+	sv.add_child(close)
+	add_child(_character)
 
 # ---------------------------------------------------------------- collection
 

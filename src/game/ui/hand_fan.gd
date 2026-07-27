@@ -1,19 +1,24 @@
 class_name HandFan
 extends Control
-## Hearthstone-style hand: children (CardWidget panels) are laid out on an arc -- rotated by their
-## distance from the centre, dipped towards the edges. The container NEVER fights the layout back
-## (plain Control), so scale/hover animations stay safe. relayout() tweens every card to its slot,
-## which also gives the "hand closes the gap" feel after a card is played (fly-outs are reparented
-## away by combat, so the remaining cards glide together).
-## Hovered cards straighten and rise; selected cards (meta "sel" from CardWidget.set_selected)
-## stay half-raised so the staged play reads at a glance.
+## Arena-style hand: children (CardWidget panels) overlap in a flat, gently tilted row at the
+## bottom of the screen (MTG Arena look) -- the container NEVER fights the layout back (plain
+## Control), so scale/hover animations stay safe. relayout() tweens every card to its slot, which
+## also gives the "hand closes the gap" feel after a card is played (fly-outs are reparented away
+## by combat, so the remaining cards glide together).
+## Hovered cards straighten, rise and GROW (readable at a glance, neighbours stay put); selected
+## cards (meta "sel" from CardWidget.set_selected) stay half-raised so the staged play reads.
 
-const SPACING_MAX := 88.0
-const ARC_ROT_STEP := 3.5        ## degrees of tilt per slot away from the centre
-const ARC_DIP := 5.0             ## vertical dip per slot^1.5 towards the edges
-const RAISE_HOVER := 30.0
+const SPACING_MAX := 74.0        ## < card width: neighbours overlap like a held hand
+const ARC_ROT_STEP := 1.8        ## degrees of tilt per slot away from the centre (subtle)
+const ARC_DIP := 3.0             ## vertical dip per slot^1.5 towards the edges
+## Hover does NOT lift the card: it GROWS from its bottom edge (pivot bottom-centre), so the
+## point under the cursor never leaves the card -- the enter/exit flicker cannot happen. The
+## visual "rise" comes from the scale alone (the top edge climbs ~50 px at 1.45x), Arena-style.
+const RAISE_HOVER := 0.0
 const RAISE_SELECTED := 18.0
 const CARD_W := 80.0
+const CARD_H := 112.0
+const HOVER_SCALE := 1.45        ## the hovered card grows enough to read everything
 
 var _tweens: Dictionary = {}     ## child -> its slot tween (killed on retarget)
 
@@ -37,6 +42,10 @@ func relayout(animated: bool = true) -> void:
 		var panel: Control = cards[i]
 		if not panel.has_meta("fan_hooked"):
 			panel.set_meta("fan_hooked", true)
+			# Hand cards grow more on hover than grid cards, from the bottom-centre (upward),
+			# so the enlarged face never dives under the screen edge.
+			panel.set_meta("hover_scale", HOVER_SCALE)
+			panel.pivot_offset = Vector2(CARD_W * 0.5, CARD_H)
 			panel.mouse_entered.connect(_on_child_hover.bind(panel, true))
 			panel.mouse_exited.connect(_on_child_hover.bind(panel, false))
 		var c := float(i) - float(n - 1) / 2.0
