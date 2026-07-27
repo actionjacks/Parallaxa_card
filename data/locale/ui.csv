@@ -315,7 +315,7 @@ OMEN_SKIP,Leave it,Zostaw
 OMEN_STAR,The Star,Gwiazda
 OMEN_STAR_DESC,Hope restores +10 HP.,Nadzieja przywraca +10 HP.
 OMEN_WHEEL,Wheel of Fortune,Koło Fortuny
-OMEN_WHEEL_DESC,The wheel turns: +4 ☿.,Koło się obraca: +4 ☿.
+OMEN_WHEEL_DESC,"The Wheel pays +6 ☿ now — but the NEXT duel hits +2 harder on every blow.","Koło płaci +6 ☿ teraz — lecz NASTĘPNY pojedynek bije +2 mocniej każdym ciosem."
 OMEN_HANGED,The Hanged Man,Wisielec
 OMEN_HANGED_DESC,"Sacrifice: -5 HP, +8 ☿.","Poświęcenie: -5 HP, +8 ☿."
 OMEN_JUSTICE,Justice,Sprawiedliwość
@@ -633,3 +633,38 @@ ACH_WIN_ORACLE,Oracle's Proof,Dowód Wyroczni
 ACH_WIN_ORACLE_DESC,Win the Journey with Oracle's Gambit.,Wygraj Podróż Gambitem Wyroczni.
 ACH_LEVEL10,Seasoned Reader,Wprawiony Tarocista
 ACH_LEVEL10_DESC,Reach Tarocista level 10.,Osiągnij 10. poziom Tarocisty.
+ENEMY_NOWICJUSZ,"Page of Cups, Pale Novice","Paź Kielichów, Blady Nowicjusz"
+ENEMY_PRZEBITY,"Ten of Swords, the Pierced","Dziesiątka Mieczy, Przebity"
+OMEN_GIFT,Accept the gift,Przyjmij dar
+ELITE_INLINE,"Elite: %d HP, fury +%d — loot of higher rarity","Elita: %d HP, szał +%d — łup wyższej rzadkości"
+MAP_STEP_LOOT,-> card + shop,-> karta + sklep
+MAP_STEP_BOSS,field rule — hover,reguła pola — najedź
+ED_SUMMARY,Foil +15 chips · Holo +2 Mult · Polychrome x1.3 Mult,Foliowana +15 chipsów · Holo +2 Mult · Polichromia x1.3 Mult
+COCKPIT_ENEMY,Foe: %d -> %d,Wróg: %d -> %d
+COCKPIT_YOU,Hit %d − block %d -> You %d -> %d,Cios %d − blok %d -> Ty %d -> %d
+REST_TELEGRAPH,NEXT: THE FOE RESTS — strike now!,POTEM: WRÓG ODPOCZYWA — uderz teraz!
+WINDUP_TELEGRAPH,Next: %d — winding up!,Potem: %d — zamierza się!
+ENRAGE_TAG,fury: +%d per turn,szał: +%d na turę
+COVENANT_LINE_3,Delay feeds the fury — past the first cycle every turn adds strength.,Zwłoka karmi szał — po pierwszym cyklu każda tura dodaje siły.
+TIP_DISCARDS,Discards renew every turn — trade freely.,Odrzuty odnawiają się co turę — wymieniaj śmiało.
+TIP_DECK_ORDER,The deck returns in PLAYED order — never shuffled. Count your cards.,Talia wraca w ZAGRANEJ kolejności — bez tasowania. Licz swoje karty.
+HEAL_POOL_TIP,"Shared healing limit for THIS fight (cards + relics + leech). Tower and World halve it.","Wspólny limit leczenia na TĘ walkę (karty + relikty + pijawka). Wieża i Świat go połowią."
+DECK_TIP,"Draw pile / grave. The grave returns to the deck in played order — no shuffle.","Talia / grób. Grób wraca do talii w zagranej kolejności — bez tasowania."
+NEXT_DRAWS,Next:,Następne:
+PAYTABLE_TITLE,Hands,Układy
+PAYTABLE_TOGGLE,Hands,Układy
+COMBAT_PLAY_N,Play (%d),Zagraj (%d)
+COURT_LEGEND,P=Page R=Knight Q=Queen K=King,P=Paź R=Rycerz Q=Królowa K=Król
+INSPECT_ALLIES,Allies: %s and %s,Sojusznicy: %s i %s
+ACH_FIRST_WIN,First Blood,Pierwsza Krew
+ACH_FIRST_WIN_DESC,Win your first duel.,Wygraj swój pierwszy pojedynek.
+ACH_FIRST_SHOP,First Purchase,Pierwszy Zakup
+ACH_FIRST_SHOP_DESC,Spend Mercury in the shop.,Wydaj Rtęć w sklepie.
+ACH_FIRST_FLUSH,First Flush,Pierwszy Kolor
+ACH_FIRST_FLUSH_DESC,Score a flush-family hand.,Zagraj układ z rodziny Koloru.
+ACH_FIRST_STAR,First Star,Pierwsza Gwiazda
+ACH_FIRST_STAR_DESC,Level a poker hand with a Star.,Ulepsz układ pokerowy Gwiazdą.
+ACH_FIRST_OMEN,First Omen,Pierwszy Omen
+ACH_FIRST_OMEN_DESC,Accept an omen on the road.,Przyjmij omen na drodze.
+COLLECTION_ACH_HINT,Every fulfilled achievement pays +10 Salt.,Każde spełnione osiągnięcie płaci +10 Soli.
+RUN_RTEC_NAMED,%d ☿ Mercury,%d ☿ Rtęć

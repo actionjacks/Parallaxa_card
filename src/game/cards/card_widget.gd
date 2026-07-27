@@ -165,21 +165,91 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 		l.offset_bottom = -scrim_h + 17 + i * 14
 		layers.add_child(l)
 
-## Plain face (no historical suit art -- e.g. Nature): the readable text layout.
+## NATURE face: the fifth Aspect has no historical RWS suit, so it wears a DELIBERATE style
+## of its own (verdant gradient, double frame, diamond ornament) -- never an empty panel that
+## reads as a missing asset. Layout language matches the art faces (keyword on a bottom scrim).
 static func _build_plain_face(panel: PanelContainer, card: CardData, col: Color) -> void:
-	var vb := VBoxContainer.new()
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(vb)
-	vb.add_child(_lbl(card.rank_glyph(), 30, col))
-	vb.add_child(_lbl(TranslationServer.translate(Aspects.name_key(card.aspect)), 12, Color(0.72, 0.72, 0.78)))
+	var layers := Control.new()
+	layers.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(layers)
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.10, 0.17, 0.10))
+	grad.set_color(1, Color(0.05, 0.09, 0.05))
+	var gt := GradientTexture2D.new()
+	gt.gradient = grad
+	gt.fill_from = Vector2(0.5, 0.0)
+	gt.fill_to = Vector2(0.5, 1.0)
+	var bg := TextureRect.new()
+	bg.texture = gt
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(bg)
+	# inner frame + rotated diamond ornament (primitives: intentional, not placeholder)
+	var inner := Panel.new()
+	var isb := StyleBoxFlat.new()
+	isb.bg_color = Color(0, 0, 0, 0)
+	isb.set_border_width_all(1)
+	isb.border_color = Color(col, 0.55)
+	inner.add_theme_stylebox_override("panel", isb)
+	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	inner.offset_left = 4
+	inner.offset_top = 4
+	inner.offset_right = -4
+	inner.offset_bottom = -4
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(inner)
+	for i in 2:
+		var dia := Panel.new()
+		var dsb := StyleBoxFlat.new()
+		dsb.bg_color = Color(0, 0, 0, 0)
+		dsb.set_border_width_all(1)
+		dsb.border_color = Color(col, 0.5 - i * 0.2)
+		dia.add_theme_stylebox_override("panel", dsb)
+		dia.size = Vector2(34 + i * 14, 34 + i * 14)
+		dia.position = Vector2(40 - dia.size.x / 2.0, 52 - dia.size.y / 2.0)
+		dia.pivot_offset = dia.size * 0.5
+		dia.rotation_degrees = 45
+		dia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layers.add_child(dia)
+	var rank := _lbl(card.rank_glyph(), 30, col)
+	rank.position = Vector2(0, 34)
+	rank.size = Vector2(80, 36)
+	rank.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(rank)
+	var asp := _lbl(TranslationServer.translate(Aspects.name_key(card.aspect)), 11, Color(0.62, 0.74, 0.6))
+	asp.position = Vector2(0, 8)
+	asp.size = Vector2(80, 14)
+	asp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(asp)
+	# bottom scrim with keyword/edition -- same grammar as the illustrated faces
+	var lines: Array = []
 	if card.keyword != CardData.Keyword.NONE:
 		var txt := TranslationServer.translate(CardData.keyword_name_key(card.keyword))
 		if card.keyword_value > 0:
 			txt += " " + str(card.keyword_value)
-		vb.add_child(_lbl(txt, 12, col))
+		lines.append([txt, col])
 	if card.edition != CardData.Edition.NONE:
-		vb.add_child(_lbl("+ " + TranslationServer.translate(CardData.edition_name_key(card.edition)), 11, _ed_color(card.edition)))
+		lines.append(["+ " + TranslationServer.translate(CardData.edition_name_key(card.edition)), _ed_color(card.edition)])
+	if lines.is_empty():
+		return
+	var scrim_h := 6 + 14 * lines.size()
+	var scrim := ColorRect.new()
+	scrim.color = Color(0.03, 0.05, 0.03, 0.78)
+	scrim.anchor_top = 1.0
+	scrim.anchor_bottom = 1.0
+	scrim.anchor_right = 1.0
+	scrim.offset_top = -scrim_h
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(scrim)
+	for i in lines.size():
+		var l := _lbl(lines[i][0], 11, lines[i][1])
+		l.anchor_top = 1.0
+		l.anchor_bottom = 1.0
+		l.anchor_right = 1.0
+		l.offset_top = -scrim_h + 3 + i * 14
+		l.offset_bottom = -scrim_h + 17 + i * 14
+		layers.add_child(l)
 
 static func _on_hover(panel: PanelContainer, entering: bool) -> void:
 	# Draw above neighbours WITHOUT reordering the container. move_to_front() would move the card
@@ -194,7 +264,9 @@ static func _on_hover(panel: PanelContainer, entering: bool) -> void:
 static func set_selected(panel: PanelContainer, on: bool) -> void:
 	var sb: StyleBoxFlat = panel.get_meta("style")
 	if on:
-		sb.border_color = Color.WHITE
+		# GOLD, not white: white sinks into the pale edges of the 1909 scans -- the staged play
+		# must be countable at a glance.
+		sb.border_color = Color(0.98, 0.82, 0.35)
 		sb.bg_color = BG_SEL
 		sb.set_border_width_all(3)
 	else:
@@ -265,6 +337,8 @@ static func _ed_color(e: int) -> Color:
 
 static func _tooltip(card: CardData) -> String:
 	var t := TranslationServer.translate(Aspects.name_key(card.aspect))
+	if card.rank >= 11:
+		t += "  (" + TranslationServer.translate("COURT_LEGEND") + ")"
 	if card.keyword != CardData.Keyword.NONE:
 		var kw_key := CardData.keyword_name_key(card.keyword)
 		t += " - " + TranslationServer.translate(kw_key)

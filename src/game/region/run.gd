@@ -15,7 +15,7 @@ const MENU_SCENE := "res://src/game/menu/menu.tscn"
 const BUY_COST := 5
 const THIN_COST := 3
 const ENCHANT_COST := 5
-const STAR_COST := 7
+const STAR_COST := 8
 ## Hands a Star can level (the reachable ones).
 const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THREE,
 	Poker.Hand.STRAIGHT, Poker.Hand.FLUSH, Poker.Hand.FULL_HOUSE, Poker.Hand.FOUR]
@@ -120,6 +120,7 @@ func _build_shell() -> void:
 	_deck_label = _label("", 16, Color(0.75, 0.78, 0.85))
 	_relics_label = _label("", 16, Color(0.72, 0.62, 0.85))
 	_veil_label = _label("", 16, Color(0.72, 0.55, 0.9))
+	_veil_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	for l in [_hp_label, _rtec_label, _deck_label, _relics_label, _veil_label]:
 		sb.add_child(l)
 
@@ -132,10 +133,11 @@ func _update_status() -> void:
 	if _hp_label == null:
 		return   # RunState.changed can fire (begin/load) before the shell is built
 	_hp_label.text = tr("RUN_HP") % [RunState.player_hp, RunState.player_max_hp]
-	_rtec_label.text = tr("RUN_RTEC") % RunState.rtec
+	_rtec_label.text = tr("RUN_RTEC_NAMED" if Profile.life_stat("runs") < 3 else "RUN_RTEC") % RunState.rtec
 	_deck_label.text = tr("RUN_DECK") % RunState.deck.size()
 	_relics_label.text = tr("RUN_RELICS") % RunState.relics.size()
 	_veil_label.text = (tr("VEIL_BADGE") % RunState.veil) if RunState.veil > 0 else ""
+	_veil_label.tooltip_text = tr("VEIL_%d_DESC" % RunState.veil) if RunState.veil > 0 else ""
 	if _prev_hp != -1:   # pulse whatever changed (green up / red down) so the player sees why
 		if RunState.player_hp != _prev_hp:
 			_pulse_stat(_hp_label, RunState.player_hp > _prev_hp)
@@ -201,6 +203,17 @@ func _show_map() -> void:
 		var mark := "✓ " if i < RunState.step else ""
 		var enemy: EnemyData = (RunState.boss if RunState.boss != null else RunState.region.boss) if is_boss else RunState.fights[i]
 		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
+		if is_boss:
+			chip.tooltip_text = tr(enemy.rule_key) if enemy.rule_key != "" else ""
+			var rl := _label(tr("MAP_STEP_BOSS"), 10, Color(1.0, 0.7, 0.35))
+			rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			chip.get_child(0).add_child(rl)
+		else:
+			var sl := _label(tr("MAP_STEP_LOOT"), 10, Color(0.6, 0.64, 0.58))
+			sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			chip.get_child(0).add_child(sl)
 		ladder.add_child(chip)
 	root.add_child(ladder)
 
@@ -225,8 +238,10 @@ func _show_map() -> void:
 	go.custom_minimum_size = Vector2(160, 40)
 	ctrls.add_child(go)
 	# The fork: this region's ELITE -- a reversed court card guarding better loot. One per region,
-	# only at non-boss rungs. Risk is priced openly: name, reward hint, nothing hidden.
-	if RunState.region.elite != null and not RunState.elite_taken and RunState.step < RunState.fights.size():
+	# only at non-boss rungs. Priced INLINE (HP, enrage, loot), and locked on the very first rung
+	# of the journey -- a fork must be a live choice, not a newcomer trap.
+	var elite_ok := RunState.region.elite != null and not RunState.elite_taken 		and RunState.step < RunState.fights.size() 		and (RunState.step >= 1 or RunState.region_index >= 1 or RunState.depth > 0)
+	if elite_ok:
 		var el := _button(tr("MAP_ELITE") % tr(RunState.region.elite.name_key), _start_encounter.bind(true))
 		el.custom_minimum_size = Vector2(160, 40)
 		el.tooltip_text = tr("MAP_ELITE_TIP")
@@ -234,6 +249,8 @@ func _show_map() -> void:
 		ctrls.add_child(el)
 	ctrls.add_child(_button(tr("VIEW_DECK"), _view_deck))
 	root.add_child(ctrls)
+	if elite_ok:
+		root.add_child(_hint(tr("ELITE_INLINE") % [RunState.region.elite.max_hp, RunState.region.elite.enrage_step]))
 	_mount(root)
 
 func _relic_chip(a: ArcanumData) -> Control:
@@ -272,6 +289,8 @@ func _edition_desc(ed: int) -> String:
 		CardData.Edition.POLYCHROME: return tr("ED_POLYCHROME_DESC")
 	return ""
 
+## Fights advertise their aftermath (card + shop) and the boss carries its field rule -- the
+## map must show a dying player what the road ahead actually holds.
 func _node_chip(text: String, subtitle: String, current: bool, done: bool, is_boss: bool) -> PanelContainer:
 	var border := Color(0.9, 0.5, 0.3) if is_boss else Color(0.3, 0.35, 0.45)
 	if current:
@@ -303,9 +322,11 @@ func _current_enemy() -> EnemyData:
 func _start_encounter(elite: bool = false) -> void:
 	_fight_elite = elite
 	_statusbar.visible = false
+	var debt := RunState.omen_debt
+	RunState.omen_debt = 0   # the Wheel's bill is due exactly once, on the very next duel
 	var combat: Node = load(COMBAT_SCENE).instantiate()
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
-		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth)
+		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth, debt)
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
@@ -352,14 +373,9 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 		return
 	_last_rest = RunState.rest()   # recover between fights so the run isn't a one-HP knife-edge
 	_roll_omen()                   # the road reveals an omen; it waits on the map screen
-	if RunState.step == 0:
-		_show_reward()
-	else:
-		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3, _elite_boost)
-		_elite_boost = false
-		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
-		_shop_reroll_cost = 1
-		_show_shop()
+	# Balatro cadence: EVERY won fight pays out a card pick AND a shop visit -- the economy is
+	# the decision layer, so it must never hide behind the region's hardest pre-boss check.
+	_show_reward()
 
 # ---------------------------------------------------------------- REWARD
 
@@ -414,12 +430,17 @@ func _take_reward() -> void:
 	if _reward_pick >= 0:
 		RunState.add_card(_reward_cards[_reward_pick])
 		Sfx.play(&"coin", -6.0)
-	RunState.step += 1
-	_show_map()
+	_enter_shop()
 
 func _skip_reward() -> void:
-	RunState.step += 1
-	_show_map()
+	_enter_shop()
+
+## Fresh shop stock for this rung (reward always flows here; leaving the shop advances the run).
+func _enter_shop() -> void:
+	_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)
+	_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
+	_shop_reroll_cost = 1
+	_show_shop()
 
 ## One-shot economy hints (overkill / thrift / interest / reversed tax) shown after a fight.
 func _add_econ_hints(root: VBoxContainer) -> void:
@@ -492,6 +513,7 @@ func _show_shop() -> void:
 		eb.disabled = not can_ench
 		ench.add_child(eb)
 	root.add_child(ench)
+	root.add_child(_hint(tr("ED_SUMMARY")))
 
 	# --- Star: level a poker hand up for the rest of the run (the growth engine) ---
 	if _shop_star >= 0:
@@ -527,6 +549,7 @@ func _show_shop() -> void:
 
 func _buy(card: CardData) -> void:
 	if RunState.spend(_cost(BUY_COST)):
+		RunState.stat_bought += 1
 		RunState.add_card(card)
 		Sfx.play(&"coin", -4.0)
 		_show_shop()  # refresh prices / affordability
@@ -536,6 +559,7 @@ func _thin_deck() -> void:
 		return
 	var cb := func(card: CardData) -> void:
 		RunState.spend(_cost(THIN_COST))
+		RunState.stat_bought += 1
 		RunState.remove_card(card)
 		_show_shop()
 	_open_deck_picker(tr("PICK_REMOVE"), cb)
@@ -546,12 +570,15 @@ func _enchant(edition: CardData.Edition) -> void:
 	var cb := func(card: CardData) -> void:
 		card.edition = edition
 		RunState.spend(_cost(ENCHANT_COST))
+		RunState.stat_bought += 1
 		RunState.changed.emit()
 		_show_shop()
 	_open_deck_picker(tr("PICK_ENCHANT"), cb)
 
 func _buy_star() -> void:
 	if _shop_star >= 0 and RunState.spend(_cost(STAR_COST)):
+		RunState.stat_bought += 1
+		RunState.stat_star_used = true
 		RunState.level_up_hand(_shop_star)
 		Sfx.play(&"coin", -4.0, 1.2)
 		_shop_star = -1   # one Star per visit
@@ -927,11 +954,16 @@ func _omen_block() -> Control:
 	vb.add_child(_label(tr(_pending_omen.desc_key), 14, Color(0.72, 0.74, 0.82)))
 	var btns := HBoxContainer.new()
 	btns.add_theme_constant_override("separation", 10)
-	var take := _button(tr("OMEN_TAKE"), _accept_omen)
-	if _pending_omen.id == "hanged" and RunState.player_hp <= 5:
-		take.disabled = true   # the trade would kill you; the card refuses
-	btns.add_child(take)
-	btns.add_child(_button(tr("OMEN_SKIP"), _skip_omen))
+	# Pure gifts drop the fake Accept/Leave grammar -- a choice with no difference trains the
+	# player that on-screen choices are decorative. Real trades keep both buttons.
+	if _pending_omen.id in ["star", "temperance", "sun"]:
+		btns.add_child(_button(tr("OMEN_GIFT"), _accept_omen))
+	else:
+		var take := _button(tr("OMEN_TAKE"), _accept_omen)
+		if _pending_omen.id == "hanged" and RunState.player_hp <= 5:
+			take.disabled = true   # the trade would kill you; the card refuses
+		btns.add_child(take)
+		btns.add_child(_button(tr("OMEN_SKIP"), _skip_omen))
 	vb.add_child(btns)
 	return p
 
@@ -945,6 +977,7 @@ func _accept_omen() -> void:
 		Sfx.play(&"card_select", -8.0)
 		var cb := func(card: CardData) -> void:
 			_pending_omen = null
+			RunState.stat_omen_taken = true
 			RunState.remove_card(card)
 			_show_map()
 		_open_deck_picker(tr("PICK_REMOVE"), cb)
@@ -953,17 +986,22 @@ func _accept_omen() -> void:
 		Sfx.play(&"card_select", -8.0)
 		var twin := func(card: CardData) -> void:
 			_pending_omen = null
+			RunState.stat_omen_taken = true
 			RunState.add_card(card)
 			_show_map()
 		_open_deck_picker(tr("PICK_TWIN"), twin)
 		return
 	_pending_omen = null
+	RunState.stat_omen_taken = true
 	match id:
 		"star":
 			RunState.player_hp = mini(RunState.player_max_hp, RunState.player_hp + 10)
 			Sfx.play(&"heal", -6.0)
 		"wheel":
-			RunState.rtec += 4
+			# Push-your-luck: the Wheel pays NOW and bills the NEXT fight (+2 on every intent,
+			# folded into the intent label -- the preview never lies about the price).
+			RunState.rtec += 6
+			RunState.omen_debt = 2
 			Sfx.play(&"coin", -6.0)
 		"hanged":
 			RunState.player_hp -= 5

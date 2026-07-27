@@ -45,6 +45,8 @@ var fight_best_hit: int = 0
 var fight_best_hit_hand: int = 0
 var fight_best_hand: int = 0      ## highest Poker.Hand ordinal played this fight
 var kill_mono_death_flush: bool = false
+var flush_played: bool = false    ## any flush-family hand scored this fight (first-blood ach)
+var intent_debt: int = 0          ## Wheel omen's price: flat +N on every intent this fight
 
 var _draw: Array = []
 var _used: Array = []
@@ -53,7 +55,7 @@ var _plays: int = 0
 var _hand_history: Array = []     ## Poker.Hand per play this fight (Kombinat streaks)
 var _dmg_this_round: int = 0      ## damage dealt since the enemy last acted (Moon mend check)
 
-func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0) -> void:
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
@@ -62,6 +64,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	hand_levels = p_levels
 	veil = p_veil
 	depth = p_depth
+	intent_debt = p_debt
 	enemy_klatwa = 0
 	# Veil V bosses stand 15% taller; every Beyond depth adds +50% HP (computed here -- .tres
 	# are never mutated).
@@ -96,6 +99,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	fight_best_hit_hand = 0
 	fight_best_hand = 0
 	kill_mono_death_flush = false
+	flush_played = false
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -111,6 +115,8 @@ func _intent_at(idx: int) -> int:
 	var step := enemy.enrage_step + (1 if veil >= 3 else 0) + depth
 	var over := maxi(0, idx - n + 1)
 	var base := int(floor(enemy.intents[idx % n] * (1.0 + 0.35 * depth)))
+	if base > 0:
+		base += intent_debt   # the Wheel's price rides every real hit, preview-visible
 	return base + over * step
 
 func current_intent() -> int:
@@ -185,6 +191,8 @@ func play(selected: Array) -> void:
 	fight_damage += dmg
 	_dmg_this_round += dmg
 	fight_best_hand = maxi(fight_best_hand, int(result["hand"]))
+	if int(result["hand"]) in [Poker.Hand.FLUSH, Poker.Hand.STRAIGHT_FLUSH, Poker.Hand.MAGNUM_OPUS]:
+		flush_played = true
 	if dmg > fight_best_hit:
 		fight_best_hit = dmg
 		fight_best_hit_hand = int(result["hand"])
@@ -383,6 +391,40 @@ func _ctx() -> Dictionary:
 		"hand_history": _hand_history,
 		"heal_budget": heal_cap - heal_used,
 	}
+
+## The next N cards the deck WILL deal, in exact order (deterministic recycle included).
+## Powers the on-screen next-draws preview -- the covenant's planning layer made visible.
+func peek_draw(n: int) -> Array:
+	var out: Array = []
+	for c in _draw:
+		if out.size() >= n:
+			break
+		out.append(c)
+	if out.size() < n:
+		for c in _used:
+			if out.size() >= n:
+				break
+			out.append(c)
+	return out
+
+## EXACT damage the player will take on the coming enemy turn if the pending play adds
+## `extra_block` (cockpit line; mirrors resolve_enemy_turn's math to the point).
+func predicted_taken(extra_block: int = 0) -> int:
+	var incoming := current_intent()
+	if incoming <= 0:
+		return 0
+	var blk := 0 if _rule_ignores_block() else player_block + extra_block
+	var taken: int = maxi(0, incoming - blk)
+	if enemy != null and enemy.rule == EnemyData.Rule.CHARIOT_DOUBLE:
+		taken += incoming
+	taken += _pact_surcharge() + _curse_surcharge()
+	return taken
+
+## Effective enrage step (base + Veil III + depth) -- the visible clock label.
+func enrage_step_effective() -> int:
+	if enemy == null:
+		return 0
+	return enemy.enrage_step + (1 if veil >= 3 else 0) + depth
 
 func draw_count() -> int:
 	return _draw.size()

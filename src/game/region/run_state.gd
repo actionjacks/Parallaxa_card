@@ -61,6 +61,11 @@ var stat_elites_slain: int = 0        ## elite forks won this run
 var stat_death_foe: String = ""       ## who felled the player (EnemyData.name_key)
 var stat_death_turn: int = 0          ## on which combat turn
 var stat_death_cause: String = ""     ## "attack" | "pact" | "ashes"
+var stat_bought: int = 0              ## shop purchases this run (first-blood: FIRST_SHOP)
+var stat_flush_played: bool = false   ## any flush-family hand scored (FIRST_FLUSH)
+var stat_star_used: bool = false      ## a Star hand-level bought (FIRST_STAR)
+var stat_omen_taken: bool = false     ## any omen accepted (FIRST_OMEN)
+var omen_debt: int = 0                ## Wheel's push-your-luck: +N to every intent NEXT fight
 
 ## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
 ## Seeded per run so "Repeat this fate" replays the exact same offers under the same choices.
@@ -119,6 +124,11 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	stat_death_foe = ""
 	stat_death_turn = 0
 	stat_death_cause = ""
+	stat_bought = 0
+	stat_flush_played = false
+	stat_star_used = false
+	stat_omen_taken = false
+	omen_debt = 0
 	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
 	fights = []
 	if region != null:
@@ -223,6 +233,8 @@ func record_fight(won: bool, foe_key: String, c: CombatController) -> void:
 	stat_damage_total += c.fight_damage
 	stat_turns_total += c.turn
 	stat_best_hand = maxi(stat_best_hand, c.fight_best_hand)
+	if c.flush_played:
+		stat_flush_played = true
 	if c.fight_best_hit > stat_best_hit:
 		stat_best_hit = c.fight_best_hit
 		stat_best_hit_hand = c.fight_best_hit_hand
@@ -352,6 +364,11 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "st_flush", stat_death_flush_kill)
 	cf.set_value("run", "st_maxrtec", stat_max_rtec)
 	cf.set_value("run", "st_elites", stat_elites_slain)
+	cf.set_value("run", "st_bought", stat_bought)
+	cf.set_value("run", "st_flushp", stat_flush_played)
+	cf.set_value("run", "st_star", stat_star_used)
+	cf.set_value("run", "st_omen", stat_omen_taken)
+	cf.set_value("run", "omen_debt", omen_debt)
 	cf.set_value("run", "pure", pure_reading)
 	cf.set_value("run", "daily", daily_tag)
 	cf.set_value("run", "boss", boss.resource_path if boss != null else "")
@@ -414,6 +431,11 @@ func load_run() -> String:
 	# derived the provable high-water mark from the loaded Mercury.
 	stat_max_rtec = maxi(stat_max_rtec, cf.get_value("run", "st_maxrtec", 0))
 	stat_elites_slain = cf.get_value("run", "st_elites", 0)
+	stat_bought = cf.get_value("run", "st_bought", 0)
+	stat_flush_played = cf.get_value("run", "st_flushp", false)
+	stat_star_used = cf.get_value("run", "st_star", false)
+	stat_omen_taken = cf.get_value("run", "st_omen", false)
+	omen_debt = cf.get_value("run", "omen_debt", 0)
 	pure_reading = cf.get_value("run", "pure", false)
 	daily_tag = cf.get_value("run", "daily", "")
 	depth = cf.get_value("run", "depth", 0)

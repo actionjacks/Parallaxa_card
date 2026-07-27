@@ -133,6 +133,8 @@ func _play_fight(tag: String) -> void:
 		if not is_instance_valid(combat):
 			return
 		var c = combat.controller
+		if guard % 50 == 0:
+			_log("[bc]  dbg g=%d phase=%s hand=%d disc=%d ehp=%d" % [guard, str(c.phase), c.hand.size(), c.discards_left, c.enemy_hp])
 		if c.phase == "ended" or c.enemy_hp <= 0:
 			for w in 60:
 				if not is_instance_valid(combat):
@@ -149,9 +151,12 @@ func _play_fight(tag: String) -> void:
 			for i in c.hand.size():
 				if not best.has(i):
 					junk.append(i)
+			_log("[bc]  discard %d junk (best=%d)" % [mini(junk.size(), 5), best.size()])
 			for idx in junk.slice(0, 5):
-				if idx < kids.size():
+				if idx < kids.size() and is_instance_valid(kids[idx]):
 					await _click(_center(kids[idx]))
+			if not is_instance_valid(combat):
+				return
 			if not combat._discard_btn.disabled:
 				await _click(_center(combat._discard_btn))
 				await _frames(15)
@@ -341,7 +346,7 @@ func _go() -> void:
 			# spend like a player: hoarded Mercury converts into deck power
 			# Stars first (the growth engine), then cards, while rich
 			var star = _find(_rn, func(c): return c is Button \
-				and c.text == (tr("SHOP_STAR_BUY") % 7) and c.is_visible_in_tree() and not c.disabled)
+				and c.text == (tr("SHOP_STAR_BUY") % 8) and c.is_visible_in_tree() and not c.disabled)
 			if star != null and rs.rtec >= 10:
 				await _click(_center(star))
 				await _frames(12)

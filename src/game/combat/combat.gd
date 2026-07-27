@@ -14,6 +14,7 @@ var _max_hp: int = -1
 var _levels: Dictionary = {}
 var _veil: int = 0
 var _depth: int = 0
+var _debt: int = 0
 var _prev_klatwa: int = 0
 var _heartbeat: AudioStreamPlayer   ## enrage stem: owned here, never a stolen pool voice
 
@@ -68,8 +69,13 @@ var _prev_intent: int = -999
 var _prev_gnicie: int = 0
 var _prophecy: Control = null      ## the diegetic lethal stamp (built when a kill is foretold)
 var _prophecy_dmg: int = -1
+var _cockpit_label: Label          ## the whole turn's math in one line (E2 cockpit)
+var _enrage_label: Label           ## the visible enrage clock
+var _paytable: PanelContainer      ## always-available hand chart (E3)
+var _paytable_rows: Dictionary = {}   ## Poker.Hand -> Label
+var _next_wrap: HBoxContainer      ## deterministic next-draws preview
 
-func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
@@ -79,6 +85,7 @@ func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp
 	_levels = p_levels
 	_veil = p_veil
 	_depth = p_depth
+	_debt = p_debt
 
 func _ready() -> void:
 	if standalone:
@@ -93,7 +100,7 @@ func _ready() -> void:
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
-	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth, _debt)
 
 # ---------------------------------------------------------------- UI construction
 
@@ -110,7 +117,7 @@ func _build_ui() -> void:
 	add_child(margin)
 
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 14)
+	root.add_theme_constant_override("separation", 10)
 	margin.add_child(root)
 
 	# --- enemy panel ---
@@ -142,10 +149,12 @@ func _build_ui() -> void:
 	ev.add_child(_klatwa_label)
 	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
 	ev.add_child(_rule_label)
+	_enrage_label = _label("", 13, Color(1.0, 0.45, 0.4))
+	ev.add_child(_enrage_label)
 
 	# --- middle: relics + enemy emblem + score readout ---
 	var mid := VBoxContainer.new()
-	mid.add_theme_constant_override("separation", 8)
+	mid.add_theme_constant_override("separation", 6)
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(mid)
 	_relic_row = HBoxContainer.new()
@@ -163,6 +172,9 @@ func _build_ui() -> void:
 	_preview_extra = _label("", 16, Color(0.7, 0.85, 0.95))
 	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_extra)
+	_cockpit_label = _label("", 16, Color(0.85, 0.87, 0.9))
+	_cockpit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mid.add_child(_cockpit_label)
 	_breakdown_label = _label("", 13, Color(0.66, 0.72, 0.62))
 	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_breakdown_label)
@@ -182,11 +194,21 @@ func _build_ui() -> void:
 	_block_label = _label("", 16, Color(0.6, 0.8, 1.0))
 	prow.add_child(_block_label)
 	_heal_pool_label = _label("", 14, Color(0.55, 0.85, 0.6))
+	_heal_pool_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_heal_pool_label.tooltip_text = tr("HEAL_POOL_TIP")
 	prow.add_child(_heal_pool_label)
 	_turn_label = _label("", 16, Color(0.8, 0.8, 0.85))
 	prow.add_child(_turn_label)
 	_counters_label = _label("", 16, Color(0.62, 0.66, 0.74))
+	_counters_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_counters_label.tooltip_text = tr("DECK_TIP")
 	prow.add_child(_counters_label)
+	# Determinism on the table: the EXACT next draws (the covenant's planning layer, visible).
+	_next_wrap = HBoxContainer.new()
+	_next_wrap.add_theme_constant_override("separation", 4)
+	var nx := _label(tr("NEXT_DRAWS"), 13, Color(0.6, 0.64, 0.7))
+	_next_wrap.add_child(nx)
+	prow.add_child(_next_wrap)
 
 	# --- hand: a Hearthstone-style fan (todo.md), not a flat row ---
 	_hand_row = HandFan.new()
@@ -213,8 +235,14 @@ func _build_ui() -> void:
 	_discard_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_discard_btn.pressed.connect(_on_discard)
 	crow.add_child(_discard_btn)
+	var pt_btn := Button.new()
+	pt_btn.text = tr("PAYTABLE_TOGGLE")
+	pt_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	pt_btn.pressed.connect(_toggle_paytable)
+	crow.add_child(pt_btn)
 	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
 	crow.add_child(_help_label)
+	_build_paytable()
 
 	# The Fool stands on the player's side of the arena -- you ARE the card (Fool's Journey).
 	var fool := TextureRect.new()
@@ -283,19 +311,50 @@ func _render() -> void:
 	# one-step lookahead -- planning depth: save the burst for the telegraphed rest turn.
 	var intent := controller.intent_shown(controller.current_intent())
 	_intent_label.text = tr("COMBAT_INTENT") % intent
-	_next_intent_label.text = tr("COMBAT_INTENT_NEXT") % controller.intent_shown(controller.next_intent())
+	# Next-turn telegraph: a REST window is the game's tactical beat -- shout it, don't whisper.
+	var nxt := controller.intent_shown(controller.next_intent())
+	if controller.next_intent() == 0:
+		_next_intent_label.text = tr("REST_TELEGRAPH")
+		_next_intent_label.add_theme_font_size_override("font_size", 16)
+		_next_intent_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.4))
+	elif intent > 0 and nxt > int(intent * 1.4):
+		_next_intent_label.text = tr("WINDUP_TELEGRAPH") % nxt
+		_next_intent_label.add_theme_font_size_override("font_size", 15)
+		_next_intent_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+	else:
+		_next_intent_label.text = tr("COMBAT_INTENT_NEXT") % nxt
+		_next_intent_label.add_theme_font_size_override("font_size", 15)
+		_next_intent_label.add_theme_color_override("font_color", Color(0.85, 0.58, 0.52))
+	# The enrage clock, spoken: once the authored cycle ends, every turn feeds the fury.
+	if controller.enrage_cycles() >= 1:
+		_enrage_label.text = tr("ENRAGE_TAG") % controller.enrage_step_effective()
+		if not standalone and Profile.claim_once("covenant_enrage"):
+			_covenant_line(tr("COVENANT_LINE_3"))
+	else:
+		_enrage_label.text = ""
+	_enrage_label.visible = _enrage_label.text != ""
 	if _prev_intent != -999 and intent != _prev_intent:
 		_pulse(_intent_label)
 	_prev_intent = intent
+	# First-fight coaching, one line per moment, once per profile ever.
+	if not standalone and controller.phase == "player":
+		if controller.turn == 2 and Profile.claim_once("tip_discards"):
+			_covenant_line(tr("TIP_DISCARDS"))
+		elif controller.turn == 4 and Profile.claim_once("tip_deckorder"):
+			_covenant_line(tr("TIP_DECK_ORDER"))
+	_refresh_next_draws()
+	_refresh_cockpit(0, 0, false)
 	var pool_left := controller.heal_cap - controller.heal_used
 	_heal_pool_label.text = tr("COMBAT_HEAL_BUDGET") % [pool_left, controller.heal_cap]
 	_heal_pool_label.add_theme_color_override("font_color",
 		Color(0.5, 0.5, 0.55) if pool_left <= 0 else Color(0.55, 0.85, 0.6))
 	_gnicie_label.text = (tr("COMBAT_GNICIE") % controller.enemy_gnicie) if controller.enemy_gnicie > 0 else ""
+	_gnicie_label.visible = _gnicie_label.text != ""
 	if controller.enemy_gnicie > _prev_gnicie:
 		_pulse(_gnicie_label)
 	_prev_gnicie = controller.enemy_gnicie
 	_klatwa_label.text = (tr("COMBAT_KLATWA") % controller.enemy_klatwa) if controller.enemy_klatwa > 0 else ""
+	_klatwa_label.visible = _klatwa_label.text != ""
 	if controller.enemy_klatwa > _prev_klatwa:
 		_pulse(_klatwa_label)
 	_prev_klatwa = controller.enemy_klatwa
@@ -317,13 +376,14 @@ func _render() -> void:
 		_emblem_art.visible = true
 		_emblem_glyph.visible = false
 		# Sized to fit the 720p layout budget -- taller art pushed the hand/buttons off-screen.
-		_enemy_emblem.custom_minimum_size = Vector2(128, 222)
-		_enemy_emblem.pivot_offset = Vector2(64, 111)
+		_enemy_emblem.custom_minimum_size = Vector2(116, 201)
+		_enemy_emblem.pivot_offset = Vector2(58, 100)
 	else:
 		_emblem_glyph.add_theme_color_override("font_color", etint)
 		var en := tr(_enemy.name_key)
 		_emblem_glyph.text = en.substr(0, 1) if en.length() > 0 else "?"
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
+	_rule_label.visible = _rule_label.text != ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
 	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, controller.player_max_hp]
@@ -387,6 +447,115 @@ func _hide_card_preview() -> void:
 	if _preview_node != null and is_instance_valid(_preview_node):
 		_preview_node.queue_free()
 	_preview_node = null
+
+# ---------------------------------------------------------------- cockpit / paytable / next draws
+
+## The whole turn's survival math in ONE line. Without a selection: what the enemy will do to
+## you as-is. With one: your blow AND the counter-blow, both exact (the covenant, condensed).
+func _refresh_cockpit(eff_dmg: int, play_block: int, lethal: bool) -> void:
+	if _cockpit_label == null or controller == null:
+		return
+	var taken := controller.predicted_taken(play_block)
+	var hp_after: int = maxi(0, controller.player_hp - taken)
+	var you := tr("COCKPIT_YOU") % [controller.intent_shown(controller.current_intent()),
+		controller.player_block + play_block, controller.player_hp, hp_after]
+	if eff_dmg > 0:
+		var ehp_after: int = maxi(0, controller.enemy_hp - eff_dmg)
+		_cockpit_label.text = (tr("COCKPIT_ENEMY") % [controller.enemy_hp, ehp_after]) + "   |   " + you
+	else:
+		_cockpit_label.text = you
+	var col := Color(0.85, 0.87, 0.9)
+	if lethal:
+		col = Color(0.98, 0.85, 0.4)
+	elif hp_after < int(controller.player_max_hp * 0.4):
+		col = Color(1.0, 0.55, 0.5)
+	_cockpit_label.add_theme_color_override("font_color", col)
+
+## The hand paytable: every scoreable hand with its LEVELED chips x mult -- always available,
+## because nobody can scheme toward a Flush they cannot price. Toggle persists in Settings.
+func _build_paytable() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.07, 0.11, 0.88)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.35, 0.33, 0.45)
+	sb.set_corner_radius_all(3)
+	for side in ["left", "top", "right", "bottom"]:
+		sb.set("content_margin_" + side, 8)
+	_paytable = PanelContainer.new()
+	_paytable.add_theme_stylebox_override("panel", sb)
+	_paytable.position = Vector2(16, 150)
+	_paytable.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 1)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_paytable.add_child(vb)
+	var title := _label(tr("PAYTABLE_TITLE"), 13, Color(0.8, 0.76, 0.88))
+	vb.add_child(title)
+	for hand in Poker.BASE:
+		var row := _label("", 13, Color(0.66, 0.68, 0.76))
+		vb.add_child(row)
+		_paytable_rows[hand] = row
+	add_child(_paytable)
+	_refresh_paytable_values()
+	var on := true
+	var st := get_node_or_null("/root/Settings")
+	if st != null and st.has_method("get_value"):
+		on = bool(st.call("get_value", "gameplay", "paytable", true))
+	_paytable.visible = on
+
+func _refresh_paytable_values() -> void:
+	for hand in _paytable_rows:
+		var base: Array = Poker.leveled_base(hand, int(_levels.get(hand, 0)))
+		var lv := int(_levels.get(hand, 0))
+		var txt := "%s  %d x %s" % [tr(Poker.name_key(hand)), int(base[0]), String.num(float(base[1]), 1)]
+		if lv > 0:
+			txt += "  (Lv%d)" % (lv + 1)
+		(_paytable_rows[hand] as Label).text = txt
+
+func _highlight_paytable(hand: int) -> void:
+	if _paytable == null:
+		return
+	_refresh_paytable_values()
+	for h in _paytable_rows:
+		(_paytable_rows[h] as Label).add_theme_color_override("font_color",
+			Color(0.98, 0.85, 0.4) if h == hand else Color(0.66, 0.68, 0.76))
+
+func _toggle_paytable() -> void:
+	if _paytable == null:
+		return
+	_paytable.visible = not _paytable.visible
+	var st := get_node_or_null("/root/Settings")
+	if st != null and st.has_method("set_value"):
+		st.call("set_value", "gameplay", "paytable", _paytable.visible)
+
+## The next cards the deck WILL deal, in order -- determinism made visible and countable.
+func _refresh_next_draws() -> void:
+	if _next_wrap == null or controller == null:
+		return
+	# queue_free() alone leaves the node counted until end of frame -- a while-loop on
+	# get_child_count() would spin forever and freeze the whole game (it did).
+	for i in range(_next_wrap.get_child_count() - 1, 0, -1):
+		var old := _next_wrap.get_child(i)
+		_next_wrap.remove_child(old)
+		old.queue_free()
+	for c: CardData in controller.peek_draw(2):
+		var mini_p := Panel.new()
+		var msb := StyleBoxFlat.new()
+		msb.bg_color = Color(0.09, 0.09, 0.13)
+		msb.set_border_width_all(1)
+		msb.border_color = Aspects.color(c.aspect)
+		msb.set_corner_radius_all(2)
+		mini_p.add_theme_stylebox_override("panel", msb)
+		mini_p.custom_minimum_size = Vector2(20, 24)
+		mini_p.mouse_filter = Control.MOUSE_FILTER_STOP
+		mini_p.tooltip_text = "%s %s" % [c.rank_glyph(), tr(Aspects.name_key(c.aspect))] 			+ (("\n" + tr(CardData.keyword_name_key(c.keyword)) + " " + str(c.keyword_value)) if c.keyword != CardData.Keyword.NONE else "")
+		var gl := _label(c.rank_glyph(), 13, Aspects.color(c.aspect))
+		gl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		gl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		gl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		gl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mini_p.add_child(gl)
+		_next_wrap.add_child(mini_p)
 
 # ---------------------------------------------------------------- prophecy ceremony
 
@@ -650,8 +819,12 @@ func _on_card_input(event: InputEvent, card: CardData) -> void:
 			_drag_panel.global_position = mouse - _drag_offset
 
 func _refresh_card_styles() -> void:
+	var any := not _selected.is_empty()
 	for card in _widgets:
-		CardWidget.set_selected(_widgets[card], _selected.has(card))
+		var w: Control = _widgets[card]
+		CardWidget.set_selected(w, _selected.has(card))
+		# While a play is staged, the bench dims -- the chosen cards become countable at a glance.
+		w.modulate.a = 1.0 if (not any or _selected.has(card)) else 0.82
 	_hand_row.relayout()
 
 func _selected_indices() -> Array:
@@ -665,7 +838,7 @@ func _selected_indices() -> Array:
 func _update_selection_ui() -> void:
 	var is_player := controller.phase == "player"
 	var has_sel := not _selected.is_empty()
-	_play_btn.text = tr("COMBAT_PLAY")
+	_play_btn.text = (tr("COMBAT_PLAY_N") % _selected.size()) if has_sel else tr("COMBAT_PLAY")
 	_play_btn.disabled = not (is_player and has_sel)
 	_discard_btn.text = tr("COMBAT_DISCARD") % controller.discards_left
 	_discard_btn.disabled = not (is_player and has_sel and controller.discards_left > 0)
@@ -674,6 +847,8 @@ func _update_selection_ui() -> void:
 		_preview_extra.text = ""
 		_breakdown_label.text = ""
 		_set_prophecy(false, 0, 0, 0)
+		_refresh_cockpit(0, 0, false)
+		_highlight_paytable(-1)
 		return
 	var r := controller.preview(_selected_indices())
 	# One-shot diegetic covenant line: the FIRST preview ever asserts the promise out loud.
@@ -723,6 +898,8 @@ func _update_selection_ui() -> void:
 			break
 	_preview_extra.text = "    ".join(parts)
 	_breakdown_label.text = _mult_breakdown(int(r["hand"]))
+	_refresh_cockpit(eff, int(r["block"]), lethal_now)
+	_highlight_paytable(int(r["hand"]))
 
 ## Human-readable "why is the mult that value": leveled hand base + relic / Furia / Curse factors.
 func _mult_breakdown(hand: int) -> String:
@@ -1035,7 +1212,7 @@ func _relic_chip(a: ArcanumData) -> Control:
 	sb.content_margin_bottom = 3
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", sb)
-	p.tooltip_text = tr(a.name_key)
+	p.tooltip_text = tr(a.name_key) + "\n" + a.describe()
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	p.add_child(row)

@@ -1,33 +1,35 @@
 [gd_resource type="Resource" script_class="RegionData" format=3]
 
-[ext_resource type="Resource" path="res://data/combat/boss_tower.tres" id="1_bp7f0"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_tower.tres" id="2_8mh1v"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_djs8l"]
-[ext_resource type="Resource" path="res://data/combat/boss_chariot.tres" id="4_f5otb"]
-[ext_resource type="Resource" path="res://data/combat/boss_strength.tres" id="5_menwt"]
-[ext_resource type="Resource" path="res://data/combat/enemy_elite_r1.tres" id="6_342ms"]
-[ext_resource type="Resource" path="res://data/combat/enemy_a.tres" id="7_yu4yb"]
-[ext_resource type="Resource" path="res://data/combat/enemy_a2.tres" id="8_wwagw"]
-[ext_resource type="Resource" path="res://data/combat/enemy_b.tres" id="9_g22dn"]
-[ext_resource type="Resource" path="res://data/combat/enemy_b2.tres" id="10_4hokd"]
-[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="11_s8dng"]
-[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="12_fuqkp"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_death.tres" id="13_36pnt"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_sun.tres" id="14_adc5w"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_priestess.tres" id="15_naj2w"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_devil.tres" id="16_3xfq4"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="17_iq2t0"]
-[ext_resource type="Resource" path="res://data/arcana/arcanum_magician.tres" id="18_chfgm"]
+[ext_resource type="Resource" path="res://data/combat/boss_tower.tres" id="1_djs8l"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_tower.tres" id="2_f5otb"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_menwt"]
+[ext_resource type="Resource" path="res://data/combat/boss_chariot.tres" id="4_342ms"]
+[ext_resource type="Resource" path="res://data/combat/boss_strength.tres" id="5_yu4yb"]
+[ext_resource type="Resource" path="res://data/combat/enemy_elite_r1.tres" id="6_wwagw"]
+[ext_resource type="Resource" path="res://data/combat/enemy_a.tres" id="7_g22dn"]
+[ext_resource type="Resource" path="res://data/combat/enemy_a2.tres" id="8_4hokd"]
+[ext_resource type="Resource" path="res://data/combat/enemy_a3.tres" id="9_s8dng"]
+[ext_resource type="Resource" path="res://data/combat/enemy_b.tres" id="10_fuqkp"]
+[ext_resource type="Resource" path="res://data/combat/enemy_b2.tres" id="11_36pnt"]
+[ext_resource type="Resource" path="res://data/combat/enemy_b3.tres" id="12_adc5w"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="13_naj2w"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="14_3xfq4"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_death.tres" id="15_iq2t0"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_sun.tres" id="16_chfgm"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_priestess.tres" id="17_lcuu5"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_devil.tres" id="18_pku38"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="19_yusi4"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_magician.tres" id="20_g10i4"]
 
 [resource]
-script = ExtResource("11_s8dng")
+script = ExtResource("13_naj2w")
 name_key = "REGION_01"
-fights = Array[ExtResource("3_djs8l")]([ExtResource("7_yu4yb"), ExtResource("9_g22dn")])
-fight_pool_1 = Array[ExtResource("3_djs8l")]([ExtResource("7_yu4yb"), ExtResource("8_wwagw")])
-fight_pool_2 = Array[ExtResource("3_djs8l")]([ExtResource("9_g22dn"), ExtResource("10_4hokd")])
-boss = ExtResource("1_bp7f0")
-boss_arcanum = ExtResource("2_8mh1v")
-starting_pool = Array[ExtResource("12_fuqkp")]([ExtResource("13_36pnt"), ExtResource("14_adc5w"), ExtResource("15_naj2w"), ExtResource("16_3xfq4"), ExtResource("17_iq2t0"), ExtResource("18_chfgm")])
+fights = Array[ExtResource("3_menwt")]([ExtResource("7_g22dn"), ExtResource("10_fuqkp")])
+fight_pool_1 = Array[ExtResource("3_menwt")]([ExtResource("7_g22dn"), ExtResource("8_4hokd"), ExtResource("9_s8dng")])
+fight_pool_2 = Array[ExtResource("3_menwt")]([ExtResource("10_fuqkp"), ExtResource("11_36pnt"), ExtResource("12_adc5w")])
+boss = ExtResource("1_djs8l")
+boss_arcanum = ExtResource("2_f5otb")
+starting_pool = Array[ExtResource("14_3xfq4")]([ExtResource("15_iq2t0"), ExtResource("16_chfgm"), ExtResource("17_lcuu5"), ExtResource("18_pku38"), ExtResource("19_yusi4"), ExtResource("20_g10i4")])
 accent = Color(0.604, 0.561, 0.518, 1)
-elite = ExtResource("6_342ms")
-boss_pool = Array[ExtResource("3_djs8l")]([ExtResource("1_bp7f0"), ExtResource("4_f5otb"), ExtResource("5_menwt")])
+elite = ExtResource("6_wwagw")
+boss_pool = Array[ExtResource("3_menwt")]([ExtResource("1_djs8l"), ExtResource("4_342ms"), ExtResource("5_yu4yb")])

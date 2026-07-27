@@ -36,7 +36,9 @@ const ACH_ARCANA := {
 	"strength": ["ACH_UNTOUCHED", "res://data/arcana/arcanum_strength.tres"],
 	"hermit": ["ACH_OVERKILL", "res://data/arcana/arcanum_hermit.tres"],
 }
-const ACH_ORDER := ["ACH_DEATH_FLUSH", "ACH_UNTOUCHED", "ACH_OVERKILL", "ACH_MISER", "ACH_JOURNEY",
+const ACH_ORDER := ["ACH_FIRST_WIN", "ACH_FIRST_SHOP", "ACH_FIRST_FLUSH", "ACH_FIRST_STAR",
+	"ACH_FIRST_OMEN",
+	"ACH_DEATH_FLUSH", "ACH_UNTOUCHED", "ACH_OVERKILL", "ACH_MISER", "ACH_JOURNEY",
 	"ACH_MAGNUM", "ACH_REVERSED", "ACH_ELITE", "ACH_TITAN", "ACH_DAILY", "ACH_BEYOND", "ACH_DEPTH2",
 	"ACH_VEIL_1", "ACH_VEIL_2", "ACH_VEIL_3", "ACH_VEIL_4", "ACH_VEIL_5",
 	"ACH_WIN_REAPER", "ACH_WIN_GARDENER", "ACH_WIN_ORACLE", "ACH_LEVEL10"]
@@ -73,7 +75,9 @@ static func card_key(c: CardData) -> String:
 
 ## Called by the run's end (spread) screen EXACTLY once per run: every run feeds the meta.
 func earn_run_reward(victory: bool, fights_won: int, veil: int = 0) -> int:
-	var amount := (35 + 3 * fights_won + 5 * veil) if victory else (5 + 3 * fights_won + 2 * veil)
+	@warning_ignore("integer_division")
+	var effort: int = mini(10, RunState.stat_damage_total / 150)
+	var amount := (35 + 3 * fights_won + 5 * veil) if victory else (5 + 3 * fights_won + effort + 2 * veil)
 	sol += amount
 	save_profile()
 	changed.emit()
@@ -92,10 +96,13 @@ func veil_selectable_max() -> int:
 func has_achievement(id: String) -> bool:
 	return achievements.has(id)
 
+const ACH_SOL := 10   ## every fulfilled achievement pays a small Salt bounty (first runs POP)
+
 func grant_achievement(id: String) -> bool:
 	if achievements.has(id):
 		return false
 	achievements.append(id)
+	sol += ACH_SOL
 	save_profile()
 	changed.emit()
 	return true
@@ -104,6 +111,17 @@ func grant_achievement(id: String) -> bool:
 ## Returns the FRESHLY granted ids so the spread screen can celebrate them.
 func check_run_achievements(victory: bool) -> Array:
 	var fresh: Array = []
+	# First blood: the pops that make runs 1-3 feel alive (each pays ACH_SOL like all of them).
+	if RunState.fights_won >= 1 and grant_achievement("ACH_FIRST_WIN"):
+		fresh.append("ACH_FIRST_WIN")
+	if RunState.stat_bought >= 1 and grant_achievement("ACH_FIRST_SHOP"):
+		fresh.append("ACH_FIRST_SHOP")
+	if RunState.stat_flush_played and grant_achievement("ACH_FIRST_FLUSH"):
+		fresh.append("ACH_FIRST_FLUSH")
+	if RunState.stat_star_used and grant_achievement("ACH_FIRST_STAR"):
+		fresh.append("ACH_FIRST_STAR")
+	if RunState.stat_omen_taken and grant_achievement("ACH_FIRST_OMEN"):
+		fresh.append("ACH_FIRST_OMEN")
 	if RunState.stat_death_flush_kill and grant_achievement("ACH_DEATH_FLUSH"):
 		fresh.append("ACH_DEATH_FLUSH")
 	if RunState.stat_untouched_fights >= 1 and grant_achievement("ACH_UNTOUCHED"):
@@ -159,17 +177,16 @@ func claim_once(key: String) -> bool:
 ## The nearest concrete Sol goal (shown on the defeat spread: a death must fund SOMETHING).
 ## Returns {"name_key": String, "cost": int} or {} when every sink is owned.
 func nearest_goal() -> Dictionary:
-	var best := {}
+	# Decks FIRST: a losing player can use a new starter immediately; boss-pool arcana only
+	# matter to someone who reaches boss claims, so they come second.
+	for id in SHOP_DECKS:
+		if not owned_decks.has(id):
+			return {"name_key": DeckLibrary.deck_name_key(id), "cost": DECK_COST}
 	for id in SHOP_ARCANA:
 		if not owned_arcana.has(id):
 			var nk := "ARCANUM_CESARZA" if id == "emperor" else "ARCANUM_RYDWANU"
-			if best.is_empty() or ARCANA_COST < int(best["cost"]):
-				best = {"name_key": nk, "cost": ARCANA_COST}
-	for id in SHOP_DECKS:
-		if not owned_decks.has(id):
-			if best.is_empty() or DECK_COST < int(best["cost"]):
-				best = {"name_key": DeckLibrary.deck_name_key(id), "cost": DECK_COST}
-	return best
+			return {"name_key": nk, "cost": ARCANA_COST}
+	return {}
 
 # ---------------------------------------------------------------- tarocista (XP / levels / life)
 

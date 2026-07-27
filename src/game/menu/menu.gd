@@ -434,6 +434,8 @@ func _open_collection() -> void:
 						_upgrade_starter.bind(id, i))
 					up.disabled = Profile.sol < cost
 					box.add_child(up)
+					# the buyer sees WHAT the edition does before spending (was tooltip-only)
+					box.add_child(_lbl(tr("ED_" + CardData.edition_name_key(nxt).trim_prefix("ED_") + "_DESC"), 9, Color(0.6, 0.64, 0.7)))
 			sgrid.add_child(box)
 
 	# --- reward pool: everything, day one (the meta never subtracts) ---
@@ -490,6 +492,7 @@ func _open_collection() -> void:
 
 	# --- achievements: the ledger of proofs ---
 	inner.add_child(_lbl(tr("COLLECTION_ACH"), 18, Color(0.85, 0.82, 0.9)))
+	inner.add_child(_lbl(tr("COLLECTION_ACH_HINT"), 12, Color(0.72, 0.68, 0.5)))
 	for ach in Profile.ACH_ORDER:
 		var done: bool = Profile.has_achievement(ach)
 		var arow := VBoxContainer.new()

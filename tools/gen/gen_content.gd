@@ -158,12 +158,19 @@ func _region() -> void:
 	var a2 := _enemy("ENEMY_WIEDZMA", 480, [16, 4, 16], 5, false, EnemyData.Rule.NONE, "", 2)
 	a2.art = load(MINOR + "wands_11.jpg")
 	ResourceSaver.save(a2, ENEMY_DIR + "enemy_a2.tres")
-	var b := _enemy("ENEMY_CIEN", 600, [12, 15, 9], 6, false, EnemyData.Rule.NONE, "", 2)
+	var b := _enemy("ENEMY_CIEN", 460, [12, 15, 9], 6, false, EnemyData.Rule.NONE, "", 2)
 	b.art = load(MINOR + "swords_11.jpg")
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
-	var b2 := _enemy("ENEMY_GOLEM", 660, [20, 0, 15], 6, false, EnemyData.Rule.NONE, "", 3)
+	var b2 := _enemy("ENEMY_GOLEM", 500, [20, 0, 15], 6, false, EnemyData.Rule.NONE, "", 3)
 	b2.art = load(MINOR + "pents_10.jpg")
 	ResourceSaver.save(b2, ENEMY_DIR + "enemy_b2.tres")
+	# Pool wideners (runs 1-3 must not clone their foe lineups): a third candidate per node.
+	var a3 := _enemy("ENEMY_NOWICJUSZ", 500, [9, 14, 9], 5, false, EnemyData.Rule.NONE, "", 2)
+	a3.art = load(MINOR + "cups_11.jpg")
+	ResourceSaver.save(a3, ENEMY_DIR + "enemy_a3.tres")
+	var b3 := _enemy("ENEMY_PRZEBITY", 480, [18, 2, 12], 6, false, EnemyData.Rule.NONE, "", 3)
+	b3.art = load(MINOR + "swords_10.jpg")
+	ResourceSaver.save(b3, ENEMY_DIR + "enemy_b3.tres")
 	var boss := _enemy("ENEMY_WIEZA", 600, [15, 20, 13], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
 	boss.art = load(MAJOR + "16_tower.jpg")
 	boss.arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
@@ -181,12 +188,12 @@ func _region() -> void:
 	fights.append(load(ENEMY_DIR + "enemy_b.tres"))
 	region.fights = fights
 	var p1: Array[EnemyData] = []
-	p1.append(load(ENEMY_DIR + "enemy_a.tres"))
-	p1.append(load(ENEMY_DIR + "enemy_a2.tres"))
+	for f1 in ["enemy_a", "enemy_a2", "enemy_a3"]:
+		p1.append(load(ENEMY_DIR + f1 + ".tres"))
 	region.fight_pool_1 = p1
 	var p2: Array[EnemyData] = []
-	p2.append(load(ENEMY_DIR + "enemy_b.tres"))
-	p2.append(load(ENEMY_DIR + "enemy_b2.tres"))
+	for f2 in ["enemy_b", "enemy_b2", "enemy_b3"]:
+		p2.append(load(ENEMY_DIR + f2 + ".tres"))
 	region.fight_pool_2 = p2
 	region.boss = load(ENEMY_DIR + "boss_tower.tres")
 	region.boss_arcanum = load(ARCANA_DIR + "arcanum_tower.tres")

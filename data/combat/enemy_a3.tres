@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_11.jpg" id="1_ob5gv"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_asb3p"]
+
+[resource]
+script = ExtResource("2_asb3p")
+name_key = "ENEMY_NOWICJUSZ"
+max_hp = 500
+intents = PackedInt32Array(9, 14, 9)
+enrage_step = 2
+reward_rtec = 5
+art = ExtResource("1_ob5gv")

@@ -15,7 +15,7 @@ const ARC_DIP := 3.0             ## vertical dip per slot^1.5 towards the edges
 ## point under the cursor never leaves the card -- the enter/exit flicker cannot happen. The
 ## visual "rise" comes from the scale alone (the top edge climbs ~50 px at 1.45x), Arena-style.
 const RAISE_HOVER := 0.0
-const RAISE_SELECTED := 18.0
+const RAISE_SELECTED := 26.0
 const CARD_W := 80.0
 const CARD_H := 112.0
 const HOVER_SCALE := 1.45        ## the hovered card grows enough to read everything
@@ -23,7 +23,7 @@ const HOVER_SCALE := 1.45        ## the hovered card grows enough to read everyt
 var _tweens: Dictionary = {}     ## child -> its slot tween (killed on retarget)
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(0, 156)
+	custom_minimum_size = Vector2(0, 148)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE   # cards themselves take the mouse
 	# The first reconcile can run before the container layout assigns our width (size.x == 0),
 	# which piles every card at the origin -- re-fan whenever the actual width arrives.

@@ -96,3 +96,25 @@ R3 Ksiezyc/Sad/Gwiazda, final Swiat), kazdy z regula pola i klaimowalnym relikte
 riposta, osad talii, regeneracja). ENDLESS "Za Swiatem": brama po zabiciu Swiata, Glebia = +50% HP /
 +35% intencje / +1 enrage na petle; smierc w Glebi pozostaje WYGRANA. Keyword KORZENIE (blok-rampa).
 Osiagniecia 5 -> 21 (prestiz). Dedupe klaimu (ten sam relikt nigdy 2x prosto). Testy 24+23.
+
+## Plan naprawy przyjemnosci E1-E5 (2026-07-27) — ZROBIONE
+Pelne wdrozenie docs/PLAN_NAPRAWY.md (zrodlo: PLAYTEST_PRZYJEMNOSC.md):
+E1 struktura runu: sklep po KAZDEJ walce (kadencja Balatro, Gwiazda 8 rtec), walka 2 bez sciany
+(460/500 HP), +2 wrogow R1 (pule po 3: Nowicjusz 500, Przebity 480), Sol za porazke skalowana
+wysilkiem, osiagniecia pierwszej krwi x5 (+10 Soli za KAZDE osiagniecie), omen Kola = pozyczka
+(+6 rtec, dlug intencji +2 w nastepnej walce), elita zablokowana na 1. szczeblu, sciezki na mapie
+("-> karta + sklep"), pierwsze 3 runy profilu nazwane.
+E2 kokpit decyzji: wiazka matmy ("Wrog: X -> Y | Cios A - blok B -> Ty C -> D", zloto przy lethalu),
+telegraf REST/WINDUP przy intencji, jawny licznik szalu, zlota selekcja + "Zagraj (N)", tooltipy
+(relikt, pula leczenia, talia/grob).
+E3 wiedza: paytable (toggle "Uklady", pamietany), podglad next-draws (determinizm widoczny),
+przeglad TAB z pelna tabela ukladow, legenda kart dworskich, coaching 1. walki (2 linie, raz na
+profil).
+E5 Natura: pelnoprawna ramka kart bez artu (gradient, diamenty, scrim) + spojnosc jezyka.
+KRYTYCZNY FIX przy akceptacji: _refresh_next_draws mial while na get_child_count()+queue_free()
+— queue_free nie zdejmuje dziecka w tej samej klatce, wiec KAZDY drugi render (np. klik Odrzuc)
+zawieszal CALA gre w nieskonczonej petli. Diagnoza: bot real-input + flushowane logi zawezily
+zgon do jednego kliku; naprawa: remove_child przed queue_free.
+Akceptacja E1 (3 swieze runy bota): sklep w runie 1 = 3/3, osiagniec 7 (cel >=2), Sol 127
+(cel >=45), sklady/drafty sie roznia (probe_rolls.gd: seed->identyczny sklad, rozne seedy->rozne).
+Testy 24+23 PASS; przeklik pelnej petli: walka->nagroda->sklep(zakupy)->mapa->omen->boss->spread.

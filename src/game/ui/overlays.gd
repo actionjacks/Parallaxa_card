@@ -128,14 +128,14 @@ func _open_overview() -> void:
 		right.add_child(_lbl(tr("COMMON_NONE"), 14, Color(0.6, 0.6, 0.68)))
 	for a in RunState.relics:
 		right.add_child(_lbl("* %s — %s" % [tr(a.name_key), a.describe()], 13, Color(0.82, 0.76, 0.9)))
-	right.add_child(_title(tr("OVERVIEW_LEVELS")))
-	var any_lv := false
-	for hand in RunState.hand_levels:
-		if int(RunState.hand_levels[hand]) > 0:
-			any_lv = true
-			right.add_child(_lbl("%s  Lv%d" % [tr(Poker.name_key(hand)), int(RunState.hand_levels[hand]) + 1], 13, Color(0.95, 0.9, 0.6)))
-	if not any_lv:
-		right.add_child(_lbl(tr("COMMON_NONE"), 14, Color(0.6, 0.6, 0.68)))
+	right.add_child(_title(tr("PAYTABLE_TITLE")))
+	for hand in Poker.BASE:
+		var lv := int(RunState.hand_levels.get(hand, 0))
+		var base: Array = Poker.leveled_base(hand, lv)
+		var row := "%s  %d x %s" % [tr(Poker.name_key(hand)), int(base[0]), String.num(float(base[1]), 1)]
+		if lv > 0:
+			row += "  (Lv%d)" % (lv + 1)
+		right.add_child(_lbl(row, 13, Color(0.95, 0.9, 0.6) if lv > 0 else Color(0.72, 0.74, 0.82)))
 	right.add_child(_title(tr("OVERVIEW_JOURNEY")))
 	var region_name := tr(RunState.region.name_key) if RunState.region != null else "?"
 	right.add_child(_lbl(tr("OVERVIEW_REGION") % [RunState.region_index + 1, 4, region_name], 13, Color(0.8, 0.8, 0.86)))
@@ -209,6 +209,10 @@ func inspect(card: CardData) -> void:
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD
 		d.custom_minimum_size = Vector2(330, 0)
 		iv.add_child(d)
+		if card.keyword == CardData.Keyword.SYMBIOZA:
+			var pals: Array = Aspects.allies(card.aspect)
+			iv.add_child(_lbl(tr("INSPECT_ALLIES") % [tr(Aspects.name_key(pals[0])), tr(Aspects.name_key(pals[1]))],
+				13, Color(0.7, 0.85, 0.68)))
 	if card.edition != CardData.Edition.NONE:
 		iv.add_child(_lbl("+ " + tr(CardData.edition_name_key(card.edition)), 16, Color(0.95, 0.85, 0.6)))
 		iv.add_child(_lbl(_edition_desc(card.edition), 13, Color(0.75, 0.75, 0.8)))
