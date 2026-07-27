@@ -1019,6 +1019,12 @@ func _build_game_tab(parent: TabContainer) -> void:
 	_language_option.item_selected.connect(_on_language_selected)
 	_add_row(grid, "language", "SETTINGS_GAME_LANGUAGE", _language_option)
 
+	# Gameplay comfort + creator toggles (read via Settings by Juice / combat / run screens).
+	_add_check_row(grid, "gameplay", "reduce_motion", "SETTINGS_REDUCE_MOTION", false)
+	_add_check_row(grid, "gameplay", "disable_flash", "SETTINGS_DISABLE_FLASH", false)
+	_add_check_row(grid, "gameplay", "streamer_mode", "SETTINGS_STREAMER", false)
+	_add_check_row(grid, "gameplay", "fast_pace", "SETTINGS_FAST_PACE", false)
+
 
 # -----------------------------------------------------------------------------
 # Tabs and caret

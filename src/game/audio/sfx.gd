@@ -34,6 +34,7 @@ static func _register_all(am: Node) -> void:
 	am.register(&"coin", _wav(_seq([_tone(980, 0.05, 0.18), _tone(1320, 0.08, 0.18)])))
 	am.register(&"win", _wav(_seq([_tone(523, 0.09, 0.2), _tone(659, 0.09, 0.2), _tone(784, 0.17, 0.22)])))
 	am.register(&"lose", _wav(_tone(260, 0.5, 0.26, 105)))
+	am.register(&"shatter", _wav(_mix(_noise(0.2, 0.28), _tone(1900, 0.14, 0.2, 620))))
 
 # ---- synthesis: helpers return float samples in [-1, 1] ----
 

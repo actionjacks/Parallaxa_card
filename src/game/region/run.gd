@@ -63,7 +63,9 @@ func _ready() -> void:
 		_build_shell()
 		_show_map()
 		return
-	RunState.begin(load(JOURNEY[0]))
+	var entered := RunState.next_seed
+	RunState.next_seed = 0
+	RunState.begin(load(JOURNEY[0]), entered)
 	_build_shell()
 	_start_run_flow()
 
@@ -633,7 +635,7 @@ func _show_boss_choice() -> void:
 	for r: ArcanumData in RunState.relics:
 		owned_keys.append(r.name_key)
 	var alts: Array = []
-	for a: ArcanumData in Profile.boss_pool_arcana():
+	for a: ArcanumData in ([] if RunState.pure_reading else Profile.boss_pool_arcana()):
 		if not owned_keys.has(a.name_key) and (boss_arc == null or a.name_key != boss_arc.name_key):
 			alts.append(a)
 	if not alts.is_empty():
@@ -803,6 +805,8 @@ func _show_spread(victory: bool) -> void:
 func _repeat_fate() -> void:
 	_pending_omen = null
 	RunState.next_veil = RunState.veil
+	RunState.next_pure = RunState.pure_reading   # a repeated fate keeps its purity contract
+	RunState.next_daily = RunState.daily_tag
 	var s := RunState.run_seed
 	RunState.begin(load(JOURNEY[0]), s)
 	_start_run_flow()
@@ -810,6 +814,8 @@ func _repeat_fate() -> void:
 func _restart_run() -> void:
 	_pending_omen = null
 	RunState.next_veil = RunState.veil   # fresh seed, same tier (the menu changes tiers)
+	RunState.next_pure = false           # a NEW fate is the player's own again
+	RunState.next_daily = ""
 	RunState.begin(load(JOURNEY[0]))   # a new Journey always starts at the first region
 	_start_run_flow()
 
@@ -839,8 +845,9 @@ func _load_omens() -> void:
 	for f in files:
 		if f.ends_with(".tres"):
 			var o: OmenData = load("res://data/omens/" + f)
-			# Achievement-gated omens join the road pool only once earned (meta widens).
-			if o.requires_achievement != "" and not Profile.has_achievement(o.requires_achievement):
+			# Achievement-gated omens join the road pool only once earned (meta widens);
+			# Pure Reading sticks to the base pool so shared fates stay identical.
+			if o.requires_achievement != "" and (RunState.pure_reading or not Profile.has_achievement(o.requires_achievement)):
 				continue
 			_omens.append(o)
 
@@ -931,9 +938,11 @@ func _show_arcanum_draft() -> void:
 	_statusbar.visible = true
 	_update_status()
 	MusicLib.play(&"music_menu", 1.5)
-	# Achievement Arcana widen the opening pool (meta adds options, never removes them).
+	# Achievement Arcana widen the opening pool (meta adds options, never removes them) --
+	# except in Pure Reading, where a shared fate must be identical for every player.
 	var pool: Array = RunState.region.starting_pool.duplicate()
-	pool.append_array(Profile.draft_extra_arcana())
+	if not RunState.pure_reading:
+		pool.append_array(Profile.draft_extra_arcana())
 	_arc_offers = RunState.pick_offers(pool, 3)
 	_arc_panels.clear()
 	_arc_pick = -1

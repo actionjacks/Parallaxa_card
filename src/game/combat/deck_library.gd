@@ -26,6 +26,11 @@ static func starter_deck() -> Array:
 		id = prof.selected_deck
 	return starter_deck_by_id(id)
 
+## Pure Reading (shared fates): the classic starter with NO profile editions -- byte-identical
+## for every player, so a shared seed is provably the same run.
+static func starter_deck_pure() -> Array:
+	return _cards(STARTERS["classic"])
+
 static func starter_deck_by_id(id: String) -> Array:
 	var cards := _cards(STARTERS.get(id, STARTERS["classic"]))
 	# Permanent meta upgrades: the profile's starter editions apply to every new run.

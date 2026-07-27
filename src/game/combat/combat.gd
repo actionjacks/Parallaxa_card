@@ -65,6 +65,8 @@ var _fx_index: int = 0
 var _preview_node: Control = null
 var _prev_intent: int = -999
 var _prev_gnicie: int = 0
+var _prophecy: Control = null      ## the diegetic lethal stamp (built when a kill is foretold)
+var _prophecy_dmg: int = -1
 
 func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0) -> void:
 	standalone = false
@@ -230,6 +232,16 @@ func _build_ui() -> void:
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fx)
 
+	# Streamer Mode: the fate code stays on screen so every frame of a VOD carries the seed.
+	if Juice.streamer_mode() and not standalone:
+		var seed_l := _label("Fate " + RunState.seed_text(RunState.run_seed), 13, Color(0.55, 0.5, 0.65))
+		seed_l.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		seed_l.offset_left = -170
+		seed_l.offset_top = -26
+		seed_l.offset_right = -10
+		seed_l.offset_bottom = -8
+		add_child(seed_l)
+
 	_build_overlay()
 
 func _build_overlay() -> void:
@@ -365,7 +377,7 @@ func _reset_hand() -> void:
 func _show_card_preview(card: CardData) -> void:
 	_hide_card_preview()
 	var p := CardWidget.build_preview(card)
-	p.position = Vector2(1016, 118)
+	p.position = Vector2(1000, 172)   # below the enemy panel: never covers the intent readout
 	_fx.add_child(p)
 	_preview_node = p
 
@@ -373,6 +385,219 @@ func _hide_card_preview() -> void:
 	if _preview_node != null and is_instance_valid(_preview_node):
 		_preview_node.queue_free()
 	_preview_node = null
+
+# ---------------------------------------------------------------- prophecy ceremony
+
+## The PROPHECY STAMP: when the selection is lethal, the game does not hint -- it FORETELLS.
+## A diegetic tarot-plate stamp over the arena carries the promised number, the hand, the
+## overkill payout and the fate code (every screenshot self-captions with a replayable seed).
+## The heartbeat starts BEFORE the click: the click is the punchline, not the reveal.
+func _set_prophecy(lethal: bool, dmg: int, hand: int, bonus: int) -> void:
+	if not lethal:
+		if _prophecy != null:
+			_prophecy.queue_free()
+			_prophecy = null
+			_prophecy_dmg = -1
+			_calm_heartbeat()
+		return
+	if _prophecy != null and _prophecy_dmg == dmg:
+		return
+	if _prophecy != null:
+		_prophecy.queue_free()
+	_prophecy_dmg = dmg
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.05, 0.09, 0.94)
+	sb.set_border_width_all(3)
+	sb.border_color = Color(0.95, 0.8, 0.35)
+	sb.set_corner_radius_all(4)
+	for side in ["left", "top", "right", "bottom"]:
+		sb.set("content_margin_" + side, 14)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 2)
+	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(vb)
+	var title := _label(tr("PROPHECY_TITLE"), 15, Color(0.8, 0.68, 0.9))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(title)
+	var num := _label(str(dmg), 54, Color(0.98, 0.85, 0.4))
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(num)
+	var sub_text := tr(Poker.name_key(hand))
+	if bonus > 0:
+		sub_text += "   " + tr("PREVIEW_OVERKILL") % bonus
+	var sub := _label(sub_text, 15, Color(0.9, 0.86, 0.8))
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(sub)
+	if not standalone:
+		var fate := _label("Fate " + RunState.seed_text(RunState.run_seed), 11, Color(0.55, 0.5, 0.65))
+		fate.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(fate)
+	# One-shot covenant proof, spoken at the FIRST foretold death ever.
+	if Profile.claim_once("covenant_lethal"):
+		var vow := _label(tr("COVENANT_LINE_2"), 13, Color(0.75, 0.62, 0.85))
+		vow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(vow)
+	p.position = Vector2(640 - 170, 190)
+	p.custom_minimum_size = Vector2(340, 0)
+	p.pivot_offset = Vector2(170, 70)
+	_fx.add_child(p)
+	_prophecy = p
+	if not Juice.reduce_motion():
+		p.scale = Vector2(0.8, 0.8)
+		p.modulate.a = 0.0
+		var tw := create_tween().set_parallel()
+		tw.tween_property(p, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p, "modulate:a", 1.0, 0.14)
+	Sfx.play(&"card_select", -6.0, 0.6)
+	_tense_heartbeat()
+
+## A short diegetic line floated over the arena (the covenant speaking, once).
+## Sits in the quiet band between the breakdown and the player bar -- clear of the relic row.
+func _covenant_line(text: String) -> void:
+	var l := _label(text, 14, Color(0.8, 0.7, 0.9))
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	l.offset_top = 505
+	_fx.add_child(l)
+	l.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(l, "modulate:a", 1.0, 0.3)
+	tw.tween_interval(3.2)
+	tw.tween_property(l, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(l.queue_free)
+
+## Heartbeat under a foretold kill: audible tension before the click.
+func _tense_heartbeat() -> void:
+	var stream := MusicLib.heartbeat_stream()
+	if stream == null:
+		return
+	if _heartbeat == null:
+		_heartbeat = AudioStreamPlayer.new()
+		_heartbeat.bus = &"Music"
+		_heartbeat.stream = stream
+		add_child(_heartbeat)
+	if not _heartbeat.playing:
+		_heartbeat.volume_db = -30.0
+		_heartbeat.play()
+	create_tween().tween_property(_heartbeat, "volume_db", -8.0, 0.4)
+
+## Prophecy withdrawn: settle the heartbeat back to whatever the enrage clock demands.
+func _calm_heartbeat() -> void:
+	if _heartbeat == null or not _heartbeat.playing:
+		return
+	var c := controller.enrage_cycles() if controller != null else 0
+	if c >= 1:
+		create_tween().tween_property(_heartbeat, "volume_db", minf(0.0, -10.0 + 3.0 * (c - 1)), 0.4)
+	else:
+		var tw := create_tween()
+		tw.tween_property(_heartbeat, "volume_db", -60.0, 0.4)
+		tw.tween_callback(_heartbeat.stop)
+
+## The fulfilled prophecy: the counter rolls to EXACTLY the foretold number, then the world
+## flinches (hitstop + flash + shake). "As written."
+func _fulfill_prophecy(promised: int) -> void:
+	if _prophecy != null:
+		_prophecy.queue_free()
+		_prophecy = null
+		_prophecy_dmg = -1
+	var num := _label("0", 64, Color(0.98, 0.85, 0.4))
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	num.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	num.offset_top = 220
+	_fx.add_child(num)
+	if Juice.reduce_motion():
+		num.text = str(promised)
+		var done := _label(tr("PROPHECY_FULFILLED"), 15, Color(0.8, 0.7, 0.9))
+		done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		done.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		done.offset_top = 300
+		_fx.add_child(done)
+		var tw0 := create_tween()
+		tw0.tween_interval(1.2)
+		tw0.tween_callback(num.queue_free)
+		tw0.tween_callback(done.queue_free)
+		return
+	var steps := 16
+	var tw := create_tween()
+	for i in steps:
+		var v := int(round(float(promised) * float(i + 1) / float(steps)))
+		tw.tween_callback(func() -> void:
+			num.text = str(v)
+			Sfx.play(&"card_select", -14.0, 0.7 + 0.05 * i))
+		tw.tween_interval(0.045)
+	tw.tween_callback(func() -> void:
+		Juice.hitstop(0.12)
+		Juice.flash(_fx, Color(1, 0.95, 0.8, 0.4), 0.35)
+		Juice.shake(self, 9.0)
+		Sfx.play(&"hit", 0.0, 0.8)
+		var done := _label(tr("PROPHECY_FULFILLED"), 16, Color(0.85, 0.75, 0.95))
+		done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		done.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		done.offset_top = 300
+		_fx.add_child(done)
+		var out := create_tween()
+		out.tween_interval(1.0)
+		out.tween_property(num, "modulate:a", 0.0, 0.5)
+		out.parallel().tween_property(done, "modulate:a", 0.0, 0.5)
+		out.tween_callback(num.queue_free)
+		out.tween_callback(done.queue_free))
+
+## Glass pays its price on camera: shards + flash at the impact point.
+func _shatter_fx(at: Vector2, count: int) -> void:
+	Sfx.play(&"shatter", -4.0)
+	if Juice.reduce_motion():
+		return
+	Juice.flash(_fx, Color(1, 1, 1, 0.25), 0.2)
+	for i in 8 * count:
+		var shard := ColorRect.new()
+		shard.color = Color(0.95, 0.9, 1.0, 0.9)
+		shard.size = Vector2(randf_range(3, 7), randf_range(3, 7))
+		shard.position = at
+		shard.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fx.add_child(shard)
+		var dir := Vector2(randf_range(-90, 90), randf_range(-110, 30))
+		var tw := create_tween().set_parallel()
+		tw.tween_property(shard, "position", at + dir, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(shard, "modulate:a", 0.0, 0.5)
+		tw.chain().tween_callback(shard.queue_free)
+
+## The Great Work: a one-time reveal the first time MAGNUM OPUS is ever assembled.
+func _magnum_reveal() -> void:
+	if Profile.claim_once("magnum_reveal"):
+		var dim := ColorRect.new()
+		dim.color = Color(0, 0, 0, 0.55)
+		dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fx.add_child(dim)
+		var big := _label(tr("HAND_MAGNUM_OPUS"), 64, Color(0.98, 0.85, 0.4))
+		big.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		big.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		big.offset_top = 250
+		big.pivot_offset = Vector2(640, 40)
+		_fx.add_child(big)
+		var sub := _label(tr("MAGNUM_REVEAL_SUB"), 17, Color(0.85, 0.8, 0.9))
+		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sub.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		sub.offset_top = 330
+		_fx.add_child(sub)
+		Sfx.play(&"win", -2.0, 1.3)
+		Juice.flash(_fx, Color(1, 0.9, 0.5, 0.35), 0.5)
+		if not Juice.reduce_motion():
+			big.scale = Vector2(0.6, 0.6)
+			create_tween().tween_property(big, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var tw := create_tween()
+		tw.tween_interval(1.8)
+		for n: Control in [dim, big, sub]:
+			tw.parallel().tween_property(n, "modulate:a", 0.0, 0.5)
+		tw.tween_callback(dim.queue_free)
+		tw.tween_callback(big.queue_free)
+		tw.tween_callback(sub.queue_free)
+	else:
+		_popup(tr("HAND_MAGNUM_OPUS"), Color(0.98, 0.85, 0.4), _enemy_fx_pos() + Vector2(-40, 40), 30)
 
 # ---------------------------------------------------------------- interaction
 
@@ -446,8 +671,12 @@ func _update_selection_ui() -> void:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
 		_preview_extra.text = ""
 		_breakdown_label.text = ""
+		_set_prophecy(false, 0, 0, 0)
 		return
 	var r := controller.preview(_selected_indices())
+	# One-shot diegetic covenant line: the FIRST preview ever asserts the promise out loud.
+	if Profile.claim_once("covenant_preview"):
+		_covenant_line(tr("COVENANT_LINE_1"))
 	var hand_name := tr(Poker.name_key(int(r["hand"])))
 	var lv := int(_levels.get(int(r["hand"]), 0))
 	if lv > 0:
@@ -464,14 +693,17 @@ func _update_selection_ui() -> void:
 		parts.append(tr("COMBAT_TAG_HEAL_CAP"))
 	if int(r["gnicie"]) > 0:
 		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
-	# The covenant's showpiece: the preview ANNOUNCES the kill and its overkill payout.
-	if int(r["damage"]) >= controller.enemy_hp:
-		@warning_ignore("integer_division")
-		var bonus: int = clampi((int(r["damage"]) - controller.enemy_hp) / 50, 0, 5)
+	# The covenant's showpiece: the preview ANNOUNCES the kill and its overkill payout --
+	# rendered as the PROPHECY STAMP, not a text tag (this is the game's clip).
+	var lethal_now := int(r["damage"]) >= controller.enemy_hp
+	@warning_ignore("integer_division")
+	var bonus: int = clampi((int(r["damage"]) - controller.enemy_hp) / 50, 0, 5) if lethal_now else 0
+	if lethal_now:
 		var lethal := tr("PREVIEW_LETHAL")
 		if bonus > 0:
 			lethal += "  " + tr("PREVIEW_OVERKILL") % bonus
 		parts.append(lethal)
+	_set_prophecy(lethal_now, int(r["damage"]), int(r["hand"]), bonus)
 	# Glass warning: a selected Overload card at durability 1 will SHATTER with this play.
 	for card in _selected:
 		if card.keyword == CardData.Keyword.PRZECIAZENIE and card.keyword_value - card.wear <= 1:
@@ -533,6 +765,12 @@ func _on_play() -> void:
 	if _selected.is_empty():
 		return
 	var idx := _selected_indices()
+	# Read the fate BEFORE committing: if the preview foretells the kill, the resolution must
+	# be the ceremony (counter rolling to the exact promised number), not a surprise.
+	var pre := controller.preview(idx)
+	var foretold_kill := int(pre["damage"]) >= controller.enemy_hp
+	var promised := int(pre["damage"])
+	var pre_destroyed := controller.destroyed_cards.size()
 	_hide_card_preview()
 	for card in _selected:
 		if _widgets.has(card):
@@ -543,6 +781,13 @@ func _on_play() -> void:
 	_emblem_hit()
 	Sfx.play(&"card_play", -6.0)
 	controller.play(idx)
+	var shattered := controller.destroyed_cards.size() - pre_destroyed
+	if shattered > 0:
+		_shatter_fx(_enemy_fx_pos(), shattered)
+	if int(controller.last_score.get("hand", -1)) == Poker.Hand.MAGNUM_OPUS:
+		_magnum_reveal()
+	if foretold_kill and controller.enemy_hp <= 0:
+		_fulfill_prophecy(promised)
 
 func _on_discard() -> void:
 	if _selected.is_empty():
@@ -620,16 +865,19 @@ func _on_message(text_key: String, args: Array) -> void:
 ## After the player's play resolves and animates, pause a beat, then let the enemy act.
 func _on_awaiting_enemy() -> void:
 	_fx_index = 0
-	await get_tree().create_timer(0.35).timeout
+	# Fast pace (streamer/settings): the beat between turns shrinks, dead air dies.
+	var beat := 0.12 if Juice.fast_pace() else 0.35
+	var wind := 0.06 if Juice.fast_pace() else 0.12
+	await get_tree().create_timer(beat).timeout
 	if controller == null or controller.phase != "enemy":
 		return
 	# wind-up: the enemy tenses (scale + reddish flash) so its attack has a visible cause
 	_enemy_panel.pivot_offset = _enemy_panel.size * 0.5
 	var tw := create_tween()
-	tw.tween_property(_enemy_panel, "scale", Vector2(1.03, 1.03), 0.12)
-	tw.parallel().tween_property(_enemy_panel, "modulate", Color(1.5, 0.85, 0.85), 0.12)
-	tw.tween_property(_enemy_panel, "scale", Vector2.ONE, 0.12)
-	tw.parallel().tween_property(_enemy_panel, "modulate", Color.WHITE, 0.12)
+	tw.tween_property(_enemy_panel, "scale", Vector2(1.03, 1.03), wind)
+	tw.parallel().tween_property(_enemy_panel, "modulate", Color(1.5, 0.85, 0.85), wind)
+	tw.tween_property(_enemy_panel, "scale", Vector2.ONE, wind)
+	tw.parallel().tween_property(_enemy_panel, "modulate", Color.WHITE, wind)
 	await tw.finished
 	if controller != null and controller.phase == "enemy":
 		controller.resolve_enemy_turn()
@@ -658,19 +906,33 @@ func _update_heartbeat() -> void:
 	create_tween().tween_property(_heartbeat, "volume_db", target_db, 0.5)
 
 func _on_ended(won: bool) -> void:
-	Sfx.play(&"win" if won else &"lose", -4.0)
-	MusicLib.stop(1.5 if won else 0.5)   # hard silence sells the death; the lose sfx stands alone
+	if won and _enemy.is_boss:
+		# The boss sting waits one beat of silence -- the fall lands first, then the fanfare.
+		MusicLib.stop(0.15)
+		get_tree().create_timer(0.45).timeout.connect(func() -> void: Sfx.play(&"win", -2.0))
+	else:
+		Sfx.play(&"win" if won else &"lose", -4.0)
+		MusicLib.stop(1.5 if won else 0.5)   # hard silence sells the death; the lose sfx stands alone
 	if _heartbeat != null and _heartbeat.playing:
 		var hb := create_tween()
 		hb.tween_property(_heartbeat, "volume_db", -60.0, 0.3)
 		hb.tween_callback(_heartbeat.stop)
 	if _emblem_idle != null:
 		_emblem_idle.kill()
-	if won:
+	if won and _enemy.is_boss:
+		# A Major Arcana falls: hitstop, white flash, the card drops off the table, one beat of
+		# silence before the sting -- the loop's dopamine peak gets its ceremony.
+		Juice.hitstop(0.16)
+		Juice.flash(_fx, Color(1, 1, 1, 0.5), 0.4)
+		var tw := create_tween()
+		tw.tween_property(_enemy_emblem, "rotation", 0.5, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(_enemy_emblem, "position:y", _enemy_emblem.position.y + 90.0, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(_enemy_emblem, "modulate", Color(0.4, 0.12, 0.12, 0.1), 0.6)
+	elif won:
 		var tw := create_tween()
 		tw.tween_property(_enemy_emblem, "modulate", Color(0.4, 0.12, 0.12, 0.12), 0.5)
 		tw.parallel().tween_property(_enemy_emblem, "rotation", 0.3, 0.5)
-	await get_tree().create_timer(0.6).timeout   # let the HP bar finish draining + a death beat
+	await get_tree().create_timer(0.35 if Juice.fast_pace() else (1.0 if won and _enemy.is_boss else 0.6)).timeout   # death beat (bosses earn a longer one)
 	if not standalone:
 		# Feed the run: statistics, the overkill payout and the permanently shattered glass.
 		RunState.record_fight(won, _enemy.name_key, controller)
@@ -789,21 +1051,10 @@ func _pulse(node: Control) -> void:
 	create_tween().tween_property(node, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _shake(strength: float) -> void:
-	var tw := create_tween()
-	for i in 4:
-		var off := Vector2(randf_range(-strength, strength), randf_range(-strength, strength))
-		tw.tween_property(self, "position", off, 0.04)
-	tw.tween_property(self, "position", Vector2.ZERO, 0.05)
+	Juice.shake(self, strength)   # respects the reduce-motion toggle
 
 func _hit_flash() -> void:
-	var r := ColorRect.new()
-	r.color = Color(0.85, 0.12, 0.12, 0.30)
-	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_fx.add_child(r)
-	var tw := create_tween()
-	tw.tween_property(r, "modulate:a", 0.0, 0.35)
-	tw.tween_callback(r.queue_free)
+	Juice.flash(_fx, Color(0.85, 0.12, 0.12, 0.30), 0.35)   # respects the disable-flash toggle
 
 func _popup(text: String, color: Color, at: Vector2, font_size: int = 26) -> void:
 	var l := _label(text, font_size, color)

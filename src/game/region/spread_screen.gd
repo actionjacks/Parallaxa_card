@@ -28,6 +28,10 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 	var sub_text := tr(RunState.region.name_key) if RunState.region != null else ""
 	if RunState.veil > 0:
 		sub_text += "  ·  " + tr("VEIL_BADGE") % RunState.veil
+	if RunState.daily_tag != "":
+		sub_text += "  ·  " + tr("DAILY_BADGE") % RunState.daily_tag
+	elif RunState.pure_reading:
+		sub_text += "  ·  " + tr("PURE_BADGE")
 	var sub := _lbl(sub_text, 15, Color(0.6, 0.6, 0.68))
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -63,10 +67,13 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 		fool.modulate = Color(1, 1, 1, 0.4)
 		add_child(fool)
 
+	# On thin spreads (0-1 relics) the table closes ranks so the left half is not dead air.
+	var xshift := -140.0 if shown <= 1 else 0.0
+
 	# --- the greatest blow, rendered as its own card ---
 	if RunState.stat_best_hit > 0:
 		var hit := _panel(Color(0.1, 0.08, 0.12, 0.98), Color(0.9, 0.5, 0.3), 3, 6)
-		hit.position = Vector2(668, 126)
+		hit.position = Vector2(668 + xshift, 126)
 		hit.size = Vector2(200, 340)
 		hit.rotation_degrees = 3.0
 		hit.pivot_offset = Vector2(100, 170)
@@ -87,12 +94,26 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 
 	# --- the numbers ---
 	var stats := _panel(Color(0.08, 0.08, 0.12, 0.9), Color(0.3, 0.3, 0.4), 1, 4)
-	stats.position = Vector2(912, 126)
+	stats.position = Vector2(912 + xshift, 126)
 	stats.size = Vector2(340, 340)
 	var sv := VBoxContainer.new()
 	sv.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	sv.add_theme_constant_override("separation", 8)
 	stats.add_child(sv)
+	# A death must be LEGIBLE (whose blow, which turn, by what) and must FUND something
+	# concrete -- the two lines that turn a loss screen into "one more run".
+	if not victory and RunState.stat_death_foe != "":
+		var cause_key := "SPREAD_CAUSE_" + RunState.stat_death_cause.to_upper() if RunState.stat_death_cause != "" else "SPREAD_CAUSE_ATTACK"
+		var doom := _lbl(tr("SPREAD_DEATH") % [tr(RunState.stat_death_foe), RunState.stat_death_turn, tr(cause_key)],
+			14, Color(0.9, 0.5, 0.5))
+		doom.autowrap_mode = TextServer.AUTOWRAP_WORD
+		doom.custom_minimum_size = Vector2(300, 0)
+		sv.add_child(doom)
+	if not victory:
+		var goal: Dictionary = Profile.nearest_goal()
+		if not goal.is_empty():
+			sv.add_child(_lbl(tr("SPREAD_GOAL") % [tr(goal["name_key"]), Profile.sol, int(goal["cost"])],
+				14, Color(0.9, 0.85, 0.6)))
 	var lv := int(RunState.hand_levels.get(RunState.stat_best_hand, 0)) + 1
 	for line: String in [
 		tr("SPREAD_BEST_HAND") % [tr(Poker.name_key(RunState.stat_best_hand)), lv],
@@ -124,7 +145,8 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 	seed_btn.text = "* " + tr("SPREAD_SEED") % seed_code + "  ·  " + tr("SPREAD_SEED_HINT")
 	seed_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	seed_btn.pressed.connect(func() -> void:
-		DisplayServer.clipboard_set(seed_code)
+		# The share string markets the game by name wherever it gets pasted.
+		DisplayServer.clipboard_set(tr("SHARE_FATE") % [seed_code, RunState.veil])
 		seed_btn.text = tr("SPREAD_SEED_COPIED")
 		get_tree().create_timer(1.2).timeout.connect(func() -> void:
 			if is_instance_valid(seed_btn):

@@ -20,6 +20,7 @@ var _collection: Control
 var _setup: Control
 var _setup_deck: String = "classic"
 var _setup_veil: int = 0
+var _seed_edit: LineEdit
 
 func _ready() -> void:
 	Overlays.run_active = false
@@ -65,6 +66,11 @@ func _ready() -> void:
 	var cont := _menu_btn(tr("MENU_CONTINUE"), _continue_run)
 	cont.disabled = not RunState.has_run_save()
 	col.add_child(cont)
+	# Daily Fate: one date-hashed seed for EVERYONE, played as a Pure Reading -- the shared
+	# puzzle culture needs no server when the game is deterministic.
+	var daily := _menu_btn(tr("MENU_DAILY") % _daily_date(), _start_daily)
+	daily.tooltip_text = tr("MENU_DAILY_TIP")
+	col.add_child(daily)
 	col.add_child(_menu_btn(tr("MENU_COLLECTION"), _open_collection))
 	col.add_child(_menu_btn(tr("MENU_CHARACTER"), _open_character))
 	col.add_child(_menu_btn(tr("MENU_OPTIONS"), _open_options))
@@ -76,14 +82,44 @@ func _new_run() -> void:
 	# Fresh profile with nothing to choose: zero-friction direct start.
 	if Profile.wins == 0 and Profile.available_decks().size() == 1:
 		RunState.next_veil = 0
+		RunState.next_seed = 0
+		RunState.next_pure = false
+		RunState.next_daily = ""
 		_begin_run()
 		return
 	_open_setup()
+
+## Today's date tag (UTC) -- the whole world shares one fate per day.
+func _daily_date() -> String:
+	return Time.get_date_string_from_system(true)
+
+## Deterministic 32-bit seed from the date tag (djb2). Everyone hashes the same fate.
+static func _daily_seed(tag: String) -> int:
+	var h := 5381
+	for i in tag.length():
+		h = ((h * 33) + tag.unicode_at(i)) & 0xFFFFFFFF
+	return h if h != 0 else 1
+
+func _start_daily() -> void:
+	var tag := _daily_date()
+	RunState.next_veil = 0
+	RunState.next_seed = _daily_seed(tag)
+	RunState.next_pure = true    # shared fates are Pure Readings: identical for every player
+	RunState.next_daily = tag
+	_begin_run()
 
 func _begin_run() -> void:
 	RunState.load_pending = false
 	RunState.delete_run_save()
 	get_tree().change_scene_to_file(RUN_SCENE)
+
+## Parse a pasted fate code ("A3F2-09BC", dash optional, case-insensitive) -> seed int or 0.
+static func _parse_fate(text: String) -> int:
+	var t := text.strip_edges().replace("-", "").replace(" ", "").to_upper()
+	if t.is_empty() or t.length() > 8 or not t.is_valid_hex_number():
+		return 0
+	var v := ("0x" + t).hex_to_int() & 0xFFFFFFFF
+	return v if v != 0 else 1
 
 func _continue_run() -> void:
 	RunState.load_pending = true
@@ -143,10 +179,27 @@ func _open_setup() -> void:
 		v.add_child(vrow)
 		v.add_child(_center_lbl(tr("NEWRUN_VEIL_HINT"), 13, Color(0.6, 0.6, 0.68)))
 
+	# Entered fate: play someone else's seed -- always as a Pure Reading, so the shared code
+	# provably reproduces the same run for everyone.
+	v.add_child(_center_lbl(tr("NEWRUN_SEED"), 16, Color(0.62, 0.6, 0.7)))
+	_seed_edit = LineEdit.new()
+	_seed_edit.placeholder_text = "A3F2-09BC"
+	_seed_edit.custom_minimum_size = Vector2(200, 34)
+	_seed_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_seed_edit.max_length = 9
+	var seed_wrap := CenterContainer.new()
+	seed_wrap.add_child(_seed_edit)
+	v.add_child(seed_wrap)
+	v.add_child(_center_lbl(tr("NEWRUN_SEED_HINT"), 12, Color(0.55, 0.55, 0.62)))
+
 	var begin := _menu_btn(tr("NEWRUN_BEGIN"), func() -> void:
 		Profile.selected_deck = _setup_deck
 		Profile.save_profile()
 		RunState.next_veil = _setup_veil
+		var fate := _parse_fate(_seed_edit.text)
+		RunState.next_seed = fate
+		RunState.next_pure = fate != 0
+		RunState.next_daily = ""
 		_begin_run())
 	begin.custom_minimum_size = Vector2(240, 44)
 	v.add_child(begin)

@@ -38,6 +38,7 @@ var destroyed_cards: Array = []   ## PRZECIAZENIE glass shattered this fight (le
 
 # --- fight statistics (read by RunState.record_fight) ---
 var damage_taken: int = 0         ## HP lost to enemy hits + blood tax this fight
+var death_cause: String = ""      ## "attack" | "pact" | "ashes" -- set when the player falls
 var fight_damage: int = 0         ## sum of play damage this fight
 var fight_best_hit: int = 0
 var fight_best_hit_hand: int = 0
@@ -82,6 +83,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	overkill_rtec = 0
 	destroyed_cards.clear()
 	damage_taken = 0
+	death_cause = ""
 	fight_damage = 0
 	fight_best_hit = 0
 	fight_best_hit_hand = 0
@@ -182,6 +184,7 @@ func play(selected: Array) -> void:
 		message.emit("LOG_PACT", [tax])
 		if player_hp <= 0:
 			player_hp = 0
+			death_cause = "pact"
 			_finish(false)
 			return
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
@@ -207,6 +210,7 @@ func play(selected: Array) -> void:
 	if hand.is_empty() and _draw.is_empty() and _used.is_empty():
 		message.emit("LOG_DECK_ASHES", [])
 		player_hp = 0
+		death_cause = "ashes"
 		_finish(false)
 		return
 	phase = "enemy"
@@ -255,6 +259,7 @@ func resolve_enemy_turn() -> void:
 	_dmg_this_round = 0
 	if player_hp <= 0:
 		player_hp = 0
+		death_cause = "attack"
 		_finish(false)
 		return
 	turn += 1

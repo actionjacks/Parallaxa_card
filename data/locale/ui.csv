@@ -552,3 +552,24 @@ LIFE_TURNS,Turns played,Rozegrane tury
 LIFE_SOL_EARNED,Salt earned,Zdobyta Sól
 LIFE_ARCANA,Arcana carried,Niesione Arkana
 LIFE_REVERSED,Reversed pacts taken,Przyjęte odwrócone pakty
+PROPHECY_TITLE,THE PROPHECY,PRZEPOWIEDNIA
+PROPHECY_FULFILLED,As written.,Jak zapisano.
+COVENANT_LINE_1,The reading is exact. The cards do not lie — this outcome WILL happen.,Wróżba jest dokładna. Karty nie kłamią — ten wynik SIĘ STANIE.
+COVENANT_LINE_2,A foretold death always arrives.,Zapowiedziana śmierć zawsze przychodzi.
+MAGNUM_REVEAL_SUB,The Great Work is done.,Wielkie Dzieło dokonane.
+SPREAD_DEATH,Doom: %s — turn %d (%s),Zguba: %s — tura %d (%s)
+SPREAD_CAUSE_ATTACK,the blow broke through,cios przebił obronę
+SPREAD_CAUSE_PACT,the blood pact collected,pakt krwi zebrał zapłatę
+SPREAD_CAUSE_ASHES,the deck burned to ash,talia spłonęła na popiół
+SPREAD_GOAL,Next goal: %s (%d/%d Salt),Najbliższy cel: %s (%d/%d Soli)
+SHARE_FATE,"The Cards Do Not Lie — Fate %s, Veil %d","The Cards Do Not Lie — Fate %s, Veil %d"
+PURE_BADGE,Pure Reading,Czyste Odczytanie
+DAILY_BADGE,Daily Fate %s,Dzienny Los %s
+MENU_DAILY,Daily Fate — %s,Dzienny Los — %s
+MENU_DAILY_TIP,"One shared fate per day, the same for every reader (Pure Reading, classic deck).","Jeden wspólny los dziennie, ten sam dla każdego czytającego (Czyste Odczytanie, klasyczna talia)."
+NEWRUN_SEED,Fate code (optional),Kod losu (opcjonalnie)
+NEWRUN_SEED_HINT,"A pasted fate plays as a Pure Reading: classic deck, base pools — identical for everyone.","Wklejony los gra się jako Czyste Odczytanie: klasyczna talia, bazowe pule — identycznie u każdego."
+SETTINGS_REDUCE_MOTION,Reduce motion (no shake/hitstop),Ogranicz ruch (bez wstrząsów/zamrożeń)
+SETTINGS_DISABLE_FLASH,Disable screen flashes,Wyłącz błyski ekranu
+SETTINGS_STREAMER,Streamer mode (fate code on screen),Tryb streamera (kod losu na ekranie)
+SETTINGS_FAST_PACE,Fast pace (short enemy beats),Szybkie tempo (krótkie pauzy wroga)

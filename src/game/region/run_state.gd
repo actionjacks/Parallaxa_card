@@ -11,6 +11,10 @@ const REST_HEAL: int = 8        ## HP recovered after each non-boss fight (a "re
 
 ## Menu -> run handoff: the Veil tier chosen for the NEXT run (run.gd calls begin() itself).
 static var next_veil: int = 0
+## Menu -> run handoff: an ENTERED fate code (0 = roll fresh) and the Pure Reading flag.
+static var next_seed: int = 0
+static var next_pure: bool = false
+static var next_daily: String = ""    ## Daily Fate date tag ("" = not a daily run)
 
 var player_hp: int = START_MAX_HP
 var player_max_hp: int = START_MAX_HP
@@ -30,6 +34,11 @@ var hand_levels: Dictionary = {}  ## Poker.Hand -> level, raised by Star consuma
 var veil: int = 0                 ## this run's Veil tier (0 = plain road)
 var run_seed: int = 0             ## 32-bit seed of this run; 0 = not yet assigned
 var pending_overkill: int = 0     ## Mercury from the killing blow's excess (consumed by run.gd)
+## PURE READING: a shared fate must be identical for every player, so profile-injected content
+## (bought arcana, achievement omens/decks, editions) stays OUT of the pools. Set for entered
+## seeds and Daily Fates; a game titled on honesty cannot ship a lying seed.
+var pure_reading: bool = false
+var daily_tag: String = ""        ## Daily Fate date ("" = regular run)
 var elite_taken: bool = false     ## this region's elite fork already fought (one elite per region)
 
 # --- run statistics (reset in begin(); saved in save_run; the spread screen reads them) ---
@@ -45,6 +54,9 @@ var stat_death_flush_kill: bool = false  ## killing blow was a 5-card mono-Death
 var stat_max_rtec: int = 0            ## highest Mercury ever held this run
 var stat_sol_earned: int = 0          ## set exactly once by the spread screen
 var stat_elites_slain: int = 0        ## elite forks won this run
+var stat_death_foe: String = ""       ## who felled the player (EnemyData.name_key)
+var stat_death_turn: int = 0          ## on which combat turn
+var stat_death_cause: String = ""     ## "attack" | "pact" | "ashes"
 
 ## The run's ONE sanctioned randomness source (design: combat deterministic, REWARDS variable).
 ## Seeded per run so "Repeat this fate" replays the exact same offers under the same choices.
@@ -62,13 +74,15 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 		run_seed = 1          # 0 is the "unassigned" sentinel
 	rng.seed = run_seed       # deterministic sequence from here on
 	veil = next_veil
+	pure_reading = next_pure
+	daily_tag = next_daily
 	region_index = 0
 	region = p_region
 	player_max_hp = 48 if veil >= 1 else START_MAX_HP   # Veil I: Thin Thread
 	player_hp = player_max_hp
 	rtec = 0
 	pending_overkill = 0
-	deck = DeckLibrary.starter_deck()
+	deck = DeckLibrary.starter_deck_pure() if pure_reading else DeckLibrary.starter_deck()
 	_shuffle(deck)   # run-start order varies with the seed; within the run draws stay deterministic
 	relics = []
 	# Starting relic comes from the run-opening DRAFT (run.gd); legacy fallback only when the
@@ -91,6 +105,9 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	stat_max_rtec = 0
 	stat_sol_earned = 0
 	stat_elites_slain = 0
+	stat_death_foe = ""
+	stat_death_turn = 0
+	stat_death_cause = ""
 	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
 	fights = []
 	if region != null:
@@ -194,6 +211,11 @@ func record_fight(won: bool, foe_key: String, c: CombatController) -> void:
 			stat_untouched_fights += 1
 		if c.kill_mono_death_flush:
 			stat_death_flush_kill = true
+	else:
+		# The spread names the doom: who, which turn, by what (the death must be legible).
+		stat_death_foe = foe_key
+		stat_death_turn = c.turn
+		stat_death_cause = c.death_cause
 
 ## Stylized seed code for the spread screen, e.g. "A3F2-09BC".
 static func seed_text(s: int) -> String:
@@ -309,6 +331,8 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "st_flush", stat_death_flush_kill)
 	cf.set_value("run", "st_maxrtec", stat_max_rtec)
 	cf.set_value("run", "st_elites", stat_elites_slain)
+	cf.set_value("run", "pure", pure_reading)
+	cf.set_value("run", "daily", daily_tag)
 	var relic_entries: Array = []
 	for a in relics:
 		relic_entries.append({"p": a.source_path if a.source_path != "" else a.resource_path, "r": a.is_reversed})
@@ -363,6 +387,11 @@ func load_run() -> String:
 	# derived the provable high-water mark from the loaded Mercury.
 	stat_max_rtec = maxi(stat_max_rtec, cf.get_value("run", "st_maxrtec", 0))
 	stat_elites_slain = cf.get_value("run", "st_elites", 0)
+	pure_reading = cf.get_value("run", "pure", false)
+	daily_tag = cf.get_value("run", "daily", "")
+	stat_death_foe = ""
+	stat_death_turn = 0
+	stat_death_cause = ""
 	stat_sol_earned = 0
 	relics = []
 	for entry in cf.get_value("run", "relics", []):

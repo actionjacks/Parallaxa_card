@@ -56,6 +56,7 @@ var starter_editions: Dictionary = {}   ## "deckid:index" -> CardData.Edition (p
 var level: int = 1
 var xp: int = 0                    ## progress INTO the current level
 var life: Dictionary = {}          ## lifetime statistics ledger (see LIFE_KEYS)
+var flags: Dictionary = {}         ## one-shot moments already shown (covenant lines, Magnum reveal)
 
 ## Lifetime stat keys, in display order (values are ints; missing = 0).
 const LIFE_KEYS := ["runs", "wins", "deaths", "fights", "elites", "bosses",
@@ -111,6 +112,33 @@ func check_run_achievements(victory: bool) -> Array:
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
 	return fresh
+
+# ---------------------------------------------------------------- one-shot moments
+
+## One-shot ceremony gate: returns true the FIRST time a key is claimed, false ever after.
+## Used for the diegetic covenant lines and the Magnum Opus reveal -- moments that must land
+## once with full weight and never nag again.
+func claim_once(key: String) -> bool:
+	if flags.get(key, false):
+		return false
+	flags[key] = true
+	save_profile()
+	return true
+
+## The nearest concrete Sol goal (shown on the defeat spread: a death must fund SOMETHING).
+## Returns {"name_key": String, "cost": int} or {} when every sink is owned.
+func nearest_goal() -> Dictionary:
+	var best := {}
+	for id in SHOP_ARCANA:
+		if not owned_arcana.has(id):
+			var nk := "ARCANUM_CESARZA" if id == "emperor" else "ARCANUM_RYDWANU"
+			if best.is_empty() or ARCANA_COST < int(best["cost"]):
+				best = {"name_key": nk, "cost": ARCANA_COST}
+	for id in SHOP_DECKS:
+		if not owned_decks.has(id):
+			if best.is_empty() or DECK_COST < int(best["cost"]):
+				best = {"name_key": DeckLibrary.deck_name_key(id), "cost": DECK_COST}
+	return best
 
 # ---------------------------------------------------------------- tarocista (XP / levels / life)
 
@@ -270,6 +298,7 @@ func save_profile() -> void:
 	cf.set_value("meta", "level", level)
 	cf.set_value("meta", "xp", xp)
 	cf.set_value("meta", "life", life)
+	cf.set_value("meta", "flags", flags)
 	cf.save(_path())
 
 func load_profile() -> void:
@@ -302,3 +331,4 @@ func load_profile() -> void:
 	level = cf.get_value("meta", "level", 1)
 	xp = cf.get_value("meta", "xp", 0)
 	life = cf.get_value("meta", "life", {})
+	flags = cf.get_value("meta", "flags", {})
