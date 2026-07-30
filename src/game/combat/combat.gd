@@ -524,7 +524,10 @@ func _refresh_cockpit(eff_dmg: int, play_block: int, lethal: bool) -> void:
 	if _cockpit_label == null or controller == null:
 		return
 	var taken := controller.predicted_taken(play_block, eff_dmg)
-	var hp_after: int = maxi(0, controller.player_hp - taken)
+	# The play's OWN price (riposte / frail / blood tax) lands before the enemy turn, so the
+	# cockpit has to spend it too -- otherwise the promised HP is one the game will not honour.
+	var self_cost := controller.predicted_self_damage(eff_dmg, _selected)
+	var hp_after: int = maxi(0, controller.player_hp - taken - self_cost)
 	# The Fool's number is the staged blow reflected: show THAT, live, not the stale one.
 	var shown_intent: int = controller.mirror_intent(eff_dmg) if (_enemy != null
 		and _enemy.rule == EnemyData.Rule.FOOL_MIRROR and eff_dmg > 0) else controller.current_intent()
@@ -901,7 +904,11 @@ func _refresh_card_styles() -> void:
 		# Selection order IS play order, so every staged card wears its position and the last one
 		# wears the Keystone mark -- the doubled card has to be visible before the click, not after.
 		var pos: int = _selected.find(card)
-		CardWidget.set_order(w, pos, pos >= 0 and pos == _selected.size() - 1 and _selected.size() > 1)
+		# Veil IV switches the Keystone OFF (controller._ctx: "keystone": veil < 4). Painting the
+		# gold badge anyway told the player a card would score double when it would not.
+		var keystone_live: bool = _veil < 4
+		CardWidget.set_order(w, pos, keystone_live and pos >= 0
+			and pos == _selected.size() - 1 and _selected.size() > 1)
 		# While a play is staged, the bench dims -- the chosen cards become countable at a glance.
 		w.modulate.a = 1.0 if (not any or _selected.has(card)) else 0.82
 	_hand_row.relayout()

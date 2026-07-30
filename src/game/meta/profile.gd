@@ -235,6 +235,9 @@ func add_xp(amount: int) -> int:
 		sol += LEVELUP_SOL
 	if gained > 0:
 		changed.emit()
+	# XP, levels and the level-up Sol were held only in memory: the profile is written by other
+	# calls, so a player who closed the game after a won duel lost everything that duel paid.
+	save_profile()
 	return gained
 
 ## The tarocista's current rank title key.

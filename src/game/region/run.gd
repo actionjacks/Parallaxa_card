@@ -518,7 +518,7 @@ func _show_shop() -> void:
 	var rested := _last_rest
 	_last_rest = 0
 	if _shop_offers.is_empty():
-		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)
+		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
@@ -676,7 +676,7 @@ func _buy_star() -> void:
 
 func _reroll_shop() -> void:
 	if RunState.spend(_shop_reroll_cost):
-		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)   # the slot-machine pull
+		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())   # the slot-machine pull
 		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost += 1
 		_show_shop()

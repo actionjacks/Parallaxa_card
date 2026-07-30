@@ -80,8 +80,16 @@ func _open_options() -> void:
 		_settings.open()
 
 ## Save happens at every map arrival (run.gd), so abandoning keeps the run resumable from the menu.
+## The button says "Save & exit" and used to save NOTHING: the run was only ever written on the
+## map screen, so leaving from a shop or mid-fight silently threw the run away.
 func _abandon() -> void:
 	_resume()
+	var rs := get_node_or_null("/root/RunState")
+	if run_active and rs != null and rs.region != null:
+		rs.save_run("")
+	var prof := get_node_or_null("/root/Profile")
+	if prof != null and prof.has_method("save_profile"):
+		prof.call("save_profile")
 	run_active = false
 	get_tree().change_scene_to_file(MENU_SCENE)
 
@@ -142,7 +150,7 @@ func _open_overview() -> void:
 		right.add_child(_lbl(row, 13, Color(0.95, 0.9, 0.6) if lv > 0 else Color(0.72, 0.74, 0.82)))
 	right.add_child(_title(tr("OVERVIEW_JOURNEY")))
 	var region_name := tr(RunState.region.name_key) if RunState.region != null else "?"
-	right.add_child(_lbl(tr("OVERVIEW_REGION") % [RunState.region_index + 1, 4, region_name], 13, Color(0.8, 0.8, 0.86)))
+	right.add_child(_lbl(tr("OVERVIEW_REGION") % [RunState.region_index + 1, RunState.journey_legs(), region_name], 13, Color(0.8, 0.8, 0.86)))
 	right.add_child(_lbl(tr("OVERVIEW_NODE") % [mini(RunState.step + 1, RunState.fights.size() + 1), RunState.fights.size() + 1], 13, Color(0.8, 0.8, 0.86)))
 	right.add_child(_lbl(tr("RUN_SUMMARY") % RunState.fights_won, 13, Color(0.8, 0.8, 0.86)))
 	right.add_child(_title(tr("OVERVIEW_STATS")))

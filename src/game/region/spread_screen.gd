@@ -117,7 +117,7 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 	var lv := int(RunState.hand_levels.get(RunState.stat_best_hand, 0)) + 1
 	for line: String in [
 		tr("SPREAD_BEST_HAND") % [tr(Poker.name_key(RunState.stat_best_hand)), lv],
-		tr("SPREAD_REGIONS") % [RunState.stat_regions_cleared, 4],
+		tr("SPREAD_REGIONS") % [RunState.stat_regions_cleared, RunState.journey_legs()],
 		tr("SPREAD_FIGHTS") % RunState.fights_won,
 		tr("SPREAD_DAMAGE") % RunState.stat_damage_total,
 		tr("SPREAD_TURNS") % RunState.stat_turns_total,

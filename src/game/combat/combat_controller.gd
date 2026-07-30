@@ -116,6 +116,12 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	_last_play_damage = 0
 	killing_cards = []
 	_raised = false
+	# WZROST/KORZENIE ramps are RUN-LOCAL and per-fight: nothing ever cleared them, so a card that
+	# waited in hand during fight one carried that bonus into every later fight, compounding for
+	# the whole run. (scar and cracked are PERMANENT and deliberately survive -- they are saved.)
+	for c: CardData in deck:
+		c.growth = 0
+		c.bloom = 0
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -493,6 +499,19 @@ func predicted_taken(extra_block: int = 0, staged_damage: int = -1) -> int:
 		taken += incoming
 	taken += _pact_surcharge() + _curse_surcharge()
 	return taken
+
+## What the PLAY ITSELF will cost you, before the enemy even acts. The Justice riposte, the
+## Judgement frail tax and the Devil's blood tax all land immediately after a play that fails to
+## kill, and the cockpit was omitting all three -- so its "You 55 -> 45" was a number the game
+## had no intention of honouring. A killing blow still wins first, so a lethal play bills nothing.
+func predicted_self_damage(staged_damage: int, cards: Array) -> int:
+	if enemy == null or staged_damage <= 0 or staged_damage >= enemy_hp:
+		return 0
+	var total: int = riposte_for(staged_damage) + frail_tax(cards)
+	if _rule_blood_tax() and not enemy.intents.is_empty():
+		@warning_ignore("integer_division")
+		total += 2 + _intent_index / enemy.intents.size()
+	return total
 
 ## Effective enrage step (base + Veil III + depth) -- the visible clock label.
 func enrage_step_effective() -> int:

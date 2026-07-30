@@ -749,15 +749,15 @@ SHOP_INVERT,Reverse a card (%d),Odwróć kartę (%d)
 SHOP_INVERT_TIP,A reversed card scores x1.45 Mult and BECOMES its enemy colour on the pentagram. It is how a single-colour deck gets built.,Odwrócona karta liczy x1.45 Mult i STAJE SIĘ swoim wrogim kolorem na pentagramie. Tak buduje się talię jednego koloru.
 PICK_INVERT,Choose a card to reverse,Wybierz kartę do odwrócenia
 BOOK_TITLE,Astrologer's Book,Księga Astrologa
-BOOK_EMPTY,"No Daily Fate walked yet. The same date deals the same cards to everyone.","Żaden Dzienny Los jeszcze nie przeszedł. Ta sama data rozdaje wszystkim te same karty."
+BOOK_EMPTY,No Daily Fate walked yet. The same date deals the same cards to everyone.,Żaden Dzienny Los jeszcze nie przeszedł. Ta sama data rozdaje wszystkim te same karty.
 BOOK_ROW,%s — %d dmg / %d duels,%s — %d obr. / %d pojedynków
 SHOP_SPLASH,Carve a second colour (%d),Wyrzeźb drugi kolor (%d)
 SHOP_SPLASH_TIP,"The card gains an ALLIED second Aspect and counts as BOTH -- for flushes, Bujnosc, Symbioza and relics alike.","Karta zyskuje SPRZYMIERZONY drugi Aspekt i liczy się jako OBA — do koloru, Bujności, Symbiozy i reliktów."
 PICK_SPLASH,Choose a card to carve,Wybierz kartę do wyrzeźbienia
 KW_WROZBA,Wróżba,Wróżba
-KWD_WROZBA,"Played FIRST: every card to its right scores +%d chips.","Zagrana PIERWSZA: każda karta na prawo od niej liczy +%d chipsów."
+KWD_WROZBA,Played FIRST: every card to its right scores extra chips.,Zagrana PIERWSZA: każda karta na prawo od niej liczy dodatkowe chipsy.
 KW_OFIARA,Ofiara,Ofiara
-KWD_OFIARA,"Played LAST: devours the card to its left — that card is destroyed and its chips are added to this one.","Zagrana OSTATNIA: pożera kartę po swojej lewej — ta karta ginie, a jej chipsy dochodzą do tej."
+KWD_OFIARA,Played LAST: devours the card to its left — that card is destroyed and its chips are added to this one.,"Zagrana OSTATNIA: pożera kartę po swojej lewej — ta karta ginie, a jej chipsy dochodzą do tej."
 LOG_OFIARA,The sacrifice devours: +%d chips,Ofiara pożera: +%d chipsów
 CRACKED_EARNED,Cracked — it survived,Spękana — przetrwała
 LOG_RAISE_DEAD,Judgement: %d cards rise from the grave,Sąd: %d kart powstaje z grobu

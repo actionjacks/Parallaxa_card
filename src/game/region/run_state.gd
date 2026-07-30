@@ -110,6 +110,7 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	# geometry rather than the numbers: whichever colour the player was going to build toward may
 	# simply not be there, and the run has to be planned around the hole. Chosen from the run seed
 	# BEFORE any other draw, so the same fate code always removes the same colour.
+	lost_aspect = -1
 	if veil >= 5:
 		var lost: int = int(rng.randi() % 5)
 		var kept: Array = []
@@ -134,7 +135,6 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	depth = 0
 	run_won = false
 	sealed_entered = false
-	lost_aspect = -1
 	biomes_walked = []
 	hand_levels = {}
 	stat_damage_total = 0
@@ -290,6 +290,12 @@ func record_fight(won: bool, foe_key: String, c: CombatController) -> void:
 		stat_death_foe = foe_key
 		stat_death_turn = c.turn
 		stat_death_cause = c.death_cause
+
+## How many legs this journey has: the chosen tower plus The World. Hardcoded 4s survived the
+## move from four fixed regions to one tower, so both the pause overview and the end-of-run
+## spread were reporting a denominator the run can never reach.
+func journey_legs() -> int:
+	return 2
 
 ## Stylized seed code for the spread screen, e.g. "A3F2-09BC".
 static func seed_text(s: int) -> String:
