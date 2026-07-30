@@ -32,6 +32,14 @@ func _initialize() -> void:
 	fails += _expect("a cracked card loses a third of its base", _cracked_base())
 	fails += _expect("a cracked card retriggers TWICE under Lawina", _cracked_retrigger())
 	fails += _expect("Judgement raises the grave ONCE per fight", _judgement_raises())
+	# BIOME LAWS (RegionData.Law 1-6). The newest mechanic in the game and, until now, the only
+	# one with no assertions at all -- five of the six had never even executed in a real run.
+	fails += _expect("LIFE_TITHE: +2 block per card played", _law_life() == 6)
+	fails += _expect("MIND_ARCHIVE: one more card in hand", _law_mind() == CombatController.HAND_SIZE + 1)
+	fails += _expect("DEATH_HARVEST: +2 chips per card in the grave", _law_death())
+	fails += _expect("CHAOS_KINDLING: five cards x1.5, one or two x0.75", _law_chaos())
+	fails += _expect("NATURE_OVERGROWTH: cards left in hand fatten", _law_nature())
+	fails += _expect("SEAL_FIVE: +1 Mult per distinct Aspect", _law_seal())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -609,6 +617,70 @@ func _judgement_raises() -> bool:
 		ctrl.play(idx)
 		ctrl.resolve_enemy_turn()
 	return true if ctrl.hand.size() > 0 else false
+
+# ---------------------------------------------------------------- biome laws
+
+func _law_ctx(law: int) -> Dictionary:
+	return {"law": law}
+
+## The Orchard pays a tithe of shelter for every card committed.
+func _law_life() -> int:
+	var play: Array = [_card(3, 0), _card(4, 0), _card(5, 0)]
+	return int(Scoring.score(play, [], _law_ctx(1))["block"])
+
+## The Library deals one card more.
+func _law_mind() -> int:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(5)
+	for i in 20:
+		deck.append(_card(4, 1))
+	var e := EnemyData.new()
+	e.max_hp = 9999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [], 50, 50, {}, 0, 0, 0, 2)
+	return ctrl.hand.size()
+
+## The Catacombs pay for what is already spent.
+func _law_death() -> bool:
+	var play: Array = [_card(5, 2), _card(6, 2)]
+	var empty: int = int(Scoring.score(play, [], {"law": 3, "grave": 0})["chips"])
+	var full: int = int(Scoring.score(play, [], {"law": 3, "grave": 10})["chips"])
+	return full - empty == 20
+
+## The Burnt Field rewards a whole hand and punishes a nibble.
+func _law_chaos() -> bool:
+	var five: Array = [_card(2, 3), _card(3, 3), _card(4, 3), _card(6, 3), _card(8, 3)]
+	var two: Array = [_card(2, 3), _card(3, 3)]
+	var f_plain: float = float(Scoring.score(five, [], {})["mult"])
+	var f_law: float = float(Scoring.score(five, [], _law_ctx(4))["mult"])
+	var t_plain: float = float(Scoring.score(two, [], {})["mult"])
+	var t_law: float = float(Scoring.score(two, [], _law_ctx(4))["mult"])
+	return abs(f_law - f_plain * 1.5) < 0.001 and abs(t_law - t_plain * 0.75) < 0.001
+
+## The Overgrowth fattens whatever is left in hand at the end of the enemy turn.
+func _law_nature() -> bool:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 12:
+		deck.append(_card(4, 4))
+	var e := EnemyData.new()
+	e.max_hp = 9999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [], 50, 50, {}, 0, 0, 0, 5)
+	var before: int = ctrl.hand[0].chip_value()
+	ctrl.play([1])
+	ctrl.resolve_enemy_turn()
+	return ctrl.hand[0].chip_value() > before
+
+## The Sealed Biome inverts the journey: it pays for EVERY colour at once.
+func _law_seal() -> bool:
+	var rainbow: Array = [_card(2, 0), _card(3, 1), _card(4, 2), _card(5, 3), _card(6, 4)]
+	var mono: Array = [_card(2, 0), _card(3, 0), _card(4, 0), _card(5, 0), _card(6, 0)]
+	var r_plain: float = float(Scoring.score(rainbow, [], {})["mult"])
+	var r_law: float = float(Scoring.score(rainbow, [], _law_ctx(6))["mult"])
+	var m_law: float = float(Scoring.score(mono, [], _law_ctx(6))["mult"])
+	var m_plain: float = float(Scoring.score(mono, [], {})["mult"])
+	return abs(r_law - (r_plain + 5.0)) < 0.001 and abs(m_law - (m_plain + 1.0)) < 0.001
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:
