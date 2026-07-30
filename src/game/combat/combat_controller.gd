@@ -394,6 +394,7 @@ func _finish(won: bool) -> void:
 func _ctx() -> Dictionary:
 	return {
 		"law": law,
+		"keystone": true,   # the last card of a play scores double (docs/PLAN_TODO.md T1)
 		"grave": _used.size(),
 		"plays": _plays,
 		"hand_levels": hand_levels,

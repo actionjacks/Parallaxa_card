@@ -894,6 +894,10 @@ func _refresh_card_styles() -> void:
 	for card in _widgets:
 		var w: Control = _widgets[card]
 		CardWidget.set_selected(w, _selected.has(card))
+		# Selection order IS play order, so every staged card wears its position and the last one
+		# wears the Keystone mark -- the doubled card has to be visible before the click, not after.
+		var pos: int = _selected.find(card)
+		CardWidget.set_order(w, pos, pos >= 0 and pos == _selected.size() - 1 and _selected.size() > 1)
 		# While a play is staged, the bench dims -- the chosen cards become countable at a glance.
 		w.modulate.a = 1.0 if (not any or _selected.has(card)) else 0.82
 	_hand_row.relayout()

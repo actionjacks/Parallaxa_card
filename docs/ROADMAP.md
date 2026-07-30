@@ -165,3 +165,37 @@ ODRZUCONE PO POMIARZE: propozycja panelu "talia 70 kart 5x14" — zmierzona daje
 P(najlepszy uklad <= dwie pary) 78.1% wobec 42.8%, czyli 1.8x POGARSZA skarge, ktora miala naprawic.
 
 DALEJ: docs/PLAN_TODO.md (T1 Klucz -> T2 Pentagram -> T3 Wtajemniczenia -> T5 Blizny -> T4 Inwersja).
+
+## Wieza, figury wrogow, Klucz (2026-07-30, druga tura) — ZROBIONE
+Prosba gracza: "lecimy z pomyslami z todo; kazdy biom ma miec 5 szczebli w formie WIEZY po
+ktorej gracz sie wspina; portrety mialem na mysli portrety PRZECIWNIKOW, nie karte w tle --
+jak jest kultysta, to chce animowana postac kultysty, animowana jak rycina".
+
+FIGURY WROGOW (tools/gen/gen_foe_figures.py): postac jest WYCINANA z planszy RWS (public domain)
+-- to uczciwe zrodlo, bo cala koncepcja gry mowi, ze wrogowie SA kartami dworskimi. Pipeline:
+kadr bez marginesu/ramki/banderoli -> flood-fill nieba do alfy zasiany z KAZDEGO piksela
+krawedzi (kilka ziaren zostawialo confetti ze speckli druku i linii ramki) -> zachowanie kazdej
+wyspy w granicach 16% najwiekszej (NIE tylko najwiekszej: niektore plansze to SCENA -- ciecie do
+jednej wyspy scielo Diabla z jego wlasnej karty i zostawialo dwie skute postacie) -> wygaszenie
+gruntu od dolu -> 8 klatek warpu pasmowego (oddech + kolysanie, glowa najbardziej, stopy w
+ziemi) jako jeden sprite sheet. Pasma i 10 fps sa CELOWE: plynne tweenowanie czyta sie jak
+zdjecie z filtrem, kroki czytaja sie jak drzeworyt. Szal przyspiesza do 16 fps. 42 figury, ~5 s
+regeneracji. Elita Natury pozycza Siodemke Pentakli (nasza plansza Natury nie ma nieba do
+wyciecia). EnemyData.figure/figure_frames; EnemyPortrait gra sheet przez AtlasTexture i CHOWA
+ramke plyty (ramka obramowuje KARTE, przy stojacej postaci czyta sie jak dwie kreski obok niej).
+
+WIEZA: biom = 5 szczebli (4 pojedynki + boss na SZCZYCIE), mapa pionowa czytana z gory na dol.
+RunState._roll_tower losuje po dwoch przeciwnikow z kazdej puli (pula krotsza niz jej szczeble
+powtarza, zamiast skracac wieze -- wysokosc jest stala), wiec wieza Kielichow czyta sie jako
+Paz -> Rycerz -> Krolowa -> Krol -> Sila: dwor tego koloru, rosnacy. JEDNA wieza na run + Swiat
+= 6 starc i DOKLADNIE JEDNA pieczec, wiec zamkniecie pentagramu wymaga pieciu udanych podrozy.
+HP wiezy rampuje +60/szczebel z lagodniejszej bazy (szczebel 1 ~710 zamiast ~1020).
+
+T1 z todo.md — KLUCZ: ostatnia karta w zagraniu liczy PODWOJNIE (chipsy + plaskie slowa
+kluczowe; mnozace nietkniete, bo x2 na szkle daloby x8 z jednego klikniecia). ctx["keystone"]
+domyslnie false, wiec testy bez zmian. Numery 1..5 na zaznaczonych kartach, zlota plakietka na
+ostatniej; kolejnosc klikania = kolejnosc zagrania.
+
+NAPRAWIONE (oba wykryte OBSERWACJA bota, nie czytaniem kodu): final podrozy testowal stara
+tablice 4 regionow, wiec po upadku Swiata run ladowal Swiat PONOWNIE w kolko; harness znal tylko
+OMEN_TAKE/OMEN_SKIP, wiec omeny-prezenty z E1 (jeden przycisk OMEN_GIFT) zapetlaly go na mapie.

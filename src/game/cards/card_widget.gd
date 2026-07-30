@@ -299,6 +299,41 @@ static func set_selected(panel: PanelContainer, on: bool) -> void:
 	var t := panel.create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	t.tween_property(panel, "scale", panel.get_meta("base_scale"), 0.10)
 
+## THE ORDER PIP: a selected card wears the position it will fire in, and the LAST one wears
+## the Keystone mark. Without this the play order is invisible, and an invisible mechanic is
+## not a decision. Selection order IS play order, so the player sets it by the order they click.
+static func set_order(panel: PanelContainer, index: int, keystone: bool) -> void:
+	var pip: Control = panel.get_node_or_null("OrderPip")
+	if index < 0:
+		if pip != null:
+			pip.queue_free()
+		return
+	if pip == null:
+		var holder := Control.new()
+		holder.name = "OrderPip"
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(holder)
+		var badge := ColorRect.new()
+		badge.name = "Badge"
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(badge)
+		var num := _lbl("", 15, Color(0.06, 0.05, 0.04))
+		num.name = "Num"
+		num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		num.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(num)
+		pip = holder
+	var badge2: ColorRect = pip.get_node("Badge")
+	var num2: Label = pip.get_node("Num")
+	var sz := 24.0
+	badge2.position = Vector2(CARD_SIZE.x - sz - 3.0, 3.0)
+	badge2.size = Vector2(sz, sz)
+	badge2.color = Color(0.98, 0.82, 0.35) if keystone else Color(0.86, 0.86, 0.92)
+	num2.position = badge2.position
+	num2.size = badge2.size
+	num2.text = str(index + 1)
+	num2.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
 ## A large, readable card face: big rank, aspect name, keyword + its full effect text, edition.
 static func build_preview(card: CardData) -> PanelContainer:
 	var col := Aspects.color(card.aspect)

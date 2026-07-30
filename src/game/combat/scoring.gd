@@ -40,9 +40,18 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	for c in cards:
 		aspect_counts[c.aspect] = int(aspect_counts.get(c.aspect, 0)) + 1
 
-	for c in cards:
-		chips += c.chip_value()
-		retrig_total += c.chip_value()
+	# THE KEYSTONE (docs/PLAN_TODO.md T1): the LAST card in the play order carries double weight.
+	# This is what turns "which five cards" -- one right answer -- into "which five, and which
+	# last" -- five. It doubles chip material and the FLAT keyword values only; the multiplying
+	# keywords (Furia, Przeciazenie, Kombinat, Lawina, Zniwo) are untouched, because doubling a
+	# x2 on glass would hand out x8 for a click. Off by default (ctx has no "keystone"), so every
+	# existing test asserts the same numbers it always did.
+	var keystone: int = (cards.size() - 1) if bool(ctx.get("keystone", false)) and cards.size() > 1 else -1
+	for ci in cards.size():
+		var c = cards[ci]
+		var key: int = 2 if ci == keystone else 1
+		chips += c.chip_value() * key
+		retrig_total += c.chip_value() * key
 		if c.aspect == Aspects.Id.CHAOS:
 			chaos_count += 1
 		match c.edition:
@@ -55,28 +64,28 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 				poly *= 1.3
 		match c.keyword:
 			CardData.Keyword.OSLONA:
-				block += c.keyword_value
+				block += c.keyword_value * key
 			CardData.Keyword.KORZENIE:
-				block += c.keyword_value + c.bloom   # roots deepen every turn the card waits
+				block += (c.keyword_value + c.bloom) * key   # roots deepen every turn the card waits
 			CardData.Keyword.OPATRZNOSC:
-				heal += c.keyword_value
+				heal += c.keyword_value * key
 			CardData.Keyword.GNICIE:
-				gnicie += c.keyword_value
+				gnicie += c.keyword_value * key
 			CardData.Keyword.SPALENIE:
-				flat += c.keyword_value
+				flat += c.keyword_value * key
 			CardData.Keyword.ECHO:
-				chips += c.keyword_value * plays
+				chips += c.keyword_value * plays * key
 			CardData.Keyword.ZNIWO:
-				mult += float(c.keyword_value * grave)
+				mult += float(c.keyword_value * grave)   # MULTIPLYING: never keystoned
 			CardData.Keyword.BUJNOSC:
 				if int(aspect_counts[c.aspect]) >= 3:
-					chips += c.keyword_value
+					chips += c.keyword_value * key
 			CardData.Keyword.SYMBIOZA:
 				# +value chips per allied-colour card played alongside (pentagram neighbours)
 				var pals: Array = Aspects.allies(c.aspect)
 				for other in cards:
 					if other != c and pals.has(other.aspect):
-						chips += c.keyword_value
+						chips += c.keyword_value * key
 			CardData.Keyword.FURIA:
 				has_furia = true
 			CardData.Keyword.PRZECIAZENIE:

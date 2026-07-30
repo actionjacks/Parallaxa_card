@@ -33,9 +33,15 @@ uklad, ktory juz ma?** — bo to, a nie brak mocy, bylo prawdziwa przyczyna skar
 
 ---
 
-## T1. KOLEJNOSC ZAGRYWANIA KART — "KLUCZ"
+## T1. KOLEJNOSC ZAGRYWANIA KART — "KLUCZ"  ✅ WDROZONE (2026-07-30)
 
-**Wartosc 5/5 · Koszt S · Konflikt z determinizmem: NIE · Wchodzi NASTEPNY**
+**Wartosc 5/5 · Koszt S · Konflikt z determinizmem: NIE**
+
+Wdrozone dokladnie wg tego opisu: `ctx["keystone"]` domyslnie `false` (testy bez zmian),
+`CombatController._ctx()` ustawia `true`; podwajane sa chipsy karty i PLASKIE wartosci slow
+kluczowych, mnozace (FURIA/PRZECIAZENIE/KOMBINAT/LAWINA/ZNIWO) nietkniete. UI: numer 1..5 na
+kazdej zaznaczonej karcie, zlota plakietka na ostatniej. Kolejnosc KLIKANIA jest kolejnoscia
+zagrania, wiec gracz ustawia Klucz sam.
 
 Najtansza zmiana o najwyzszym zwrocie w calym dokumencie i jedyna, ktora zamienia pytanie
 "ktore 5 kart" (jedna poprawna odpowiedz) w "ktore 5 i ktora ostatnia" (piec odpowiedzi).
@@ -168,7 +174,7 @@ jest dostarczona za ulamek kosztu.
 ## Kolejnosc wdrazania (rekomendacja)
 
 ```
-T1 (Klucz)  ->  domkniecie biomow (bossy Cesarzowej/Kola, ekran pieczeci w menu)
+[T1 ZROBIONE]  ->  domkniecie biomow (bossy Cesarzowej/Kola, ekran pieczeci w menu)
             ->  T2 (Pentagram + Pelny Dwor, PO pomiarze)  ->  T3 (Wtajemniczenia + Ksiega)
             ->  T5 (Blizny)  ->  T4 (Inwersja, PO pomiarze koloru)  ->  T6 (tylko eksperyment)
 ```
