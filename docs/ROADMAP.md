@@ -118,3 +118,50 @@ zgon do jednego kliku; naprawa: remove_child przed queue_free.
 Akceptacja E1 (3 swieze runy bota): sklep w runie 1 = 3/3, osiagniec 7 (cel >=2), Sol 127
 (cel >=45), sklady/drafty sie roznia (probe_rolls.gd: seed->identyczny sklad, rozne seedy->rozne).
 Testy 24+23 PASS; przeklik pelnej petli: walka->nagroda->sklep(zakupy)->mapa->omen->boss->spread.
+
+## Przebudowa odczuc: talia, arena, portrety, biomy (2026-07-30) — ZROBIONE
+Skarga gracza: "gra nie daje dobrego wrazenia, udawalo mi sie co najwyzej robic pary, nie czuje
+tej gry; karty za male; podglad po prawej bez sensu; trzeba animowanych portretow na srodku;
+karty maja miec widoczne kolory i symbole; 5 aspektow = 5 biomow, kazdy daje kolor, 5 kolorow
+otwiera ukryty biom z poteznym bossem".
+
+DIAGNOZA (pomiar na zywym silniku, tools/dev/probe_deckmath.gd, 9000 zagran): stara talia
+16-kartowa grala dwie pary w 48% tur, a KARETA/POKER/PIEC/MAGNUM = 0.00% — cztery z jedenastu
+szczebli drabinki ukladow byly nieosiagalne. Obrazenia 120-426 niezaleznie od decyzji gracza.
+Dodatkowo: talia byla tasowana RAZ na run i nietasowana miedzy walkami, wiec kazda walka runu
+zaczynala sie ta sama reka.
+
+WDROZONE:
+- TALIA PENTAKLOWA: 5 aspektow x rangi 1-8 = 40 kart, kazda ranga w kazdym kolorze. Karty dworskie
+  celowo tylko z nagrod/sklepu. Po zmianie: kareta 4.9%, poker 0.17%, piec 0.24%, mediana 228,
+  sufit 1928, rozrzut p95/mediana 2.64x. Talie alternatywne = ta sama siatka wygieta w dwa kolory.
+- KOREKTA KOLORU: przy 5 kolorach flush jest 3. najrzadszym ukladem (1 na 2531, rzadszy od karety),
+  a placil jak 6. Teraz 70x8; obie tabele wyplat sortowane po WARTOSCI, nie po enumie.
+- TASOWANIE PRZED WALKA (RunState.shuffle_for_fight, 1 losowanie glowne) + naprawa kontraktu seeda:
+  tasowanie talii przeniesione na sub-rng, bo Fisher-Yates zjada N-1 losowan i zmiana rozmiaru
+  talii unieważniala kody losu.
+- CEREMONIA NALICZANIA: karta po karcie, +N chipsow nad kazda, osobne liczniki Chips i Mult,
+  potem iloczyn i cios. Czysto prezentacyjne — liczby pochodza z tego samego Scoring.score.
+- NARZEDZIA REKI: sortowanie (dobrane/rangi/kolory, tylko kolejnosc WYSWIETLANIA) + podpowiedz
+  "W rece: <uklad>". Powod liczbowy: strit lezy w rece w 22.6% rak, a gracz grupujacy po randze
+  znajduje go w 0.5% — traci ~19% obrazen. Problemem byla NIEWIDOCZNOSC ukladu, nie brak mocy.
+- KARTY: 108x151 (bylo 80x112), pelnowysokosciowy PASEK KOLORU na lewej krawedzi, SIGIL aspektu
+  przy randze (src/game/cards/aspect_sigil.gd — kielich/miecz/pentagram/plomien/lisc, rozne
+  SYLWETKA, nie tylko kolorem). Usuniety podglad po prawej: hover sam powieksza karte.
+- PIATY KOLOR: RWS 1909 ma tylko 4 kolory, wiec NATURA nie miala zadnego artu. tools/gen/
+  gen_nature_suit.py wyprowadza 14 kart z plansz public domain (odbicie lustrzane + zielony
+  duotone + sigil + banderola zamiast odwroconego tytulu).
+- PORTRETY: src/game/combat/enemy_portrait.gd — plyta 372x644 jako WARSTWA TLA (zero kosztu dla
+  budzetu 720p), oddech, zamach przed atakiem, drgniecie przy ciosie, szal, smierc. Bez shadera
+  (ukryty ekran testowy chodzi na lavapipe).
+- BIOMY: 5 kolorow = 5 PRAW POLA (Sad +2 bloku/karte, Biblioteka +1 karta w rece, Katakumby
+  +2 chipsy za karte w grobie, Pogorzelisko 5 kart x1.5 Mult, Przerost karty tyja w rece).
+  Run = 3 wybrane biomy + Swiat (10 starc jak dotad; 5 po kolei bylo by +60% dlugosci).
+  PIECZECIE w Profile — trwale, przyznawane przy upadku bossa biomu. 5 pieczeci otwiera trzecie
+  drzwi przy Bramie Swiata: BIOM ZAPIECZETOWANY (cztery Asy + GLUPIEC), ktorego prawo odwraca
+  cala gre: +1 Mult za KAZDY odmienny aspekt w zagraniu.
+
+ODRZUCONE PO POMIARZE: propozycja panelu "talia 70 kart 5x14" — zmierzona daje
+P(najlepszy uklad <= dwie pary) 78.1% wobec 42.8%, czyli 1.8x POGARSZA skarge, ktora miala naprawic.
+
+DALEJ: docs/PLAN_TODO.md (T1 Klucz -> T2 Pentagram -> T3 Wtajemniczenia -> T5 Blizny -> T4 Inwersja).
