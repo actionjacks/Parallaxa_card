@@ -253,3 +253,19 @@ tylko musnelo:
   RAZ na pojedynek, w momencie wyczerpania talii, grob wraca do gry. Jawny warunek, nie rzut,
   wiec da sie na tym planowac; czyni cienka talie ZALETA, nie ryzykiem.
 Testy: 44 asercje w test_combat, w tym negatywne (Wrozba w zlym miejscu = zero, Sad odpala RAZ).
+
+## PLAN NASTEPNY (zapisany 2026-07-31) — DO ZROBIENIA
+Zamowienie: dokladnie sprawdzic i przetestowac CALY game loop (czy dziala, czy jest spojny i
+sensowny); wiecej przestrzeni na arenie i wiecej w niej 3D; dopracowac tooltipy i wyjasnienia,
+bo gracz czuje, ze wiekszosci nie rozumie; a po testach — pule PROSTYCH i ZAAWANSOWANYCH
+przeciwnikow, kazdy z wlasna technika i wlasnymi zasadami, oraz bossy CALKOWICIE narzucajace inne
+zasady gry i zmieniajace mechanike. Gra ma byc epicka.
+Rozpisane w **docs/PLAN_NASTEPNY.md** (N1 audyt -> N3 zrozumialosc -> N4.1/N4.2 techniki wrogow
+-> N2 arena 3D -> N4.3/N4.4 bossy). Dwa fakty zmierzone przy zapisywaniu planu, ktore go
+uzasadniaja: (1) w data/combat jest 46 ZWYKLYCH przeciwnikow i ZADEN nie ma reguly pola —
+wszystkie 14 regul silnika naleza do bossow, wiec kazda zwykla walka to ta sama walka z innymi
+liczbami; (2) w calym src/game jest tylko 20 miejsc z tooltipem i brakuje wyjasnien dla
+NAJBARDZIEJ podstawowych pojec (Chips, Mult, Rteć, prawo pola, Zaslona, pieczec, Klucz) — gra
+tlumaczy slowa kluczowe kart, ale nie tlumaczy wlasnego jezyka.
+KOLEJNOSC MA UZASADNIENIE: zrozumialosc PRZED epickoscia, bo epicki boss, ktorego zasad gracz nie
+rozumie, jest frustrujacy, nie epicki.
