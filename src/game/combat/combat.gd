@@ -40,6 +40,9 @@ var _relic_row: HBoxContainer
 var _portrait: EnemyPortrait       ## the opponent as a full-height plate BEHIND the arena
 var _portrait_of: EnemyData        ## which enemy the plate currently shows (rebuild guard)
 var _portrait_enraged := false     ## enrage ceremony fires once per fight, not once per render
+var _hand_sort := 0                ## 0 dealt, 1 by rank, 2 by Aspect (DISPLAY order only)
+var _sort_btn: Button
+var _hint_label: Label             ## names the best hand sitting in the current hand
 var _rule_label: Label
 var _preview_label: Label
 var _log_label: Label
@@ -241,11 +244,22 @@ func _build_ui() -> void:
 	_discard_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_discard_btn.pressed.connect(_on_discard)
 	crow.add_child(_discard_btn)
+	var st0 := get_node_or_null("/root/Settings")
+	if st0 != null and st0.has_method("get_value"):
+		_hand_sort = int(st0.call("get_value", "gameplay", "hand_sort", 0))
+	_sort_btn = Button.new()
+	_sort_btn.text = tr(["SORT_DEALT", "SORT_RANK", "SORT_ASPECT"][_hand_sort])
+	_sort_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_sort_btn.tooltip_text = tr("SORT_TIP")
+	_sort_btn.pressed.connect(_cycle_hand_sort)
+	crow.add_child(_sort_btn)
 	var pt_btn := Button.new()
 	pt_btn.text = tr("PAYTABLE_TOGGLE")
 	pt_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pt_btn.pressed.connect(_toggle_paytable)
 	crow.add_child(pt_btn)
+	_hint_label = _label("", 14, Color(0.72, 0.68, 0.46))
+	crow.add_child(_hint_label)
 	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
 	crow.add_child(_help_label)
 	_build_paytable()
@@ -352,6 +366,9 @@ func _render() -> void:
 		elif controller.turn == 4 and Profile.claim_once("tip_deckorder"):
 			_covenant_line(tr("TIP_DECK_ORDER"))
 	_refresh_next_draws()
+	if _hint_label != null:
+		var ba := _best_available()
+		_hint_label.text = (tr("HAND_BEST_AVAILABLE") % tr(Poker.name_key(ba))) if ba >= 0 else ""
 	_refresh_cockpit(0, 0, false)
 	var pool_left := controller.heal_cap - controller.heal_used
 	_heal_pool_label.text = tr("COMBAT_HEAL_BUDGET") % [pool_left, controller.heal_cap]
@@ -405,13 +422,67 @@ func _reconcile_hand() -> void:
 			panel.position = Vector2(_hand_row.size.x - 60.0, 30.0)   # dealt in from the deck side
 			_widgets[card] = panel
 			_animate_draw(panel)
-	for i in want.size():
-		_hand_row.move_child(_widgets[want[i]], i)
+	# DISPLAY order only -- controller.hand keeps its dealt order, so nothing about the draw,
+	# the recycle or the seed contract shifts when the player rearranges what they are looking at.
+	var shown: Array = _sorted_for_display(want)
+	for i in shown.size():
+		_hand_row.move_child(_widgets[shown[i]], i)
 	for card in _selected.duplicate():
 		if not want.has(card):
 			_selected.erase(card)
 	_refresh_card_styles()
 	_hand_row.relayout()
+
+## Sorting the hand is the difference between SEEING a flush and hunting for one. Balatro gives
+## the same two orders for the same reason; here they cost nothing because the display order is
+## decoupled from the deck order.
+func _sorted_for_display(cards: Array) -> Array:
+	var out: Array = cards.duplicate()
+	match _hand_sort:
+		1:  # by rank: pairs, trips and straights line up next to each other
+			out.sort_custom(func(a: CardData, b: CardData) -> bool:
+				if a.rank == b.rank:
+					return a.aspect < b.aspect
+				return a.rank > b.rank)
+		2:  # by Aspect: a flush stops being a needle in a haystack
+			out.sort_custom(func(a: CardData, b: CardData) -> bool:
+				if a.aspect == b.aspect:
+					return a.rank > b.rank
+				return a.aspect < b.aspect)
+	return out
+
+func _cycle_hand_sort() -> void:
+	_hand_sort = (_hand_sort + 1) % 3
+	_sort_btn.text = tr(["SORT_DEALT", "SORT_RANK", "SORT_ASPECT"][_hand_sort])
+	var st := get_node_or_null("/root/Settings")
+	if st != null and st.has_method("set_value"):
+		st.call("set_value", "gameplay", "hand_sort", _hand_sort)
+	_reconcile_hand()
+
+## The best hand SITTING in the current hand, named. It does not select anything and it does not
+## say which cards -- the puzzle stays the player's -- but it turns "is there anything here?"
+## from a blind 56-way search into a target worth digging for.
+func _best_available() -> int:
+	if controller == null or controller.hand.size() < 5:
+		return -1
+	var n: int = controller.hand.size()
+	var best: int = Poker.Hand.HIGH_CARD
+	for mask in range(1, 1 << n):
+		var bits: int = 0
+		var m: int = mask
+		while m > 0:
+			bits += m & 1
+			m >>= 1
+		if bits != 5:
+			continue
+		var cards: Array = []
+		for i in n:
+			if mask & (1 << i):
+				cards.append(controller.hand[i])
+		var h: int = Poker.evaluate(cards)
+		if h > best:
+			best = h
+	return best
 
 func _make_card(card: CardData) -> Control:
 	var panel := CardWidget.build(card)

@@ -670,3 +670,8 @@ COLLECTION_ACH_HINT,Every fulfilled achievement pays +10 Salt.,Każde spełnione
 RUN_RTEC_NAMED,%d ☿ Mercury,%d ☿ Rtęć
 SCORE_RUNNING,%d chips  x  %s mult,%d chipsów  x  %s mult
 SCORE_PRODUCT,%d  x  %s  =  %d,%d  x  %s  =  %d
+SORT_DEALT,Order: dealt,Układ: dobrane
+SORT_RANK,Order: rank,Układ: rangi
+SORT_ASPECT,Order: colour,Układ: kolory
+SORT_TIP,"Reorder the hand on screen. The deck order never changes.","Przestawia karty na ekranie. Kolejność talii się nie zmienia."
+HAND_BEST_AVAILABLE,In hand: %s,W ręce: %s
