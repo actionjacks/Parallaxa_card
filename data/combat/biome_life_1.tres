@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_11.jpg" id="1_hrdwj"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_vj0an"]
+
+[resource]
+script = ExtResource("2_vj0an")
+name_key = "BIOME_LIFE_1"
+max_hp = 1023
+intents = PackedInt32Array(9, 9, 9)
+enrage_step = 2
+reward_rtec = 5
+art = ExtResource("1_hrdwj")

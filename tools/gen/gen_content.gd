@@ -28,6 +28,7 @@ func _initialize() -> void:
 	_deck("starter_gardener", "DECK_GARDENER", _make(_gardener(), "g"))
 	_deck("starter_oracle", "DECK_ORACLE", _make(_oracle(), "o"))
 	_region()
+	_biomes()
 	_omens()
 	print("gen_content: %d starter + %d pool cards, 3 alt decks, enemies + arcana + 4 regions written"
 		% [starter.size(), pool.size()])
@@ -289,9 +290,97 @@ func _save_elite(file: String, name_key: String, hp: int, intents: Array, reward
 	e.art = load(MINOR + art + ".jpg")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
-func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, boss_file: String, arc_file: String, accent: Color, elite_file: String, boss_pool_files: Array = []) -> void:
+# ---- BIOMES: five colours, five laws, five seals (+ the hidden sixth) ----
+
+## Each Aspect owns a biome, and each biome owns a LAW that changes how every duel inside it
+## scores. The colour is not a tint on the map: it is what the place DOES to your hand, which is
+## why beating one is worth a permanent seal. Enemies are the court of that colour's suit
+## (cups=LIFE swords=MIND wands=CHAOS pents=DEATH; NATURE has no historical suit and wears the
+## Tens), the elite is its reversed Nine, and the bosses are the Major Arcana of that philosophy.
+func _biomes() -> void:
+	var L := RegionData.Law
+	# [aspect, id, name_key, suit, accent, law, law_key, base_hp, intents, bosses, boss_arc, elite_art]
+	var specs := [
+		[A.LIFE, "biome_life", "BIOME_LIFE", "cups", Color(0.82, 0.74, 0.50),
+			L.LIFE_TITHE, "LAW_LIFE", 620, [[9, 9, 9], [11, 8, 11], [10, 10, 10], [12, 12, 6]],
+			["boss_strength", "boss_star"], "arcanum_strength"],
+		[A.MIND, "biome_mind", "BIOME_MIND", "swords", Color(0.43, 0.62, 0.80),
+			L.MIND_ARCHIVE, "LAW_MIND", 470, [[17, 3, 17], [19, 0, 19], [16, 6, 16], [21, 2, 21]],
+			["boss_hanged", "boss_justice"], "arcanum_hanged"],
+		[A.DEATH, "biome_death", "BIOME_DEATH", "pents", Color(0.52, 0.40, 0.68),
+			L.DEATH_HARVEST, "LAW_DEATH", 560, [[12, 13, 11], [13, 13, 13], [14, 12, 12], [15, 14, 13]],
+			["boss_moon", "boss_judgement"], "arcanum_moon"],
+		[A.CHAOS, "biome_chaos", "BIOME_CHAOS", "wands", Color(0.80, 0.38, 0.30),
+			L.CHAOS_KINDLING, "LAW_CHAOS", 490, [[20, 0, 14], [22, 0, 15], [24, 0, 16], [26, 0, 18]],
+			["boss_tower", "boss_devil", "boss_chariot"], "arcanum_tower"],
+		[A.NATURE, "biome_nature", "BIOME_NATURE", "nature", Color(0.42, 0.66, 0.40),
+			L.NATURE_OVERGROWTH, "LAW_NATURE", 550, [[8, 11, 14], [7, 12, 15], [9, 12, 16], [10, 13, 16]],
+			["boss_empress", "boss_wheel"], "arcanum_empress"],
+	]
+	# The Empress and the Wheel had no boss card yet -- Nature's philosophy needed its own Arcana.
+	_save_arcanum_simple("arcanum_wheel", "ARCANUM_KOLA", ArcanumData.Effect.MULT_IF_ASPECT,
+		A.NATURE, 1.45, 0, "10_wheel_of_fortune", [2.1, -1, ArcanumData.Price.SELF_CURSE, 2])
+	_save_boss("boss_empress", "ENEMY_CESARZOWA", 820, [14, 18, 11], 13,
+		EnemyData.Rule.NONE, "RULE_EMPRESS", 4, "03_empress", "arcanum_empress")
+	_save_boss("boss_wheel", "ENEMY_KOLO", 800, [16, 16, 16], 13,
+		EnemyData.Rule.NONE, "RULE_WHEEL", 5, "10_wheel_of_fortune", "arcanum_wheel")
+
+	for spec in specs:
+		var aspect: int = spec[0]
+		var id: String = spec[1]
+		var suit: String = spec[3]
+		var hp: int = spec[7]
+		var intents: Array = spec[8]
+		# four regulars = the suit's court (Page, Knight, Queen, King), rising
+		var ranks := [11, 12, 13, 14] if suit != "nature" else [10, 10, 10, 10]
+		var arts := ["cups", "swords", "wands", "pents"] if suit == "nature" else [suit, suit, suit, suit]
+		var files: Array = []
+		for i in 4:
+			var e := _enemy("%s_%d" % [spec[2], i + 1], hp + i * 30, intents[i], 5 + i / 2,
+				false, EnemyData.Rule.NONE, "", 2 + i / 2)
+			e.art = load("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
+			var f: String = "%s_%d" % [id, i + 1]
+			ResourceSaver.save(e, ENEMY_DIR + f + ".tres")
+			files.append(f)
+		# the elite: the colour's reversed Nine (is_elite already renders it upside down)
+		var el := _enemy("%s_E" % spec[2], hp + 140, intents[3], 12, false, EnemyData.Rule.NONE, "", 4)
+		el.art = load("%s%s_09.jpg" % [MINOR, suit if suit != "nature" else "nature"])
+		el.is_elite = true
+		ResourceSaver.save(el, ENEMY_DIR + id + "_elite.tres")
+		_save_region(id, spec[2], [files[0], files[1]], [files[2], files[3]],
+			spec[9][0], spec[10], spec[4], id + "_elite", spec[9],
+			int(spec[5]), spec[6], aspect)
+
+	# ---- THE SEALED BIOME: what answers when all five colours have been answered ----
+	# Its enemies are the four Aces (the hand from the cloud: pure, uncoloured force) and its
+	# boss is THE FOOL -- the card the player has been told they ARE since the first status bar.
+	# Its law inverts the whole journey: after a run spent chasing ONE colour, it pays for all five.
+	_save_arcanum_simple("arcanum_fool", "ARCANUM_GLUPCA", ArcanumData.Effect.MAGNIFY,
+		A.MIND, 1.4, 0, "00_fool", null)
+	var ace_specs := [["cups", 640, [10, 10, 10]], ["swords", 600, [13, 3, 13]],
+		["wands", 580, [15, 0, 11]], ["pents", 620, [11, 11, 11]]]
+	var ace_files: Array = []
+	for i in ace_specs.size():
+		var sp: Array = ace_specs[i]
+		var ace := _enemy("ENEMY_ACE_%d" % (i + 1), sp[1], sp[2], 10, false, EnemyData.Rule.NONE, "", 1)
+		ace.art = load("%s%s_01.jpg" % [MINOR, sp[0]])
+		var af: String = "enemy_seal_%d" % (i + 1)
+		ResourceSaver.save(ace, ENEMY_DIR + af + ".tres")
+		ace_files.append(af)
+	_save_boss("boss_fool", "ENEMY_GLUPIEC", 1300, [12, 12, 12], 40,
+		EnemyData.Rule.NONE, "RULE_FOOL", 6, "00_fool", "arcanum_fool")
+	_save_region("region_sealed", "BIOME_SEALED", [ace_files[0], ace_files[1]],
+		[ace_files[2], ace_files[3]], "boss_fool", "arcanum_fool",
+		Color(0.88, 0.88, 0.92), "", ["boss_fool"],
+		int(L.SEAL_FIVE), "LAW_SEAL", -1, true)
+
+func _save_region(file: String, name_key: String, pool1: Array, pool2: Array, boss_file: String, arc_file: String, accent: Color, elite_file: String, boss_pool_files: Array = [], law: int = 0, law_key: String = "", seal_aspect: int = -1, hidden: bool = false) -> void:
 	var r := RegionData.new()
 	r.name_key = name_key
+	r.law = law as RegionData.Law
+	r.law_key = law_key
+	r.seal_aspect = seal_aspect
+	r.hidden = hidden
 	var p1: Array[EnemyData] = []
 	for f in pool1:
 		p1.append(load(ENEMY_DIR + f + ".tres"))

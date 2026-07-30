@@ -62,6 +62,10 @@ var level: int = 1
 var xp: int = 0                    ## progress INTO the current level
 var life: Dictionary = {}          ## lifetime statistics ledger (see LIFE_KEYS)
 var flags: Dictionary = {}         ## one-shot moments already shown (covenant lines, Magnum reveal)
+## COLOUR SEALS: one per Aspect, earned permanently by beating that biome's boss. Five seals
+## close the pentagram and open the hidden biome. This is the between-runs goal that gives a
+## defeat a direction -- you come back for the colour you are MISSING, not for another shuffle.
+var seals: Array = []              ## Aspects.Id ints, unique, order-insensitive
 
 ## Lifetime stat keys, in display order (values are ints; missing = 0).
 const LIFE_KEYS := ["runs", "wins", "deaths", "fights", "elites", "bosses",
@@ -347,6 +351,7 @@ func save_profile() -> void:
 	cf.set_value("meta", "xp", xp)
 	cf.set_value("meta", "life", life)
 	cf.set_value("meta", "flags", flags)
+	cf.set_value("meta", "seals", seals)
 	cf.save(_path())
 
 func load_profile() -> void:
@@ -380,3 +385,31 @@ func load_profile() -> void:
 	xp = cf.get_value("meta", "xp", 0)
 	life = cf.get_value("meta", "life", {})
 	flags = cf.get_value("meta", "flags", {})
+	seals = cf.get_value("meta", "seals", [])
+
+
+# ---------------------------------------------------------------- colour seals
+
+## Grant the seal of one Aspect. Idempotent: a colour is sealed once, however many times you
+## beat its biome. Returns true only on the FIRST time, so the ceremony fires once.
+func grant_seal(aspect: int) -> bool:
+	if aspect < 0 or seals.has(aspect):
+		return false
+	seals.append(aspect)
+	save_profile()
+	return true
+
+func has_seal(aspect: int) -> bool:
+	return seals.has(aspect)
+
+## The pentagram is closed: every colour answered at least once.
+func seals_complete() -> bool:
+	return seals.size() >= 5
+
+## Which colours are still missing -- the menu shows this as the standing invitation.
+func seals_missing() -> Array:
+	var out: Array = []
+	for a in [Aspects.Id.LIFE, Aspects.Id.MIND, Aspects.Id.DEATH, Aspects.Id.CHAOS, Aspects.Id.NATURE]:
+		if not seals.has(a):
+			out.append(a)
+	return out

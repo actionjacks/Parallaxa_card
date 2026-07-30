@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_12.jpg" id="1_b04mo"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_2utdt"]
+
+[resource]
+script = ExtResource("2_2utdt")
+name_key = "BIOME_DEATH_2"
+max_hp = 974
+intents = PackedInt32Array(13, 13, 13)
+enrage_step = 2
+reward_rtec = 5
+art = ExtResource("1_b04mo")

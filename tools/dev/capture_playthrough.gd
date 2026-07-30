@@ -6,6 +6,7 @@ extends SceneTree
 const RUN := "res://src/game/region/run.tscn"
 var _rn: Node
 var _omen_shot := false
+var _biome_shot := false
 var _map_shot := false
 var _shop_shot := false
 var _reward_shot := false
@@ -271,6 +272,20 @@ func _go() -> void:
 		if _button_with("DRAFT_TAKE") != null:
 			_log("[bc] draft")
 			await _pass_draft()
+			continue
+		# biome choice: walk the first road offered
+		var walk = _button_with("BIOME_WALK")
+		if walk != null:
+			var rs2 := root.get_node("RunState")
+			_log("[bc] biome choice (walked %d)" % rs2.biomes_walked.size())
+			if not _biome_shot:
+				_biome_shot = true
+				await _shoot("biome_choice")
+			await _click(_center(walk))
+			await _frames(20)
+			var rs3 := root.get_node("RunState")
+			if rs3.region != null:
+				_log("[pt2] biome: %s (law %d, seal %d)" % [tr(rs3.region.name_key), rs3.region.law, rs3.region.seal_aspect])
 			continue
 		# The World gate: end the reading (or walk Beyond once when PT_BEYOND=1).
 		var gate = _button_with("GATE_END")

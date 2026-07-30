@@ -20,10 +20,13 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 
-	# Large card preview (as if hovering the first card).
-	scene._show_card_preview(scene.controller.hand[0])
-	await _shoot("preview", 4)
-	scene._hide_card_preview()
+	# The hovered card IS the preview now (the side panel was removed): grow the first card
+	# through the hand's own hover path and shoot that.
+	var first: Control = scene._widgets.get(scene.controller.hand[0])
+	if first != null:
+		scene._hand_row._on_child_hover(first, true)
+		await _shoot("preview", 4)
+		scene._hand_row._on_child_hover(first, false)
 
 	# Select two cards and play them; capture the cards mid-flight to the enemy.
 	scene._selected.clear()

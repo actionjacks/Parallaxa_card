@@ -47,6 +47,7 @@ var fight_best_hand: int = 0      ## highest Poker.Hand ordinal played this figh
 var kill_mono_death_flush: bool = false
 var flush_played: bool = false    ## any flush-family hand scored this fight (first-blood ach)
 var intent_debt: int = 0          ## Wheel omen's price: flat +N on every intent this fight
+var law: int = 0                  ## RegionData.Law of the biome this duel is fought in
 
 var _draw: Array = []
 var _used: Array = []
@@ -55,7 +56,8 @@ var _plays: int = 0
 var _hand_history: Array = []     ## Poker.Hand per play this fight (Kombinat streaks)
 var _dmg_this_round: int = 0      ## damage dealt since the enemy last acted (Moon mend check)
 
-func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0) -> void:
+func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0, p_law: int = 0) -> void:
+	law = p_law
 	_draw = deck.duplicate()
 	_used.clear()
 	hand.clear()
@@ -90,6 +92,8 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	var base_cap := 10 if veil >= 5 else FIGHT_HEAL_CAP
 	# "No shelter under the falling tower": the Tower (and the World) halves the heal pool.
 	heal_cap = ceili(base_cap / 2.0) if _rule_ignores_block() else base_cap
+	if law == 1:
+		heal_cap += 8   # the Orchard (LIFE law): the biome you are meant to survive in
 	overkill_rtec = 0
 	destroyed_cards.clear()
 	damage_taken = 0
@@ -337,6 +341,11 @@ func resolve_enemy_turn() -> void:
 			c.growth += c.keyword_value
 		elif c.keyword == CardData.Keyword.KORZENIE:
 			c.bloom += 2
+		# The Overgrowth (NATURE law): EVERY card left in hand fattens, not just the growers.
+		# The only biome where not playing is a plan -- and chip_value() already counts growth,
+		# so the preview shows the fattened number the moment it happens.
+		if law == 5:
+			c.growth += 3
 	phase = "player"
 	state_changed.emit()
 
@@ -384,6 +393,7 @@ func _finish(won: bool) -> void:
 
 func _ctx() -> Dictionary:
 	return {
+		"law": law,
 		"grave": _used.size(),
 		"plays": _plays,
 		"hand_levels": hand_levels,
@@ -451,8 +461,12 @@ func _move_to_used(selected: Array) -> void:
 				continue   # shattered glass skips the grave -- gone from the fight for good
 			_used.append(c)
 
+## The Library (MIND law) deals one card more -- the biome where a straight finally assembles.
+func hand_size() -> int:
+	return HAND_SIZE + (1 if law == 2 else 0)
+
 func _refill() -> void:
-	while hand.size() < HAND_SIZE:
+	while hand.size() < hand_size():
 		if _draw.is_empty():
 			if _used.is_empty():
 				break

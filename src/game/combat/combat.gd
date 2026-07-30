@@ -15,6 +15,7 @@ var _levels: Dictionary = {}
 var _veil: int = 0
 var _depth: int = 0
 var _debt: int = 0
+var _law: int = 0                  ## RegionData.Law of the biome this duel is fought in
 var _prev_klatwa: int = 0
 var _heartbeat: AudioStreamPlayer   ## enrage stem: owned here, never a stolen pool voice
 
@@ -77,7 +78,7 @@ var _paytable: PanelContainer      ## always-available hand chart (E3)
 var _paytable_rows: Dictionary = {}   ## Poker.Hand -> Label
 var _next_wrap: HBoxContainer      ## deterministic next-draws preview
 
-func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0) -> void:
+func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp: int, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0, p_law: int = 0) -> void:
 	standalone = false
 	_deck = deck
 	_enemy = enemy
@@ -88,6 +89,7 @@ func setup(deck: Array, enemy: EnemyData, p_relics: Array, start_hp: int, max_hp
 	_veil = p_veil
 	_depth = p_depth
 	_debt = p_debt
+	_law = p_law
 
 func _ready() -> void:
 	if standalone:
@@ -101,7 +103,7 @@ func _ready() -> void:
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
-	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth, _debt)
+	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth, _debt, _law)
 
 # ---------------------------------------------------------------- UI construction
 

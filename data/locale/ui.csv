@@ -675,3 +675,64 @@ SORT_RANK,Order: rank,Układ: rangi
 SORT_ASPECT,Order: colour,Układ: kolory
 SORT_TIP,"Reorder the hand on screen. The deck order never changes.","Przestawia karty na ekranie. Kolejność talii się nie zmienia."
 HAND_BEST_AVAILABLE,In hand: %s,W ręce: %s
+BIOME_LIFE,The Orchard of Cups,Sad Kielichów
+BIOME_MIND,The Library of Swords,Biblioteka Mieczy
+BIOME_DEATH,The Catacombs of Pentacles,Katakumby Pentakli
+BIOME_CHAOS,The Burnt Field of Wands,Pogorzelisko Buław
+BIOME_NATURE,The Overgrowth,Przerost
+BIOME_SEALED,The Sealed Biome — Arcanum Zero,Biom Zapieczętowany — Arkanum Zero
+LAW_LIFE,"Law of the Orchard: +2 block for every card played; a deeper heal pool.","Prawo Sadu: +2 bloku za każdą zagraną kartę; głębszy zapas leczenia."
+LAW_MIND,"Law of the Library: one more card in hand.","Prawo Biblioteki: jedna karta więcej w ręce."
+LAW_DEATH,"Law of the Catacombs: +2 chips for every card in the grave.","Prawo Katakumb: +2 chipsy za każdą kartę w grobie."
+LAW_CHAOS,"Law of the Burnt Field: five-card plays x1.5 Mult; one or two cards x0.75.","Prawo Pogorzeliska: zagranie 5 kart x1.5 Mult; jedna lub dwie karty x0.75."
+LAW_NATURE,"Law of the Overgrowth: every card left in hand gains +3 chips each turn.","Prawo Przerostu: każda karta zostawiona w ręce zyskuje +3 chipsy co turę."
+LAW_SEAL,"Law of the Seal: +1 Mult for every distinct Aspect in the play.","Prawo Pieczęci: +1 Mult za każdy odmienny Aspekt w zagraniu."
+SEAL_TAKEN,Seal taken: %s.,Pieczęć zdobyta: %s.
+SEAL_PROGRESS,Seals: %d of %d.,Pieczęcie: %d z %d.
+SEAL_PLAQUE,Seals of the colours,Pieczęcie kolorów
+SEAL_PLAQUE_FULL,The pentagram is closed. The Seal answers at the end of a Journey.,Pentagram zamknięty. Pieczęć odpowiada na końcu Podróży.
+SEAL_MISSING,Missing: %s,Brakuje: %s
+GATE_SEAL,Break the Seal — Arcanum Zero,Złam Pieczęć — Arkanum Zero
+GATE_SEAL_HINT,"Five colours answered. The Fool answers a closed circle once; the Journey ends there.","Pięć kolorów odpowiedziało. Głupiec odpowiada zamkniętemu kręgowi raz; Podróż kończy się tam."
+RULE_EMPRESS,"Field rule: the Empress — her intent grows with every cycle.","Reguła pola: Cesarzowa — jej intencja rośnie z każdym cyklem."
+RULE_WHEEL,"Field rule: the Wheel — its intents turn in a fixed circle.","Reguła pola: Koło — jego intencje obracają się w stałym kręgu."
+RULE_FOOL,"Field rule: the Fool answers with your own blow.","Reguła pola: Głupiec odpowiada twoim własnym ciosem."
+ENEMY_GLUPIEC,The Fool,Głupiec
+ENEMY_CESARZOWA,The Empress,Cesarzowa
+ENEMY_KOLO,The Wheel,Koło Fortuny
+ARCANUM_GLUPCA,Arcanum of the Fool,Arkanum Głupca
+ARCANUM_KOLA,Arcanum of the Wheel,Arkanum Koła
+BIOME_LIFE_1,Page of Cups,Paź Kielichów
+BIOME_LIFE_2,Knight of Cups,Rycerz Kielichów
+BIOME_LIFE_3,Queen of Cups,Królowa Kielichów
+BIOME_LIFE_4,King of Cups,Król Kielichów
+BIOME_LIFE_E,The Reversed Nine of Cups,Odwrócona Dziewiątka Kielichów
+BIOME_MIND_1,Page of Swords,Paź Mieczy
+BIOME_MIND_2,Knight of Swords,Rycerz Mieczy
+BIOME_MIND_3,Queen of Swords,Królowa Mieczy
+BIOME_MIND_4,King of Swords,Król Mieczy
+BIOME_MIND_E,The Reversed Nine of Swords,Odwrócona Dziewiątka Mieczy
+BIOME_DEATH_1,Page of Pentacles,Paź Pentakli
+BIOME_DEATH_2,Knight of Pentacles,Rycerz Pentakli
+BIOME_DEATH_3,Queen of Pentacles,Królowa Pentakli
+BIOME_DEATH_4,King of Pentacles,Król Pentakli
+BIOME_DEATH_E,The Reversed Nine of Pentacles,Odwrócona Dziewiątka Pentakli
+BIOME_CHAOS_1,Page of Wands,Paź Buław
+BIOME_CHAOS_2,Knight of Wands,Rycerz Buław
+BIOME_CHAOS_3,Queen of Wands,Królowa Buław
+BIOME_CHAOS_4,King of Wands,Król Buław
+BIOME_CHAOS_E,The Reversed Nine of Wands,Odwrócona Dziewiątka Buław
+BIOME_NATURE_1,Ten of Cups,Dziesiątka Kielichów
+BIOME_NATURE_2,Ten of Swords,Dziesiątka Mieczy
+BIOME_NATURE_3,Ten of Wands,Dziesiątka Buław
+BIOME_NATURE_4,Ten of Pentacles,Dziesiątka Pentakli
+BIOME_NATURE_E,The Reversed Nine of the Overgrowth,Odwrócona Dziewiątka Przerostu
+ENEMY_ACE_1,Ace of Cups,As Kielichów
+ENEMY_ACE_2,Ace of Swords,As Mieczy
+ENEMY_ACE_3,Ace of Wands,As Buław
+ENEMY_ACE_4,Ace of Pentacles,As Pentakli
+BIOME_CHOICE_TITLE,Choose the road,Wybierz drogę
+BIOME_CHOICE_HINT,"Each colour rules its duels differently. Beat its boss and its seal is yours for good.","Każdy kolor inaczej rządzi swoimi pojedynkami. Pokonaj jego bossa, a jego pieczęć zostaje twoja na zawsze."
+BIOME_WALK,Walk this road,Idź tą drogą
+BIOME_SEAL_OPEN,Seal not taken yet,Pieczęć jeszcze niezdobyta
+BIOME_SEAL_OWNED,Seal already yours,Pieczęć już twoja

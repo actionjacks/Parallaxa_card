@@ -42,6 +42,11 @@ var daily_tag: String = ""        ## Daily Fate date ("" = regular run)
 var boss: EnemyData               ## this region's ROLLED boss (Fool's Journey rotation)
 var depth: int = 0                ## Beyond-the-World loops completed (0 = first journey)
 var run_won: bool = false         ## The World has fallen at least once (endless death stays a WIN)
+## The Sealed Biome is a one-way terminus: once entered, the World Gate never returns.
+var sealed_entered: bool = false
+## Which biome roads this journey has already walked (paths). Drives the choice screen so a
+## journey is a ROUTE through the pentagram, never the same colour twice.
+var biomes_walked: Array = []
 var run_deck_id: String = "classic"   ## starter used this run (deck-win achievements)
 var elite_taken: bool = false     ## this region's elite fork already fought (one elite per region)
 
@@ -97,7 +102,11 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 		if prof != null and prof.available_decks().has(prof.selected_deck):
 			run_deck_id = prof.selected_deck
 	deck = DeckLibrary.starter_deck_pure() if pure_reading else DeckLibrary.starter_deck()
-	_shuffle(deck)   # run-start order varies with the seed; within the run draws stay deterministic
+	# SEED CONTRACT: Fisher-Yates eats N-1 draws, so shuffling the deck on the MAIN rng made the
+	# whole downstream stream depend on deck SIZE -- growing the starter from 16 to 40 cards would
+	# silently invalidate every shared fate code. Run it on a sub-generator instead: exactly one
+	# main-rng draw, whatever the deck's size, same shape as pick_offers.
+	_shuffle_with(deck, _sub_rng())
 	relics = []
 	# Starting relic comes from the run-opening DRAFT (run.gd); legacy fallback only when the
 	# region has no pool authored.
@@ -108,6 +117,8 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	elite_taken = false
 	depth = 0
 	run_won = false
+	sealed_entered = false
+	biomes_walked = []
 	hand_levels = {}
 	stat_damage_total = 0
 	stat_best_hit = 0
@@ -140,6 +151,22 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 			for f in region.fights:
 				fights.append(f)
 		_roll_boss()
+	changed.emit()
+
+## Re-roll the current region's ladder in place. Used when the FIRST biome is chosen after the
+## run has already begun: begin() rolled a placeholder, the player's choice replaces it.
+func reroll_ladder() -> void:
+	fights = []
+	if region == null:
+		return
+	if not region.fight_pool_1.is_empty():
+		fights.append(pick_offers(region.fight_pool_1, 1)[0])
+	if not region.fight_pool_2.is_empty():
+		fights.append(pick_offers(region.fight_pool_2, 1)[0])
+	if fights.is_empty():
+		for f in region.fights:
+			fights.append(f)
+	_roll_boss()
 	changed.emit()
 
 ## Boss ROTATION (Fool's Journey): each run climbs a different subset of the Arcana. Rolled
@@ -384,6 +411,8 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "boss", boss.resource_path if boss != null else "")
 	cf.set_value("run", "depth", depth)
 	cf.set_value("run", "run_won", run_won)
+	cf.set_value("run", "sealed", sealed_entered)
+	cf.set_value("run", "biomes", biomes_walked)
 	cf.set_value("run", "deck_id", run_deck_id)
 	var relic_entries: Array = []
 	for a in relics:
@@ -450,6 +479,8 @@ func load_run() -> String:
 	daily_tag = cf.get_value("run", "daily", "")
 	depth = cf.get_value("run", "depth", 0)
 	run_won = cf.get_value("run", "run_won", false)
+	sealed_entered = cf.get_value("run", "sealed", false)
+	biomes_walked = cf.get_value("run", "biomes", [])
 	run_deck_id = cf.get_value("run", "deck_id", "classic")
 	stat_death_foe = ""
 	stat_death_turn = 0

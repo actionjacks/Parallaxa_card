@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_01.jpg" id="1_fduvo"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_f8sb1"]
+
+[resource]
+script = ExtResource("2_f8sb1")
+name_key = "ENEMY_ACE_4"
+max_hp = 1023
+intents = PackedInt32Array(11, 11, 11)
+enrage_step = 1
+reward_rtec = 10
+art = ExtResource("1_fduvo")

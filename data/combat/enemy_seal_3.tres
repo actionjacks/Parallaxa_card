@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_01.jpg" id="1_j7nb2"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_qyg23"]
+
+[resource]
+script = ExtResource("2_qyg23")
+name_key = "ENEMY_ACE_3"
+max_hp = 957
+intents = PackedInt32Array(15, 0, 11)
+enrage_step = 1
+reward_rtec = 10
+art = ExtResource("1_j7nb2")

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Resource" path="res://data/combat/boss_moon.tres" id="1_sxl5k"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_moon.tres" id="2_02xjm"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_7ev6u"]
+[ext_resource type="Resource" path="res://data/combat/boss_judgement.tres" id="4_4bykd"]
+[ext_resource type="Resource" path="res://data/combat/biome_death_elite.tres" id="5_6strn"]
+[ext_resource type="Resource" path="res://data/combat/biome_death_1.tres" id="6_tpikd"]
+[ext_resource type="Resource" path="res://data/combat/biome_death_2.tres" id="7_jmnv0"]
+[ext_resource type="Resource" path="res://data/combat/biome_death_3.tres" id="8_ny8fu"]
+[ext_resource type="Resource" path="res://data/combat/biome_death_4.tres" id="9_1jriq"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="10_00uix"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="11_yuky3"]
+
+[resource]
+script = ExtResource("10_00uix")
+name_key = "BIOME_DEATH"
+fight_pool_1 = Array[ExtResource("3_7ev6u")]([ExtResource("6_tpikd"), ExtResource("7_jmnv0")])
+fight_pool_2 = Array[ExtResource("3_7ev6u")]([ExtResource("8_ny8fu"), ExtResource("9_1jriq")])
+boss = ExtResource("1_sxl5k")
+boss_arcanum = ExtResource("2_02xjm")
+accent = Color(0.52, 0.4, 0.68, 1)
+elite = ExtResource("5_6strn")
+boss_pool = Array[ExtResource("3_7ev6u")]([ExtResource("1_sxl5k"), ExtResource("4_4bykd")])
+law = 3
+law_key = "LAW_DEATH"
+seal_aspect = 2

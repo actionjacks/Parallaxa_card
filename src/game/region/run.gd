@@ -4,6 +4,20 @@ extends Control
 ## Screens are built in code on the project theme (monogram font + cursors).
 
 ## The Fool's Journey: four regions, ending at The World. State carries across; full rest between.
+## THE JOURNEY: three biomes CHOSEN from the five colours, then The World. Three, not five,
+## because five biomes back to back would be a 16-encounter run (+60%); three keeps the current
+## 10-encounter length while capping a run at three seals -- so closing the pentagram needs at
+## least two journeys, and you come back for the colour you are MISSING rather than for a reshuffle.
+const BIOMES: Array[String] = [
+	"res://data/regions/biome_life.tres",
+	"res://data/regions/biome_mind.tres",
+	"res://data/regions/biome_death.tres",
+	"res://data/regions/biome_chaos.tres",
+	"res://data/regions/biome_nature.tres",
+]
+const WORLD_REGION := "res://data/regions/region_04.tres"
+const JOURNEY_BIOMES := 3        ## biomes walked before The World
+## Legacy fixed ladder, kept for saves written before biomes existed.
 const JOURNEY: Array[String] = [
 	"res://data/regions/region_01.tres",
 	"res://data/regions/region_02.tres",
@@ -65,7 +79,7 @@ func _ready() -> void:
 		return
 	var entered := RunState.next_seed
 	RunState.next_seed = 0
-	RunState.begin(load(JOURNEY[0]), entered)
+	RunState.begin(load(BIOMES[0]), entered)
 	_build_shell()
 	_start_run_flow()
 
@@ -79,7 +93,7 @@ func _start_run_flow() -> void:
 	if RunState.region != null and not RunState.region.starting_pool.is_empty():
 		_show_arcanum_draft()
 	else:
-		_show_map()
+		_show_biome_choice()
 
 func _refresh_backdrop() -> void:
 	if _backdrop != null:
@@ -326,8 +340,9 @@ func _start_encounter(elite: bool = false) -> void:
 	RunState.omen_debt = 0   # the Wheel's bill is due exactly once, on the very next duel
 	RunState.shuffle_for_fight()   # a duel deals from a shuffled deck, not from last duel's order
 	var combat: Node = load(COMBAT_SCENE).instantiate()
+	var law: int = RunState.region.law if RunState.region != null else 0
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
-		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth, debt)
+		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth, debt, law)
 	combat.finished.connect(_on_combat_finished)
 	_mount(combat)   # crossfade into the fight
 
@@ -777,6 +792,11 @@ func _take_claim() -> void:
 func _show_complete(claimed: ArcanumData = null) -> void:
 	_statusbar.visible = true
 	_update_status()
+	# THE SEAL: this colour has now been answered, permanently. Granted on the boss's fall, not
+	# at the end of the run -- dying at the World must not cost you the colours you already took.
+	var sealed_now := false
+	if RunState.region != null and RunState.region.seal_aspect >= 0:
+		sealed_now = Profile.grant_seal(RunState.region.seal_aspect)
 	var final := RunState.region_index + 1 >= JOURNEY.size()
 	if final:
 		# The World has fallen: the run is WON (recorded once, endless deaths stay wins) and the
@@ -788,6 +808,11 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 		return
 	var root := _screen_column()
 	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
+	if sealed_now:
+		var seal_l := _hint(tr("SEAL_TAKEN") % tr(Aspects.name_key(RunState.region.seal_aspect)))
+		seal_l.add_theme_color_override("font_color", Aspects.color(RunState.region.seal_aspect))
+		root.add_child(seal_l)
+		root.add_child(_hint(tr("SEAL_PROGRESS") % [Profile.seals.size(), 5]))
 	var relic := claimed if claimed != null else RunState.region.boss_arcanum
 	if relic != null:
 		if relic.art != null:
@@ -816,8 +841,94 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 func _continue_journey() -> void:
 	var idx := RunState.region_index + 1
 	_pending_omen = null
-	_last_rest = RunState.enter_region(load(JOURNEY[idx]), idx)
-	_refresh_backdrop()   # the backdrop takes on the new region's accent
+	if idx >= JOURNEY_BIOMES:
+		# three colours walked: The World is the fixed terminus of every journey
+		_last_rest = RunState.enter_region(load(WORLD_REGION), idx)
+		_refresh_backdrop()
+		_show_map()
+		return
+	_show_biome_choice()
+
+## THE CHOICE OF ROAD: which colour you walk into next. The first step is free among all five;
+## later steps offer two of what is left, so a journey is a route through the pentagram rather
+## than a fixed corridor. Offers are rolled from RunState.rng (one draw, the standard contract).
+func _show_biome_choice() -> void:
+	_statusbar.visible = true
+	_update_status()
+	var idx := RunState.region_index + 1 if RunState.region != null and RunState.fights_won > 0 else 0
+	if RunState.region_index == 0 and RunState.fights_won == 0:
+		idx = 0
+	var taken: Array = RunState.biomes_walked
+	var left: Array = []
+	for path in BIOMES:
+		if not taken.has(path):
+			left.append(path)
+	if left.is_empty():
+		left = BIOMES.duplicate()
+	# first step: the whole pentagram is open. Later: two roads, so the choice keeps costing you
+	# something you wanted.
+	var offers: Array = left if taken.is_empty() else RunState.pick_offers(left, mini(2, left.size()))
+	var root := _screen_column()
+	root.add_child(_big(tr("BIOME_CHOICE_TITLE"), Color(0.92, 0.88, 0.7)))
+	root.add_child(_hint(tr("BIOME_CHOICE_HINT")))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	for path in offers:
+		var biome: RegionData = load(path)
+		row.add_child(_biome_card(biome, path, idx))
+	root.add_child(row)
+	_mount(root)
+
+## One road on the choice screen: the colour, its law, and whether its seal is already yours.
+func _biome_card(biome: RegionData, path: String, idx: int) -> Control:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.08, 0.12, 0.92)
+	sb.set_border_width_all(2)
+	sb.border_color = biome.accent
+	sb.set_corner_radius_all(4)
+	for side in ["left", "top", "right", "bottom"]:
+		sb.set("content_margin_" + side, 10)
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", sb)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 8)
+	col.custom_minimum_size = Vector2(196, 0)
+	p.add_child(col)
+	var title := _label_center(tr(biome.name_key), 17, biome.accent)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(title)
+	var sig := AspectSigil.new(biome.seal_aspect, biome.accent, true)
+	sig.custom_minimum_size = Vector2(48, 48)
+	var sig_wrap := CenterContainer.new()
+	sig_wrap.add_child(sig)
+	col.add_child(sig_wrap)
+	var law_l := _hint(tr(biome.law_key))
+	law_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	law_l.custom_minimum_size = Vector2(190, 0)
+	col.add_child(law_l)
+	if biome.seal_aspect >= 0:
+		var owned := Profile.has_seal(biome.seal_aspect)
+		var mark := _hint(tr("BIOME_SEAL_OWNED") if owned else tr("BIOME_SEAL_OPEN"))
+		mark.add_theme_color_override("font_color",
+			Color(0.5, 0.5, 0.56) if owned else Color(0.95, 0.85, 0.5))
+		col.add_child(mark)
+	var go := _button(tr("BIOME_WALK"), func() -> void: _walk_biome(path, idx))
+	var gw := CenterContainer.new()
+	gw.add_child(go)
+	col.add_child(gw)
+	return p
+
+func _walk_biome(path: String, idx: int) -> void:
+	RunState.biomes_walked.append(path)
+	_pending_omen = null
+	if idx == 0:
+		RunState.region = load(path)
+		RunState.region_index = 0
+		RunState.reroll_ladder()
+	else:
+		_last_rest = RunState.enter_region(load(path), idx)
+	_refresh_backdrop()
 	_show_map()
 
 ## BEYOND THE WORLD: the victory gate. The exponential vector finally has something to spend
@@ -850,8 +961,27 @@ func _show_world_gate(claimed: ArcanumData = null) -> void:
 	go_btn.custom_minimum_size = Vector2(200, 40)
 	go_btn.add_theme_color_override("font_color", Color(0.95, 0.55, 0.5))
 	ctrls.add_child(go_btn)
+	# THE THIRD DOOR: five colours answered opens the Sealed Biome. Only on a first, undeepened
+	# journey -- the Fool answers a closed circle, not a grind. Beyond is the horizontal axis
+	# (repeat the world, harder); the Seal is the vertical one (a terminus that ends the run).
+	if Profile.seals_complete() and RunState.depth == 0 and not RunState.sealed_entered:
+		var seal_btn := _button(tr("GATE_SEAL"), _enter_sealed)
+		seal_btn.custom_minimum_size = Vector2(220, 40)
+		seal_btn.add_theme_color_override("font_color", Color(0.96, 0.94, 0.88))
+		ctrls.add_child(seal_btn)
 	root.add_child(ctrls)
+	if Profile.seals_complete() and RunState.depth == 0 and not RunState.sealed_entered:
+		root.add_child(_hint(tr("GATE_SEAL_HINT")))
 	_mount(root)
+
+## Break the seal: the pentagram is closed, so the Fool answers. A one-way door -- the run ends
+## in the Sealed Biome, and the World Gate does not come back.
+func _enter_sealed() -> void:
+	RunState.sealed_entered = true
+	_pending_omen = null
+	_last_rest = RunState.enter_region(load("res://data/regions/region_sealed.tres"), RunState.region_index)
+	_refresh_backdrop()
+	_show_map()
 
 func _go_beyond() -> void:
 	RunState.depth += 1

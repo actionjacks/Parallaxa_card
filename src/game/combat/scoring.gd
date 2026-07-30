@@ -1,7 +1,8 @@
 class_name Scoring
 ## Pure scoring: selected cards + relics + light combat context -> Chips x Mult and side effects.
 ## Deterministic, so the UI can show the exact outcome before the player commits.
-## ctx keys (optional): "grave" (cards in the used pile), "plays" (plays already made this fight),
+## ctx keys (optional): "law" (RegionData.Law of the biome), "grave" (cards in the used pile),
+##   "plays" (plays already made this fight),
 ## "hand_levels", "klatwa", "hand_history" (Poker.Hand per play so far -- Kombinat streaks),
 ## "heal_budget" (remaining per-fight heal pool; default huge keeps old callers/tests exact).
 ##
@@ -136,6 +137,22 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 				heal += relic.effect_value
 
 	mult *= poly
+
+	# --- BIOME LAW: the field itself scores, one deterministic rule per biome (RegionData.Law).
+	# Applied AFTER cards and relics but BEFORE the Curse multiplier, so the law reads as a
+	# property of the place rather than of any card, and the preview stays exact.
+	match int(ctx.get("law", 0)):
+		1:  # LIFE_TITHE -- the Orchard pays a tithe of shelter for every card committed
+			block += 2 * cards.size()
+		3:  # DEATH_HARVEST -- the Catacombs pay for what is already spent
+			chips += 2 * grave
+		4:  # CHAOS_KINDLING -- the Burnt Field rewards a whole hand and punishes a nibble
+			if cards.size() >= 5:
+				mult *= 1.5
+			elif cards.size() <= 2:
+				mult *= 0.75
+		6:  # SEAL_FIVE -- the Sealed Biome inverts the journey: it pays for EVERY colour at once
+			mult += float(aspect_counts.size())
 
 	# Curse multiplies the SCORED damage (Spalenie stays flat, outside the engine); this play's
 	# own Klatwa cards stack the debuff for FUTURE plays (returned, applied by the controller).

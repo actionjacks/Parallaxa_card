@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ArcanumData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/10_wheel_of_fortune.jpg" id="1_loija"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="2_jx2ui"]
+
+[resource]
+script = ExtResource("2_jx2ui")
+name_key = "ARCANUM_KOLA"
+effect = 1
+effect_aspect = 4
+effect_mult = 1.45
+art = ExtResource("1_loija")
+reversed_mult = 2.1
+price = 3
+price_value = 2

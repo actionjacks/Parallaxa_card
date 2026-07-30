@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RegionData" format=3]
+
+[ext_resource type="Resource" path="res://data/combat/boss_hanged.tres" id="1_h2kas"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_hanged.tres" id="2_813l4"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_7apjq"]
+[ext_resource type="Resource" path="res://data/combat/boss_justice.tres" id="4_y4kc4"]
+[ext_resource type="Resource" path="res://data/combat/biome_mind_elite.tres" id="5_pifbc"]
+[ext_resource type="Resource" path="res://data/combat/biome_mind_1.tres" id="6_tkbxi"]
+[ext_resource type="Resource" path="res://data/combat/biome_mind_2.tres" id="7_4wait"]
+[ext_resource type="Resource" path="res://data/combat/biome_mind_3.tres" id="8_bi01l"]
+[ext_resource type="Resource" path="res://data/combat/biome_mind_4.tres" id="9_wjsdg"]
+[ext_resource type="Script" path="res://src/game/region/region_data.gd" id="10_rimnp"]
+[ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="11_a7pah"]
+
+[resource]
+script = ExtResource("10_rimnp")
+name_key = "BIOME_MIND"
+fight_pool_1 = Array[ExtResource("3_7apjq")]([ExtResource("6_tkbxi"), ExtResource("7_4wait")])
+fight_pool_2 = Array[ExtResource("3_7apjq")]([ExtResource("8_bi01l"), ExtResource("9_wjsdg")])
+boss = ExtResource("1_h2kas")
+boss_arcanum = ExtResource("2_813l4")
+accent = Color(0.43, 0.62, 0.8, 1)
+elite = ExtResource("5_pifbc")
+boss_pool = Array[ExtResource("3_7apjq")]([ExtResource("1_h2kas"), ExtResource("4_y4kc4")])
+law = 2
+law_key = "LAW_MIND"
+seal_aspect = 1
