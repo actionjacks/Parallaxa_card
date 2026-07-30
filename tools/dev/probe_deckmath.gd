@@ -11,6 +11,8 @@ const HAND_NAMES := ["HIGH", "PAIR", "2PAIR", "THREE", "STRAIGHT", "FLUSH", "FUL
 	"FOUR", "STR_FLUSH", "FIVE", "MAGNUM"]
 
 var _rng := RandomNumberGenerator.new()
+var _grave_size := 0     ## cards in the used pile right now (ZNIWO scales on this)
+var _plays_made := 0
 
 func _initialize() -> void:
 	OS.set_environment("TEST_PROFILE", "bot")
@@ -94,7 +96,9 @@ func _best_play(hand: Array) -> Dictionary:
 			if mask & (1 << i):
 				cards.append(hand[i])
 				idx.append(i)
-		var res: Dictionary = Scoring.score(cards, [], {})
+		# The grave MUST be in the context: ZNIWO scores mult += value * grave, so a probe with an
+		# empty ctx silently under-reports the whole tail of the damage curve.
+		var res: Dictionary = Scoring.score(cards, [], {"grave": _grave_size, "plays": _plays_made})
 		var dmg: int = int(res.get("damage", 0))
 		if dmg > best["dmg"]:
 			best = {"idx": idx, "dmg": dmg, "hand": Poker.evaluate(cards)}
@@ -157,6 +161,8 @@ func _run(deck: Array, fights: int, turns: int) -> void:
 				pent += 1
 			if av.has(-2):
 				court += 1
+			_grave_size = used.size()
+			_plays_made = t
 			var best := _best_play(hand)
 			# a decent player digs once when the hand is junk
 			if discards > 0 and int(best["hand"]) <= Poker.Hand.PAIR:
@@ -174,6 +180,7 @@ func _run(deck: Array, fights: int, turns: int) -> void:
 						hand.remove_at(i)
 					hand = _refill(hand, draw, used)
 					discards -= 1
+					_grave_size = used.size()
 					best = _best_play(hand)
 			played[int(best["hand"])] = int(played.get(int(best["hand"]), 0)) + 1
 			dmgs.append(int(best["dmg"]))

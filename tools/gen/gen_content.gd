@@ -384,7 +384,10 @@ func _starter() -> Array:
 	# Keyword seats: two per Aspect, on ranks chosen so no colour hoards the high pips. Everything
 	# else is a clean pip -- the starter has to teach the poker layer before the keyword layer.
 	var seats: Dictionary = {
-		A.DEATH: {3: [KW.GNICIE, 3], 7: [KW.ZNIWO, 1]},
+		# NO ZNIWO in a starter deck: its mult scales with the GRAVE (Scoring: mult += value*grave),
+		# so at 40 cards it reaches +30 mult on its own. Grave-scaling belongs in the reward pool
+		# as a rare build payoff you choose, never as a card everyone opens with.
+		A.DEATH: {3: [KW.GNICIE, 3], 7: [KW.GNICIE, 4]},
 		A.CHAOS: {4: [KW.FURIA, 0], 8: [KW.SPALENIE, 8]},
 		A.LIFE: {2: [KW.OSLONA, 6], 6: [KW.OPATRZNOSC, 5]},
 		A.MIND: {5: [KW.ECHO, 4], 8: [KW.ECHO, 6]},
@@ -401,7 +404,7 @@ func _starter() -> Array:
 ## game, never meta-locked. Rarity: 5 LEGENDARY / 14 RARE / 23 COMMON (specs/spec_power.md par.7).
 func _pool() -> Array:
 	return [
-		[10, A.DEATH, KW.ZNIWO, 1], [6, A.CHAOS, KW.SPALENIE, 8], [5, A.LIFE, KW.OSLONA, 7],
+		[10, A.DEATH, KW.ZNIWO, 1, R.RARE], [6, A.CHAOS, KW.SPALENIE, 8], [5, A.LIFE, KW.OSLONA, 7],
 		[11, A.MIND, KW.ECHO, 6], [7, A.NATURE, KW.BUJNOSC, 25], [8, A.DEATH, KW.GNICIE, 4],
 		[10, A.CHAOS, KW.FURIA, 0], [9, A.LIFE, KW.OPATRZNOSC, 6], [13, A.MIND, KW.ECHO, 8, R.RARE],
 		[10, A.NATURE, KW.BUJNOSC, 30], [13, A.DEATH, KW.ZNIWO, 2, R.RARE], [6, A.CHAOS, KW.SPALENIE, 10],
@@ -410,7 +413,7 @@ func _pool() -> Array:
 		[8, A.CHAOS, KW.SPALENIE, 12, R.RARE], [10, A.LIFE, KW.OPATRZNOSC, 8, R.RARE], [14, A.MIND, KW.ECHO, 10, R.LEGENDARY],
 		[14, A.NATURE, KW.BUJNOSC, 40, R.LEGENDARY], [5, A.DEATH, KW.NONE, 0], [3, A.CHAOS, KW.NONE, 0],
 		[4, A.LIFE, KW.NONE, 0], [6, A.MIND, KW.NONE, 0], [9, A.NATURE, KW.NONE, 0],
-		[4, A.DEATH, KW.ZNIWO, 1],
+		[4, A.DEATH, KW.ZNIWO, 1, R.RARE],
 		# wave 2: ramp / ally-synergy / leech / curse archetypes
 		[6, A.NATURE, KW.WZROST, 2], [12, A.NATURE, KW.WZROST, 3, R.RARE], [9, A.NATURE, KW.SYMBIOZA, 5],
 		[5, A.NATURE, KW.SYMBIOZA, 4], [7, A.DEATH, KW.PIJAWKA, 15, R.RARE], [13, A.DEATH, KW.PIJAWKA, 20, R.LEGENDARY],
