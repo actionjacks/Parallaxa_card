@@ -668,3 +668,5 @@ ACH_FIRST_OMEN,First Omen,Pierwszy Omen
 ACH_FIRST_OMEN_DESC,Accept an omen on the road.,Przyjmij omen na drodze.
 COLLECTION_ACH_HINT,Every fulfilled achievement pays +10 Salt.,Każde spełnione osiągnięcie płaci +10 Soli.
 RUN_RTEC_NAMED,%d ☿ Mercury,%d ☿ Rtęć
+SCORE_RUNNING,%d chips  x  %s mult,%d chipsów  x  %s mult
+SCORE_PRODUCT,%d  x  %s  =  %d,%d  x  %s  =  %d

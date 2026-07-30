@@ -953,7 +953,14 @@ func _on_play() -> void:
 	var foretold_kill := promised >= controller.enemy_hp
 	var pre_destroyed := controller.destroyed_cards.size()
 	_hide_card_preview()
-	for card in _selected:
+	# THE RECKONING: score the hand card by card before the blow lands. Nothing here decides
+	# anything -- Scoring.score already did, and the preview already said so -- but a play that
+	# resolves in one silent tick reads as arithmetic. Card by card it reads as a hand coming in.
+	var played_cards: Array = _selected.duplicate()
+	await _reckoning(played_cards, int(pre["chips"]), float(pre["mult"]), promised)
+	if controller == null or controller.phase != "player":
+		return                       # the fight ended (or restarted) while the ceremony played
+	for card in played_cards:
 		if _widgets.has(card):
 			_fly_card(_widgets[card], _enemy_fx_pos())
 			_widgets.erase(card)
@@ -969,6 +976,52 @@ func _on_play() -> void:
 		_magnum_reveal()
 	if foretold_kill and controller.enemy_hp <= 0:
 		_fulfill_prophecy(promised)
+
+## Card-by-card scoring ceremony (Balatro's "each card fires" beat, tarot-flavoured).
+## PURELY presentational: the numbers shown are read off the same Scoring.score result the
+## preview already promised, so the covenant holds -- the ceremony can never disagree with it.
+func _reckoning(cards: Array, total_chips: int, mult: float, final_dmg: int) -> void:
+	if cards.is_empty():
+		return
+	var quick := Juice.fast_pace() or Juice.reduce_motion()
+	var beat: float = 0.055 if quick else 0.16
+	# Base chips of the hand itself = total minus what the individual cards contributed.
+	var card_chips := 0
+	for c: CardData in cards:
+		card_chips += c.chip_value()
+	var running: int = maxi(0, total_chips - card_chips)
+	_score_readout(running, mult)
+	for c: CardData in cards:
+		var panel: Control = _widgets.get(c)
+		if panel != null and is_instance_valid(panel) and not Juice.reduce_motion():
+			# the firing card jumps forward and flashes in its Aspect colour
+			panel.z_index = 12
+			var tw := create_tween()
+			tw.tween_property(panel, "scale", Vector2(1.22, 1.22), beat * 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(panel, "scale", Vector2.ONE, beat * 0.7).set_trans(Tween.TRANS_SINE)
+			_popup("+%d" % c.chip_value(), Aspects.color(c.aspect),
+				panel.global_position + Vector2(CardWidget.CARD_SIZE.x * 0.5 - 12.0, -18.0), 22)
+		running += c.chip_value()
+		_score_readout(running, mult)
+		Sfx.play(&"card_play", -14.0, 0.9 + 0.06 * float(cards.find(c)))
+		await get_tree().create_timer(beat).timeout
+		if controller == null:
+			return
+	# the product lands: chips x mult, spoken as one number
+	_score_readout(running, mult, final_dmg)
+	if not quick:
+		await get_tree().create_timer(beat * 1.6).timeout
+
+## The two halves of the score, kept VISIBLY separate (chips on the left, mult on the right)
+## so the player learns which lever a card actually pulls.
+func _score_readout(chips: int, mult: float, product: int = -1) -> void:
+	if _preview_label == null:
+		return
+	if product >= 0:
+		_preview_label.text = tr("SCORE_PRODUCT") % [chips, String.num(mult, 1), product]
+		_pulse(_preview_label)
+	else:
+		_preview_label.text = tr("SCORE_RUNNING") % [chips, String.num(mult, 1)]
 
 func _on_discard() -> void:
 	if _selected.is_empty():
