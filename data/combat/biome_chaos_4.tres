@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_glmig")
 name_key = "BIOME_CHAOS_4"
-max_hp = 957
+max_hp = 916
 intents = PackedInt32Array(26, 0, 18)
 enrage_step = 3
 art = ExtResource("1_5n8xb")

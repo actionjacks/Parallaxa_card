@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_pfx13")
 name_key = "BIOME_LIFE_4"
-max_hp = 1172
+max_hp = 1007
 intents = PackedInt32Array(12, 12, 6)
 enrage_step = 3
 art = ExtResource("1_mx2s2")

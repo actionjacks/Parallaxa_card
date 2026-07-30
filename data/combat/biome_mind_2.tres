@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_wwvgo")
 name_key = "BIOME_MIND_2"
-max_hp = 825
+max_hp = 693
 intents = PackedInt32Array(19, 0, 19)
 enrage_step = 2
 reward_rtec = 5

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_y1puc")
 name_key = "BIOME_MIND_1"
-max_hp = 776
+max_hp = 594
 intents = PackedInt32Array(17, 3, 17)
 enrage_step = 2
 reward_rtec = 5

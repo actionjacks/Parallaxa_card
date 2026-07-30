@@ -8,6 +8,8 @@ signal changed
 
 const START_MAX_HP: int = 55
 const REST_HEAL: int = 8        ## HP recovered after each non-boss fight (a "rest")
+## Rungs drawn from EACH of the two enemy pools; the tower is 2*this + the boss at the summit.
+const RUNGS_PER_POOL: int = 2
 
 ## Menu -> run handoff: the Veil tier chosen for the NEXT run (run.gd calls begin() itself).
 static var next_veil: int = 0
@@ -141,33 +143,37 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	stat_omen_taken = false
 	omen_debt = 0
 	# Roll this run's opponents: one candidate per node pool (enemy variety is run variance too).
-	fights = []
-	if region != null:
-		if not region.fight_pool_1.is_empty():
-			fights.append(pick_offers(region.fight_pool_1, 1)[0])
-		if not region.fight_pool_2.is_empty():
-			fights.append(pick_offers(region.fight_pool_2, 1)[0])
-		if fights.is_empty():
-			for f in region.fights:
-				fights.append(f)
-		_roll_boss()
+	_roll_tower()
 	changed.emit()
 
 ## Re-roll the current region's ladder in place. Used when the FIRST biome is chosen after the
 ## run has already begun: begin() rolled a placeholder, the player's choice replaces it.
 func reroll_ladder() -> void:
+	_roll_tower()
+	changed.emit()
+
+## THE TOWER: a biome is climbed, not crossed. Four duels and the boss at the summit -- two
+## opponents rolled from each pool so the climb varies run to run while the shape stays fixed.
+## SEED CONTRACT: pool draws happen here, before _roll_boss, exactly as they always did.
+func _roll_tower() -> void:
 	fights = []
 	if region == null:
 		return
-	if not region.fight_pool_1.is_empty():
-		fights.append(pick_offers(region.fight_pool_1, 1)[0])
-	if not region.fight_pool_2.is_empty():
-		fights.append(pick_offers(region.fight_pool_2, 1)[0])
+	for pool in [region.fight_pool_1, region.fight_pool_2]:
+		if pool.is_empty():
+			continue
+		var picked: Array = pick_offers(pool, mini(RUNGS_PER_POOL, pool.size()))
+		for f in picked:
+			fights.append(f)
+		# a pool smaller than the rungs it owes repeats its last foe rather than shortening
+		# the tower -- the climb is always the same height.
+		while picked.size() < RUNGS_PER_POOL and not picked.is_empty():
+			fights.append(picked[picked.size() - 1])
+			picked.append(picked[picked.size() - 1])
 	if fights.is_empty():
 		for f in region.fights:
 			fights.append(f)
 	_roll_boss()
-	changed.emit()
 
 ## Boss ROTATION (Fool's Journey): each run climbs a different subset of the Arcana. Rolled
 ## AFTER the fight pools (rng append contract). Falls back to the authored fixed boss.
@@ -232,15 +238,7 @@ func enter_region(p_region: RegionData, index: int) -> int:
 	var pct := 0.25 if veil >= 2 else 0.40
 	var healed := clampi(maxi(5, int(floor(missing * pct))), 0, missing)
 	player_hp += healed
-	fights = []
-	if not region.fight_pool_1.is_empty():
-		fights.append(pick_offers(region.fight_pool_1, 1)[0])
-	if not region.fight_pool_2.is_empty():
-		fights.append(pick_offers(region.fight_pool_2, 1)[0])
-	if fights.is_empty():
-		for f in region.fights:
-			fights.append(f)
-	_roll_boss()
+	_roll_tower()
 	changed.emit()
 	return healed
 

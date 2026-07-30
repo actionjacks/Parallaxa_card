@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_my661")
 name_key = "BIOME_CHAOS_1"
-max_hp = 809
+max_hp = 619
 intents = PackedInt32Array(20, 0, 14)
 enrage_step = 2
 reward_rtec = 5

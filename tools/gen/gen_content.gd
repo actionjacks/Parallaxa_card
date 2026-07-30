@@ -318,19 +318,19 @@ func _biomes() -> void:
 	# [aspect, id, name_key, suit, accent, law, law_key, base_hp, intents, bosses, boss_arc, elite_art]
 	var specs := [
 		[A.LIFE, "biome_life", "BIOME_LIFE", "cups", Color(0.82, 0.74, 0.50),
-			L.LIFE_TITHE, "LAW_LIFE", 620, [[9, 9, 9], [11, 8, 11], [10, 10, 10], [12, 12, 6]],
+			L.LIFE_TITHE, "LAW_LIFE", 430, [[9, 9, 9], [11, 8, 11], [10, 10, 10], [12, 12, 6]],
 			["boss_strength", "boss_star"], "arcanum_strength"],
 		[A.MIND, "biome_mind", "BIOME_MIND", "swords", Color(0.43, 0.62, 0.80),
-			L.MIND_ARCHIVE, "LAW_MIND", 470, [[17, 3, 17], [19, 0, 19], [16, 6, 16], [21, 2, 21]],
+			L.MIND_ARCHIVE, "LAW_MIND", 360, [[17, 3, 17], [19, 0, 19], [16, 6, 16], [21, 2, 21]],
 			["boss_hanged", "boss_justice"], "arcanum_hanged"],
 		[A.DEATH, "biome_death", "BIOME_DEATH", "pents", Color(0.52, 0.40, 0.68),
-			L.DEATH_HARVEST, "LAW_DEATH", 560, [[12, 13, 11], [13, 13, 13], [14, 12, 12], [15, 14, 13]],
+			L.DEATH_HARVEST, "LAW_DEATH", 415, [[12, 13, 11], [13, 13, 13], [14, 12, 12], [15, 14, 13]],
 			["boss_moon", "boss_judgement"], "arcanum_moon"],
 		[A.CHAOS, "biome_chaos", "BIOME_CHAOS", "wands", Color(0.80, 0.38, 0.30),
-			L.CHAOS_KINDLING, "LAW_CHAOS", 490, [[20, 0, 14], [22, 0, 15], [24, 0, 16], [26, 0, 18]],
+			L.CHAOS_KINDLING, "LAW_CHAOS", 375, [[20, 0, 14], [22, 0, 15], [24, 0, 16], [26, 0, 18]],
 			["boss_tower", "boss_devil", "boss_chariot"], "arcanum_tower"],
 		[A.NATURE, "biome_nature", "BIOME_NATURE", "nature", Color(0.42, 0.66, 0.40),
-			L.NATURE_OVERGROWTH, "LAW_NATURE", 550, [[8, 11, 14], [7, 12, 15], [9, 12, 16], [10, 13, 16]],
+			L.NATURE_OVERGROWTH, "LAW_NATURE", 410, [[8, 11, 14], [7, 12, 15], [9, 12, 16], [10, 13, 16]],
 			["boss_empress", "boss_wheel"], "arcanum_empress"],
 	]
 	# The Empress and the Wheel had no boss card yet -- Nature's philosophy needed its own Arcana.
@@ -352,7 +352,7 @@ func _biomes() -> void:
 		var arts := ["cups", "swords", "wands", "pents"] if suit == "nature" else [suit, suit, suit, suit]
 		var files: Array = []
 		for i in 4:
-			var e := _enemy("%s_%d" % [spec[2], i + 1], hp + i * 30, intents[i], 5 + i / 2,
+			var e := _enemy("%s_%d" % [spec[2], i + 1], hp + i * 60, intents[i], 5 + i / 2,
 				false, EnemyData.Rule.NONE, "", 2 + i / 2)
 			e.art = load("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
 			e.figure = _figure_for("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])

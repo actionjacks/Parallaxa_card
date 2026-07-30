@@ -16,7 +16,10 @@ const BIOMES: Array[String] = [
 	"res://data/regions/biome_nature.tres",
 ]
 const WORLD_REGION := "res://data/regions/region_04.tres"
-const JOURNEY_BIOMES := 3        ## biomes walked before The World
+## ONE tower per journey. A five-rung climb plus The World is six encounters -- a run you can
+## finish in a sitting, and a run that yields exactly ONE colour seal, so closing the pentagram
+## takes five successful journeys and each one is spent hunting the colour you still lack.
+const JOURNEY_BIOMES := 1        ## towers climbed before The World
 ## Legacy fixed ladder, kept for saves written before biomes existed.
 const JOURNEY: Array[String] = [
 	"res://data/regions/region_01.tres",
@@ -209,13 +212,18 @@ func _show_map() -> void:
 		root.add_child(_hint(tr("REST_HEALED") % _last_rest))
 		_last_rest = 0
 
-	var ladder := HBoxContainer.new()
+	# THE TOWER: the biome is a climb, so the rungs stack upward and are read top-down --
+	# the boss stands at the summit and the player can see how far up they still have to go.
+	var ladder := VBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
-	ladder.add_theme_constant_override("separation", 16)
+	ladder.add_theme_constant_override("separation", 6)
 	var total := RunState.fights.size() + 1
+	var order: Array[int] = []
 	for i in total:
-		var is_boss := i == RunState.fights.size()
-		var label := tr("MAP_NODE_BOSS") if is_boss else (tr("MAP_NODE_FIGHT") % (i + 1))
+		order.append(total - 1 - i)      # summit first
+	for i: int in order:
+		var is_boss: bool = i == RunState.fights.size()
+		var label := tr("TOWER_SUMMIT") if is_boss else (tr("TOWER_RUNG") % (i + 1))
 		var mark := "✓ " if i < RunState.step else ""
 		var enemy: EnemyData = (RunState.boss if RunState.boss != null else RunState.region.boss) if is_boss else RunState.fights[i]
 		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
@@ -230,7 +238,11 @@ func _show_map() -> void:
 			sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			chip.get_child(0).add_child(sl)
-		ladder.add_child(chip)
+		var rung := HBoxContainer.new()
+		rung.alignment = BoxContainer.ALIGNMENT_CENTER
+		rung.add_theme_constant_override("separation", 10)
+		rung.add_child(chip)
+		ladder.add_child(rung)
 	root.add_child(ladder)
 
 	if RunState.relics.size() > 0:
@@ -799,7 +811,9 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 	var sealed_now := false
 	if RunState.region != null and RunState.region.seal_aspect >= 0:
 		sealed_now = Profile.grant_seal(RunState.region.seal_aspect)
-	var final := RunState.region_index + 1 >= JOURNEY.size()
+	# The journey is the tower plus The World -- not the legacy four-region array, which would
+	# have sent the player back through The World again and again.
+	var final: bool = RunState.region_index + 1 >= JOURNEY_BIOMES + 1
 	if final:
 		# The World has fallen: the run is WON (recorded once, endless deaths stay wins) and the
 		# gate opens -- end the reading, or walk BEYOND into a deeper world.

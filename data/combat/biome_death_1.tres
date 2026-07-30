@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_171gr")
 name_key = "BIOME_DEATH_1"
-max_hp = 924
+max_hp = 685
 intents = PackedInt32Array(12, 13, 11)
 enrage_step = 2
 reward_rtec = 5

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_qp2or")
 name_key = "BIOME_LIFE_1"
-max_hp = 1023
+max_hp = 710
 intents = PackedInt32Array(9, 9, 9)
 enrage_step = 2
 reward_rtec = 5

@@ -736,3 +736,6 @@ BIOME_CHOICE_HINT,"Each colour rules its duels differently. Beat its boss and it
 BIOME_WALK,Walk this road,Idź tą drogą
 BIOME_SEAL_OPEN,Seal not taken yet,Pieczęć jeszcze niezdobyta
 BIOME_SEAL_OWNED,Seal already yours,Pieczęć już twoja
+TOWER_RUNG,Rung %d,Szczebel %d
+TOWER_SUMMIT,SUMMIT,SZCZYT
+TOWER_PROGRESS,Rung %d of %d,Szczebel %d z %d

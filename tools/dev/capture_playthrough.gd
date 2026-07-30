@@ -193,11 +193,18 @@ func _handle_map() -> void:
 		if not _omen_shot:
 			await _shoot("omen")
 			_omen_shot = true
+		# Gift omens (star / temperance / sun) carry ONE button, OMEN_GIFT -- looking only for
+		# TAKE/SKIP left the bot clicking nothing and re-reading the same map forever.
 		var b = _button_with("OMEN_TAKE" if oid != "justice" else "OMEN_SKIP")
 		if b == null or b.disabled:
 			b = _button_with("OMEN_SKIP")
-		if b != null:
+		if b == null or b.disabled:
+			b = _button_with("OMEN_GIFT")
+		if b != null and not b.disabled:
 			await _click(_center(b))
+		else:
+			_log("[bc] omen '%s' offered no button -- walking on" % oid)
+			_rn._pending_omen = null
 		await _frames(12)
 	if _take_elite:
 		var rs := root.get_node("RunState")
@@ -259,7 +266,7 @@ func _go() -> void:
 	_log("[pt2] region 1 foes: " + _foes())
 	var result := "TIMEOUT"
 	var guard := 0
-	var guard_max := 140 if OS.get_environment("PT_BEYOND") == "1" else 80
+	var guard_max := 420 if OS.get_environment("PT_BEYOND") == "1" else 320   # a five-rung tower plus a shop per rung is far more screens than the old three-node ladder
 	while guard < guard_max:
 		guard += 1
 		await _frames(8)

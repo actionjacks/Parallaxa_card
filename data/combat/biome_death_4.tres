@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_j3aa4")
 name_key = "BIOME_DEATH_4"
-max_hp = 1073
+max_hp = 982
 intents = PackedInt32Array(15, 14, 13)
 enrage_step = 3
 art = ExtResource("1_sashx")
