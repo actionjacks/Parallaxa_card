@@ -132,6 +132,14 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	# Lawina: the play's card-chip material scores again once per Chaos card in the play (cap 3).
 	if has_lawina:
 		chips += retrig_total * mini(3, chaos_count)
+		# Cracked cards survived the Tower, and the avalanche runs over them TWICE: the card is
+		# worth less on its own and more in the build that wants it, which is the whole trade.
+		var cracked_chips: int = 0
+		for c in cards:
+			if c.cracked:
+				cracked_chips += c.chip_value()
+		if cracked_chips > 0:
+			chips += cracked_chips * mini(3, chaos_count)
 
 	# Furia: x1.5 Mult when this play commits no block (aggression punishes playing defence).
 	if has_furia and block == 0:

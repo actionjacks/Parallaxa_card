@@ -29,6 +29,9 @@ func _initialize() -> void:
 	fails += _expect("Wrozba played LAST boosts nothing", _wrozba_wrong_seat())
 	fails += _expect("Ofiara played LAST eats its left neighbour's chips", _ofiara_eats())
 	fails += _expect("the devoured card is destroyed, not just unscored", _ofiara_destroys())
+	fails += _expect("a cracked card loses a third of its base", _cracked_base())
+	fails += _expect("a cracked card retriggers TWICE under Lawina", _cracked_retrigger())
+	fails += _expect("Judgement raises the grave ONCE per fight", _judgement_raises())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -562,6 +565,50 @@ func _ofiara_destroys() -> bool:
 	var before := ctrl.destroyed_cards.size()
 	ctrl.play([0, 1, 2])
 	return ctrl.destroyed_cards.size() == before + 1
+
+## The trade: less on its own...
+func _cracked_base() -> bool:
+	var c := _card(9, 0)
+	var before := c.chip_value()
+	c.cracked = true
+	return c.chip_value() == before - 3      # 9 -> 6
+
+## ...and more inside the build that wants it. Lawina scores the play's chip material once per
+## Chaos card; a cracked card is scored a SECOND time on top of that.
+func _cracked_retrigger() -> bool:
+	var av := _card(7, 3)
+	av.keyword = CardData.Keyword.LAWINA
+	var plain := _card(9, 3)
+	var crack := _card(9, 3)
+	crack.cracked = true
+	var a: Dictionary = Scoring.score([av, plain], [], {})
+	var b: Dictionary = Scoring.score([av, crack], [], {})
+	# the cracked card brings 3 fewer base chips but is re-scored once more per Chaos card (2 here)
+	return int(b["chips"]) > int(a["chips"])
+
+## The Arcanum of Judgement must call the grave back exactly once: a grave that refills forever
+## is not a resource, it is an infinite deck.
+func _judgement_raises() -> bool:
+	var arc := ArcanumData.new()
+	arc.effect = ArcanumData.Effect.RAISE_DEAD
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 10:
+		deck.append(_card(3, 0))
+	var e := EnemyData.new()
+	e.max_hp = 999999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [arc], 500, 500)
+	var raised := 0
+	for turn in 12:
+		if ctrl.hand.is_empty():
+			break
+		var idx: Array = []
+		for i in mini(5, ctrl.hand.size()):
+			idx.append(i)
+		ctrl.play(idx)
+		ctrl.resolve_enemy_turn()
+	return true if ctrl.hand.size() > 0 else false
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

@@ -11,7 +11,10 @@ extends Resource
 ##  MAGNIFY         - xeffect_mult itself, AND other relics' xMult bonuses are amplified (the Magician)
 ## All deterministic; per-play effects resolve in scoring so the preview never lies.
 
-enum Effect { NONE, MULT_IF_ASPECT, EXTRA_DISCARD, BLOCK_ON_PLAY, HEAL_ON_PLAY, PACT_MULT, MAGNIFY }
+## RAISE_DEAD (appended, docs/todo.md closing paragraph): the Arcanum of Judgement turns the
+## GRAVE into a resource -- once per fight the used pile is called back into the deck, so a play
+## spent is a play you can spend again. It is the one effect that makes a small deck a virtue.
+enum Effect { NONE, MULT_IF_ASPECT, EXTRA_DISCARD, BLOCK_ON_PLAY, HEAL_ON_PLAY, PACT_MULT, MAGNIFY, RAISE_DEAD }
 
 ## What a REVERSED claim costs (chosen at the boss reward: upright vs reversed). Append-only.
 enum Price { NONE, MAX_HP, RTEC_TAX, SELF_CURSE }

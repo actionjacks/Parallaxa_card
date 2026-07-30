@@ -54,6 +54,8 @@ var _last_play_damage: int = 0    ## damage of that play (the Fool answers with 
 ## The cards of the blow that ENDED the fight, in play order. The last of them is the one that
 ## struck the killing blow, and against a boss it earns a permanent scar (PLAN_TODO T5).
 var killing_cards: Array = []
+## The Judgement answers ONCE per duel; a grave that refills forever is not a resource.
+var _raised: bool = false
 
 var _draw: Array = []
 var _used: Array = []
@@ -113,6 +115,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	_last_play_size = 0
 	_last_play_damage = 0
 	killing_cards = []
+	_raised = false
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -526,9 +529,26 @@ func _move_to_used(selected: Array) -> void:
 func hand_size() -> int:
 	return HAND_SIZE + (1 if law == 2 else 0)
 
+## THE JUDGEMENT (docs/todo.md): once per fight, the Arcanum of Judgement calls the grave back
+## the moment the deck runs dry -- announced, and on a KNOWN condition rather than a roll, so the
+## player can plan around it. It is the effect that makes a thin deck a virtue instead of a risk.
+func _raise_dead_available() -> bool:
+	if _raised:
+		return false
+	for a: ArcanumData in relics:
+		if a.effect == ArcanumData.Effect.RAISE_DEAD:
+			return true
+	return false
+
 func _refill() -> void:
 	while hand.size() < hand_size():
 		if _draw.is_empty():
+			if _raise_dead_available() and not _used.is_empty():
+				_raised = true
+				_draw = _used.duplicate()
+				_used.clear()
+				message.emit("LOG_RAISE_DEAD", [_draw.size()])
+				continue
 			if _used.is_empty():
 				break
 			_draw = _used.duplicate()  # deterministic recycle: order preserved, no shuffle

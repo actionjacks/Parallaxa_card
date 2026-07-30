@@ -6,10 +6,8 @@
 [resource]
 script = ExtResource("2_ijlnw")
 name_key = "ARCANUM_SADU"
-effect = 5
-effect_aspect = 3
-effect_mult = 1.3
-effect_value = 2
+effect = 7
+effect_mult = 1.0
 art = ExtResource("1_maeoc")
 reversed_mult = 1.6
 reversed_value = 3

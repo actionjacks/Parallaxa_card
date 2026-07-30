@@ -61,6 +61,11 @@ var scar: int = 0
 ## keep working unchanged. This flag only drives the payoff multiplier and the inverted art.
 var inverted: bool = false
 
+## CRACKED (docs/todo.md par.5, "Trauma po Wiezy"): a card the Tower shattered and you won back
+## anyway. It lost a third of its chip base for good, but it survived something -- so any
+## retrigger in the play (Lawina) fires TWICE on it. A scar that costs you and pays you.
+var cracked: bool = false
+
 ## SPLASH (docs/todo.md "Karty Dwukolorowe"): a SECOND Aspect the card also counts as, carved in
 ## a shop. -1 = single-coloured. A splashed card belongs to BOTH colours at once, which is what
 ## makes a two-colour deck coherent instead of a compromise.
@@ -81,6 +86,10 @@ func chip_value() -> int:
 		base = 11
 	elif rank >= 11:
 		base = 10
+	# A cracked card carries a permanent third off its base -- rounded so a small card is not
+	# reduced to nothing.
+	if cracked:
+		base = maxi(1, base - maxi(1, int(round(base / 3.0))))
 	return base + growth + scar
 
 ## Short rank glyph for the card face (language-neutral card notation).

@@ -1270,6 +1270,17 @@ func _on_ended(won: bool) -> void:
 		if won:
 			for c in controller.destroyed_cards:
 				RunState.deck.erase(c)   # identity erase: combat holds the run's own instances
+			# TRAUMA OF THE TOWER (docs/todo.md par.5): if the field rule that ignores your block
+			# took cards from you and you WON anyway, one survivor comes back CRACKED -- a third
+			# off its base for good, but the avalanche runs over it twice. You paid for it, so it
+			# is worth something no shop can sell you. The card is chosen deterministically (the
+			# first uncracked card in the run deck), never rolled.
+			if _enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK and not controller.destroyed_cards.is_empty():
+				for c: CardData in RunState.deck:
+					if not c.cracked:
+						c.cracked = true
+						_popup(tr("CRACKED_EARNED"), Color(0.75, 0.82, 0.95), _player_fx_pos(), 22)
+						break
 		finished.emit(won, controller.player_hp, controller.discards_left)
 		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")

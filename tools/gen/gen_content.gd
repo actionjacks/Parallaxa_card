@@ -147,7 +147,7 @@ func _region() -> void:
 		[0.0, 3, P.SELF_CURSE, 2])
 	_save_arcanum_simple("arcanum_justice", "ARCANUM_SPRAWIEDLIWOSCI", E.BLOCK_ON_PLAY, A.LIFE, 1.0, 5, "11_justice",
 		[0.0, 10, P.MAX_HP, 6])
-	_save_arcanum_simple("arcanum_judgement", "ARCANUM_SADU", E.PACT_MULT, A.CHAOS, 1.3, 2, "20_judgement",
+	_save_arcanum_simple("arcanum_judgement", "ARCANUM_SADU", E.RAISE_DEAD, A.DEATH, 1.0, 0, "20_judgement",
 		[1.6, 3, P.NONE, 0])
 	_save_arcanum_simple("arcanum_star", "ARCANUM_GWIAZDY", E.HEAL_ON_PLAY, A.LIFE, 1.0, 4, "17_star",
 		[0.0, 8, P.RTEC_TAX, 2])

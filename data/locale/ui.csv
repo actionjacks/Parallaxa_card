@@ -759,3 +759,5 @@ KWD_WROZBA,"Played FIRST: every card to its right scores +%d chips.","Zagrana PI
 KW_OFIARA,Ofiara,Ofiara
 KWD_OFIARA,"Played LAST: devours the card to its left — that card is destroyed and its chips are added to this one.","Zagrana OSTATNIA: pożera kartę po swojej lewej — ta karta ginie, a jej chipsy dochodzą do tej."
 LOG_OFIARA,The sacrifice devours: +%d chips,Ofiara pożera: +%d chipsów
+CRACKED_EARNED,Cracked — it survived,Spękana — przetrwała
+LOG_RAISE_DEAD,Judgement: %d cards rise from the grave,Sąd: %d kart powstaje z grobu

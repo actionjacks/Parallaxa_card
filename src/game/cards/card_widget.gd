@@ -69,6 +69,16 @@ static func build(card: CardData) -> PanelContainer:
 		_add_durability_pip(panel, card)
 	if card.scar > 0:
 		_add_scar_mark(panel, card)
+	if card.cracked:
+		# a hairline down the face: the card visibly survived something
+		sb.border_color = Color(0.72, 0.80, 0.95)
+		var crack := ColorRect.new()
+		crack.color = Color(0.80, 0.86, 0.98, 0.5)
+		crack.position = Vector2(CARD_SIZE.x * 0.44, 2)
+		crack.size = Vector2(1.5, CARD_SIZE.y - 4)
+		crack.rotation_degrees = 4.0
+		crack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(crack)
 	panel.set_meta("border", sb.border_color)
 	panel.mouse_entered.connect(_on_hover.bind(panel, true))
 	panel.mouse_exited.connect(_on_hover.bind(panel, false))
