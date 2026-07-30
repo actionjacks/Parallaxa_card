@@ -4,10 +4,8 @@ extends Control
 ## Screens are built in code on the project theme (monogram font + cursors).
 
 ## The Fool's Journey: four regions, ending at The World. State carries across; full rest between.
-## THE JOURNEY: three biomes CHOSEN from the five colours, then The World. Three, not five,
-## because five biomes back to back would be a 16-encounter run (+60%); three keeps the current
-## 10-encounter length while capping a run at three seals -- so closing the pentagram needs at
-## least two journeys, and you come back for the colour you are MISSING rather than for a reshuffle.
+## THE JOURNEY: ONE biome tower, chosen from the five colours, then The World. The five roads
+## are offered up front; the tower is five rungs; the summit yields that colour's seal.
 const BIOMES: Array[String] = [
 	"res://data/regions/biome_life.tres",
 	"res://data/regions/biome_mind.tres",
@@ -20,13 +18,8 @@ const WORLD_REGION := "res://data/regions/region_04.tres"
 ## finish in a sitting, and a run that yields exactly ONE colour seal, so closing the pentagram
 ## takes five successful journeys and each one is spent hunting the colour you still lack.
 const JOURNEY_BIOMES := 1        ## towers climbed before The World
-## Legacy fixed ladder, kept for saves written before biomes existed.
-const JOURNEY: Array[String] = [
-	"res://data/regions/region_01.tres",
-	"res://data/regions/region_02.tres",
-	"res://data/regions/region_03.tres",
-	"res://data/regions/region_04.tres",
-]
+## data/regions/region_01..03.tres are RETIRED: the journey climbs biome towers now. The files
+## stay on disk so old run saves can still resolve their region_path, but nothing routes to them.
 const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
 const MENU_SCENE := "res://src/game/menu/menu.tscn"
 const BUY_COST := 5
@@ -1002,9 +995,11 @@ func _enter_sealed() -> void:
 func _go_beyond() -> void:
 	RunState.depth += 1
 	_pending_omen = null
-	_last_rest = RunState.enter_region(load(JOURNEY[0]), 0)
-	_refresh_backdrop()
-	_show_map()
+	# A deeper loop climbs ANOTHER tower: the roads reopen (including colours already walked,
+	# because at depth the point is the scaling, not the seal) and the choice screen decides.
+	RunState.biomes_walked = []
+	RunState.region_index = 0
+	_show_biome_choice()
 
 ## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
 ## recording and the achievement sweep all happen HERE, exactly once per run.
@@ -1031,7 +1026,7 @@ func _repeat_fate() -> void:
 	RunState.next_pure = RunState.pure_reading   # a repeated fate keeps its purity contract
 	RunState.next_daily = RunState.daily_tag
 	var s := RunState.run_seed
-	RunState.begin(load(JOURNEY[0]), s)
+	RunState.begin(load(BIOMES[0]), s)
 	_start_run_flow()
 
 func _restart_run() -> void:
@@ -1039,7 +1034,7 @@ func _restart_run() -> void:
 	RunState.next_veil = RunState.veil   # fresh seed, same tier (the menu changes tiers)
 	RunState.next_pure = false           # a NEW fate is the player's own again
 	RunState.next_daily = ""
-	RunState.begin(load(JOURNEY[0]))   # a new Journey always starts at the first region
+	RunState.begin(load(BIOMES[0]))   # placeholder road; the choice screen sets the real one
 	_start_run_flow()
 
 # ---------------------------------------------------------------- ARCANUM DRAFT

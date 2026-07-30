@@ -306,6 +306,16 @@ func _go() -> void:
 					await _click(_center(gb))
 					await _frames(20)
 					continue
+			# PT_SEAL=1 walks the hidden road instead: five seals grow a third door here.
+			if OS.get_environment("PT_SEAL") == "1":
+				var sb = _button_with("GATE_SEAL")
+				if sb != null:
+					_log("[bc] BREAKING THE SEAL -- entering Arcanum Zero")
+					await _shoot("gate_seal")
+					await _click(_center(sb))
+					await _frames(25)
+					continue
+				_log("[bc] no GATE_SEAL button offered (seals=%d)" % root.get_node("Profile").seals.size())
 			_log("[bc] the World has fallen -- ending the reading")
 			await _shoot("gate")
 			await _click(_center(gate))
