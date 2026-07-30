@@ -1,4 +1,4 @@
-# Raport balansu — 6 pelnych przeklikow bota (2026-07-30)
+# Raport balansu — 7 pelnych przeklikow bota (2026-07-30)
 
 Wygenerowane przez `tools/dev/balance_report.py` z logow w `screenshots/balance/`.
 Bot jest CELOWO slaby: grupuje karty po randze i nie szuka stritow ani kolorow,
