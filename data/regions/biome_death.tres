@@ -11,6 +11,12 @@
 [ext_resource type="Resource" path="res://data/combat/biome_death_4.tres" id="9_1jriq"]
 [ext_resource type="Script" path="res://src/game/region/region_data.gd" id="10_00uix"]
 [ext_resource type="Script" path="res://src/game/arcana/arcanum_data.gd" id="11_yuky3"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_death.tres" id="12_jmnv0"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_sun.tres" id="13_ny8fu"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_priestess.tres" id="14_1jriq"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_devil.tres" id="15_00uix"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="16_yuky3"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_magician.tres" id="17_tbmx4"]
 
 [resource]
 script = ExtResource("10_00uix")
@@ -19,6 +25,7 @@ fight_pool_1 = Array[ExtResource("3_7ev6u")]([ExtResource("6_tpikd"), ExtResourc
 fight_pool_2 = Array[ExtResource("3_7ev6u")]([ExtResource("8_ny8fu"), ExtResource("9_1jriq")])
 boss = ExtResource("1_sxl5k")
 boss_arcanum = ExtResource("2_02xjm")
+starting_pool = Array[ExtResource("11_yuky3")]([ExtResource("12_jmnv0"), ExtResource("13_ny8fu"), ExtResource("14_1jriq"), ExtResource("15_00uix"), ExtResource("16_yuky3"), ExtResource("17_tbmx4")])
 accent = Color(0.52, 0.4, 0.68, 1)
 elite = ExtResource("5_6strn")
 boss_pool = Array[ExtResource("3_7ev6u")]([ExtResource("1_sxl5k"), ExtResource("4_4bykd")])

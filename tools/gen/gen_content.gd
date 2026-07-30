@@ -62,6 +62,8 @@ func _deck(id: String, name_key: String, cards: Array) -> void:
 
 # ---- enemies / arcana / regions ----
 
+var _opening_pool: Array[ArcanumData] = []   ## the run-opening draft pool, shared by every road
+
 func _region() -> void:
 	# Starting pool: 6 DISTINCT playstyles, each wearing its real RWS card (Fool's Journey draft).
 	# [name_key, effect, aspect, mult, value, art, file]  + reversed numbers applied after.
@@ -101,6 +103,7 @@ func _region() -> void:
 		_apply_reversed(arc, reversed_specs.get(s[6], null))
 		ResourceSaver.save(arc, ARCANA_DIR + "%s.tres" % s[6])
 		pool.append(load(ARCANA_DIR + "%s.tres" % s[6]))
+	_opening_pool = pool
 	# Boss-claimed relics (Fool's Journey: beat the card, wear the card).
 	var tower_arc := _arcanum("ARCANUM_WIEZA", A.CHAOS, 1.4)
 	tower_arc.art = load(MAJOR + "16_tower.jpg")
@@ -350,6 +353,11 @@ func _biomes() -> void:
 		_save_region(id, spec[2], [files[0], files[1]], [files[2], files[3]],
 			spec[9][0], spec[10], spec[4], id + "_elite", spec[9],
 			int(spec[5]), spec[6], aspect)
+		# The run-opening draft belongs to every road, not just the legacy region_01, or a run
+		# that starts in a biome would open with no Arcanum at all.
+		var br: RegionData = load(REGION_DIR + id + ".tres")
+		br.starting_pool = _opening_pool
+		ResourceSaver.save(br, REGION_DIR + id + ".tres")
 
 	# ---- THE SEALED BIOME: what answers when all five colours have been answered ----
 	# Its enemies are the four Aces (the hand from the cloud: pure, uncoloured force) and its

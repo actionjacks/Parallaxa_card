@@ -90,6 +90,8 @@ func _exit_tree() -> void:
 func _start_run_flow() -> void:
 	MusicLib.play(&"music_menu", 1.5)
 	_refresh_backdrop()   # a restarted/repeated run returns to region 1: drop the old accent
+	# The opening draft is a property of the RUN, not of whichever biome happens to be loaded
+	# as the placeholder -- it runs first, then the player chooses which colour to walk into.
 	if RunState.region != null and not RunState.region.starting_pool.is_empty():
 		_show_arcanum_draft()
 	else:
@@ -1241,7 +1243,12 @@ func _take_arcanum() -> void:
 	if _arc_pick >= 0:
 		RunState.claim_relic(_arc_offers[_arc_pick])
 		Sfx.play(&"coin", -6.0)
-	_show_map()
+	# Boon first, then the road: the drafted Arcanum is exactly what should inform which
+	# colour you choose to walk into.
+	if RunState.biomes_walked.is_empty():
+		_show_biome_choice()
+	else:
+		_show_map()
 
 # ---------------------------------------------------------------- helpers
 
