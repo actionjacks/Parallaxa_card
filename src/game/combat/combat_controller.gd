@@ -439,7 +439,9 @@ func _finish(won: bool) -> void:
 func _ctx() -> Dictionary:
 	return {
 		"law": law,
-		"keystone": true,   # the last card of a play scores double (docs/PLAN_TODO.md T1)
+		# Veil IV -- the Cracked Mirror: the Keystone stops working, so the ordering game the
+		# player has learned is taken away and they have to score on the hand alone.
+		"keystone": veil < 4,
 		"grave": _used.size(),
 		"plays": _plays,
 		"hand_levels": hand_levels,

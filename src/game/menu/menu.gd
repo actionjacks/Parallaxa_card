@@ -320,6 +320,7 @@ func _open_character() -> void:
 	xp_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left.add_child(xp_l)
 	left.add_child(_seal_plaque())
+	left.add_child(_astrologer_book())
 
 	# --- right: the lifetime ledger ---
 	var sbx := StyleBoxFlat.new()
@@ -592,6 +593,30 @@ func _center_lbl(text: String, font_size: int, color: Color) -> Label:
 ## THE FIVE SEALS: which colours have answered you, and which have not. This is the meta-goal
 ## made visible -- a run yields exactly one seal, so the player has to come back for the colour
 ## they are MISSING, and a goal you cannot see is not a goal.
+## THE ASTROLOGER'S BOOK: your best run on each Daily Fate. Printed because the engine is
+## deterministic -- the same date is the same deck, the same foes and the same offers for every
+## player, so yesterday's number is a target rather than a memory.
+func _astrologer_book() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	var title := _lbl(tr("BOOK_TITLE"), 13, Color(0.72, 0.68, 0.5))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+	var entries: Array = Profile.astrologer_entries(5)
+	if entries.is_empty():
+		var none := _lbl(tr("BOOK_EMPTY"), 12, Color(0.55, 0.55, 0.62))
+		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.custom_minimum_size = Vector2(220, 0)
+		box.add_child(none)
+		return box
+	for e in entries:
+		var row := _lbl(tr("BOOK_ROW") % [e["tag"], e["score"], e["fights"]], 12,
+			Color(0.9, 0.85, 0.6) if e["won"] else Color(0.62, 0.6, 0.68))
+		row.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(row)
+	return box
+
 func _seal_plaque() -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)

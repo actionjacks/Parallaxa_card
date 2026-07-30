@@ -67,6 +67,13 @@ var flags: Dictionary = {}         ## one-shot moments already shown (covenant l
 ## defeat a direction -- you come back for the colour you are MISSING, not for another shuffle.
 var seals: Array = []              ## Aspects.Id ints, unique, order-insensitive
 
+## THE ASTROLOGER'S BOOK (docs/PLAN_TODO.md T3): best score per Daily Fate, kept forever.
+## This exists because the game is DETERMINISTIC -- a fixed seed has a theoretical perfect run,
+## so a personal best on a given day is a real, improvable number rather than a lucky streak.
+## Local only: there is no server, and pretending otherwise would be a lie on the tin.
+## date tag -> {"score": int, "won": bool, "fights": int}
+var astrologer: Dictionary = {}
+
 ## Lifetime stat keys, in display order (values are ints; missing = 0).
 const LIFE_KEYS := ["runs", "wins", "deaths", "fights", "elites", "bosses",
 	"damage", "best_hit", "turns", "sol_earned", "arcana", "reversed"]
@@ -242,6 +249,7 @@ func rank_key() -> String:
 ## XP bonus. Called EXACTLY once per run end (the spread screen). Returns {"xp": int, "levels": int}.
 func record_run_end(victory: bool) -> Dictionary:
 	_life_add("runs", 1)
+	_record_daily(victory)
 	_life_add("wins", 1 if victory else 0)
 	_life_add("deaths", 0 if victory else 1)
 	_life_add("fights", RunState.fights_won)
@@ -352,6 +360,7 @@ func save_profile() -> void:
 	cf.set_value("meta", "life", life)
 	cf.set_value("meta", "flags", flags)
 	cf.set_value("meta", "seals", seals)
+	cf.set_value("meta", "astrologer", astrologer)
 	cf.save(_path())
 
 func load_profile() -> void:
@@ -386,7 +395,34 @@ func load_profile() -> void:
 	life = cf.get_value("meta", "life", {})
 	flags = cf.get_value("meta", "flags", {})
 	seals = cf.get_value("meta", "seals", [])
+	astrologer = cf.get_value("meta", "astrologer", {})
 
+
+## A Daily Fate keeps only the BEST attempt, so the entry is a record to beat rather than a log.
+## Score is the run's total damage: the one number that rewards playing the seed well rather than
+## merely surviving it.
+func _record_daily(victory: bool) -> void:
+	if RunState.daily_tag == "":
+		return
+	var score: int = RunState.stat_damage_total
+	var prev: Dictionary = astrologer.get(RunState.daily_tag, {})
+	if prev.is_empty() or score > int(prev.get("score", 0)):
+		astrologer[RunState.daily_tag] = {
+			"score": score, "won": victory, "fights": RunState.fights_won,
+		}
+		save_profile()
+
+## The book, newest first -- what the menu prints.
+func astrologer_entries(limit: int = 8) -> Array:
+	var keys: Array = astrologer.keys()
+	keys.sort()
+	keys.reverse()
+	var out: Array = []
+	for k in keys.slice(0, limit):
+		var e: Dictionary = astrologer[k]
+		out.append({"tag": k, "score": int(e.get("score", 0)),
+			"won": bool(e.get("won", false)), "fights": int(e.get("fights", 0))})
+	return out
 
 # ---------------------------------------------------------------- colour seals
 

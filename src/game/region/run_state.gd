@@ -46,6 +46,8 @@ var depth: int = 0                ## Beyond-the-World loops completed (0 = first
 var run_won: bool = false         ## The World has fallen at least once (endless death stays a WIN)
 ## The Sealed Biome is a one-way terminus: once entered, the World Gate never returns.
 var sealed_entered: bool = false
+## Veil V removes one Aspect from the run entirely; -1 when no colour was taken.
+var lost_aspect: int = -1
 ## Which biome roads this journey has already walked (paths). Drives the choice screen so a
 ## journey is a ROUTE through the pentagram, never the same colour twice.
 var biomes_walked: Array = []
@@ -104,6 +106,18 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 		if prof != null and prof.available_decks().has(prof.selected_deck):
 			run_deck_id = prof.selected_deck
 	deck = DeckLibrary.starter_deck_pure() if pure_reading else DeckLibrary.starter_deck()
+	# Veil V -- the Colourless Dawn: one Aspect is missing from the deck entirely. It attacks the
+	# geometry rather than the numbers: whichever colour the player was going to build toward may
+	# simply not be there, and the run has to be planned around the hole. Chosen from the run seed
+	# BEFORE any other draw, so the same fate code always removes the same colour.
+	if veil >= 5:
+		var lost: int = int(rng.randi() % 5)
+		var kept: Array = []
+		for c in deck:
+			if int(c.aspect) != lost:
+				kept.append(c)
+		deck = kept
+		lost_aspect = lost
 	# SEED CONTRACT: Fisher-Yates eats N-1 draws, so shuffling the deck on the MAIN rng made the
 	# whole downstream stream depend on deck SIZE -- growing the starter from 16 to 40 cards would
 	# silently invalidate every shared fate code. Run it on a sub-generator instead: exactly one
@@ -120,6 +134,7 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	depth = 0
 	run_won = false
 	sealed_entered = false
+	lost_aspect = -1
 	biomes_walked = []
 	hand_levels = {}
 	stat_damage_total = 0
@@ -412,6 +427,7 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "run_won", run_won)
 	cf.set_value("run", "sealed", sealed_entered)
 	cf.set_value("run", "biomes", biomes_walked)
+	cf.set_value("run", "lost_aspect", lost_aspect)
 	cf.set_value("run", "deck_id", run_deck_id)
 	var relic_entries: Array = []
 	for a in relics:
@@ -480,6 +496,7 @@ func load_run() -> String:
 	run_won = cf.get_value("run", "run_won", false)
 	sealed_entered = cf.get_value("run", "sealed", false)
 	biomes_walked = cf.get_value("run", "biomes", [])
+	lost_aspect = cf.get_value("run", "lost_aspect", -1)
 	run_deck_id = cf.get_value("run", "deck_id", "classic")
 	stat_death_foe = ""
 	stat_death_turn = 0

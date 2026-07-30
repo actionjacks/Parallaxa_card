@@ -27,6 +27,11 @@ const THIN_COST := 3
 ## Turning a card upside down: it pays x1.45 Mult and BECOMES its enemy colour. Priced above
 ## thinning because it is the only tool that reshapes the deck's colour identity.
 const INVERT_COST := 6
+
+## Veil III -- the Sealed Market: one fewer card on the counter. The economy stops being a
+## shopping list and becomes a choice between two compromises.
+func SHOP_SLOTS() -> int:
+	return 2 if RunState.veil >= 3 else 3
 const ENCHANT_COST := 5
 const STAR_COST := 8
 ## Hands a Star can level (the reachable ones).
@@ -463,7 +468,7 @@ func _skip_reward() -> void:
 
 ## Fresh shop stock for this rung (reward always flows here; leaving the shop advances the run).
 func _enter_shop() -> void:
-	_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3)
+	_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())
 	_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 	_shop_reroll_cost = 1
 	_show_shop()
