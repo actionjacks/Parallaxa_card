@@ -145,6 +145,10 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	t.texture = art
+	# A reversed card hangs upside down, exactly as the elites' portraits do -- the profaned
+	# card is the brand, and the player must be able to see it without reading a tooltip.
+	t.flip_v = card.inverted
+	t.flip_h = card.inverted
 	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(t)

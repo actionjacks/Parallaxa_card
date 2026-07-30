@@ -745,3 +745,6 @@ HAND_PENTAGRAM,Pentagram,Pentagram
 HAND_FULL_COURT,Full Court,Pełny Dwór
 LOG_PENTAGRAM,The Pentagram closes: a discard returns.,Pentagram się zamyka: odrzut wraca.
 SCAR_EARNED,Scarred +%d,Blizna +%d
+SHOP_INVERT,Reverse a card (%d),Odwróć kartę (%d)
+SHOP_INVERT_TIP,"A reversed card scores x1.45 Mult and BECOMES its enemy colour on the pentagram. It is how a single-colour deck gets built.","Odwrócona karta liczy x1.45 Mult i STAJE SIĘ swoim wrogim kolorem na pentagramie. Tak buduje się talię jednego koloru."
+PICK_INVERT,Choose a card to reverse,Wybierz kartę do odwrócenia

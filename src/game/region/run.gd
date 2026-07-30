@@ -24,6 +24,9 @@ const COMBAT_SCENE := "res://src/game/combat/combat.tscn"
 const MENU_SCENE := "res://src/game/menu/menu.tscn"
 const BUY_COST := 5
 const THIN_COST := 3
+## Turning a card upside down: it pays x1.45 Mult and BECOMES its enemy colour. Priced above
+## thinning because it is the only tool that reshapes the deck's colour identity.
+const INVERT_COST := 6
 const ENCHANT_COST := 5
 const STAR_COST := 8
 ## Hands a Star can level (the reachable ones).
@@ -565,7 +568,11 @@ func _show_shop() -> void:
 	controls.add_child(reroll)
 	var thin := _button(tr("SHOP_THIN") % _cost(THIN_COST), _thin_deck)
 	thin.disabled = RunState.rtec < _cost(THIN_COST) or RunState.deck.size() <= 5
+	var invert := _button(tr("SHOP_INVERT") % _cost(INVERT_COST), _invert_card)
+	invert.disabled = RunState.rtec < _cost(INVERT_COST) or RunState.deck.is_empty()
+	invert.tooltip_text = tr("SHOP_INVERT_TIP")
 	controls.add_child(thin)
+	controls.add_child(invert)
 	controls.add_child(_button(tr("SHOP_NEXT"), _leave_shop))
 	root.add_child(controls)
 	_mount(root)
@@ -586,6 +593,28 @@ func _thin_deck() -> void:
 		RunState.remove_card(card)
 		_show_shop()
 	_open_deck_picker(tr("PICK_REMOVE"), cb)
+
+## THE REVERSAL (PLAN_TODO T4): outside combat only, and written into the card. Reversing on
+## draw would be randomness inside a fight, where the preview must never be able to lie.
+## Measured before shipping: reversing cards does NOT starve the Flush -- it CONCENTRATES the
+## deck (P(flush in hand) 1.86% at zero reversals, 4.83% at twelve), so this is the colour-
+## shaping tool a mono-colour build was missing.
+func _invert_card() -> void:
+	if RunState.rtec < _cost(INVERT_COST) or RunState.deck.is_empty():
+		return
+	var cb := func(card: CardData) -> void:
+		var foes: Array = Aspects.foes(card.aspect)
+		if foes.is_empty():
+			return
+		# Deterministic pick: the FIRST enemy on the wheel, so the player can predict the colour
+		# they are buying before they spend.
+		card.aspect = foes[0] as Aspects.Id
+		card.inverted = true
+		RunState.spend(_cost(INVERT_COST))
+		RunState.stat_bought += 1
+		RunState.changed.emit()
+		_show_shop()
+	_open_deck_picker(tr("PICK_INVERT"), cb)
 
 func _enchant(edition: CardData.Edition) -> void:
 	if RunState.rtec < _cost(ENCHANT_COST) or RunState.deck.is_empty():

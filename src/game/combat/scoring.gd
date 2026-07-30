@@ -54,6 +54,11 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		retrig_total += c.chip_value() * key
 		if c.aspect == Aspects.Id.CHAOS:
 			chaos_count += 1
+		# A reversed card pays for the colour it gave up. Multiplicative, and deliberately smaller
+		# than it looks: five of them is already x6.4, and the real cost is that the card now
+		# fights for a different Aspect than the deck was built around.
+		if c.inverted:
+			mult *= 1.45
 		match c.edition:
 			CardData.Edition.FOIL:
 				chips += 15

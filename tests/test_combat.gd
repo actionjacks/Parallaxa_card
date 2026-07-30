@@ -19,6 +19,8 @@ func _initialize() -> void:
 	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
 	fails += _expect("Full Court: Page+Knight+Queen+King", _full_court_reads() == Poker.Hand.FULL_COURT)
 	fails += _expect("a scar adds permanent chips and survives a save round-trip", _scar_persists())
+	fails += _expect("a reversed card multiplies Mult by 1.45", _inverted_mult())
+	fails += _expect("Aspects.foes are the two NON-neighbours on the wheel", _foes_are_non_neighbours())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -454,6 +456,23 @@ func _scar_persists() -> bool:
 	back.rank = int(d["r"])
 	back.scar = int(d.get("s", 0))
 	return back.chip_value() == before + 5
+
+func _inverted_mult() -> bool:
+	var plain: Dictionary = Scoring.score([_card(5, 0)], [], {})
+	var c := _card(5, 0)
+	c.inverted = true
+	var rev: Dictionary = Scoring.score([c], [], {})
+	return abs(float(rev["mult"]) - float(plain["mult"]) * 1.45) < 0.001
+
+func _foes_are_non_neighbours() -> bool:
+	for a in 5:
+		var f: Array = Aspects.foes(a)
+		if f.size() != 2:
+			return false
+		for x in f:
+			if Aspects.allies(a).has(x) or x == a:
+				return false
+	return true
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

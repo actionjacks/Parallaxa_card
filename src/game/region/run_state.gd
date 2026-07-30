@@ -423,7 +423,7 @@ func save_run(pending_omen_id: String = "") -> void:
 	cf.set_value("run", "fights", fight_paths)
 	var cards: Array = []
 	for c in deck:
-		cards.append({"r": c.rank, "a": c.aspect, "k": c.keyword, "v": c.keyword_value, "e": c.edition, "y": c.rarity, "w": c.wear, "s": c.scar})
+		cards.append({"r": c.rank, "a": c.aspect, "k": c.keyword, "v": c.keyword_value, "e": c.edition, "y": c.rarity, "w": c.wear, "s": c.scar, "i": c.inverted})
 	cf.set_value("run", "deck", cards)
 	cf.save(_save_path())
 
@@ -511,6 +511,7 @@ func load_run() -> String:
 		c.rarity = int(d.get("y", CardData.Rarity.COMMON)) as CardData.Rarity
 		c.wear = int(d.get("w", 0))
 		c.scar = int(d.get("s", 0))
+		c.inverted = bool(d.get("i", false))
 		deck.append(c)
 	changed.emit()
 	return cf.get_value("run", "omen", "")

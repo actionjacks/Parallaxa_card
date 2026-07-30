@@ -24,6 +24,14 @@ const NAME_KEYS: Dictionary = {
 static func allies(id: int) -> Array:
 	return [(id + 1) % 5, (id + 4) % 5]
 
+## The two colours that are NOT neighbours on the wheel: what a reversed card becomes.
+static func foes(id: int) -> Array:
+	var out: Array = []
+	for a in 5:
+		if a != id and not allies(id).has(a):
+			out.append(a)
+	return out
+
 static func color(id: int) -> Color:
 	return COLORS.get(id, Color.WHITE)
 

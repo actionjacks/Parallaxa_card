@@ -49,6 +49,12 @@ var bloom: int = 0
 ## the scar on the next load. Scars are saved with the run.
 var scar: int = 0
 
+## REVERSED (docs/PLAN_TODO.md T4): the card has been turned upside down in a shop. Its Aspect
+## was CHANGED IN PLACE at that moment to its enemy on the pentagram, so nothing downstream has
+## to know -- a reversed card simply IS the other colour, and flushes, Symbioza and the sigil all
+## keep working unchanged. This flag only drives the payoff multiplier and the inverted art.
+var inverted: bool = false
+
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
 	var base := rank
