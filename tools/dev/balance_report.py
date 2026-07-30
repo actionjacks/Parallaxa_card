@@ -20,13 +20,19 @@ DISCARD = re.compile(r"\[bc\]\s+discard (\d+) junk")
 
 def parse(path):
     runs = {"hands": Counter(), "dmg": [], "fight_turns": [], "discards": 0,
-            "result": None, "fights_won": 0, "biome": None, "hp_end": None, "turns": 0}
+            "result": None, "fights_won": 0, "biome": None, "hp_end": None, "turns": 0,
+            "hp_by_fight": [], "hp_trace": []}
     cur = 0
+    hp_seen = []
     for line in open(path, encoding="utf-8", errors="replace"):
         m = FIGHT.search(line)
         if m:
             if cur:
                 runs["fight_turns"].append(cur)
+            if hp_seen:
+                # HP the player entered and left this fight on: the gap is what the fight cost
+                runs["hp_by_fight"].append((hp_seen[0], hp_seen[-1]))
+            hp_seen = []
             cur = 0
             continue
         m = TURN.search(line)
@@ -35,6 +41,8 @@ def parse(path):
             runs["hands"][m.group(2).strip()] += 1
             runs["dmg"].append(int(m.group(3)))
             runs["turns"] += 1
+            hp_seen.append(int(m.group(5)))
+            runs["hp_trace"].append(int(m.group(5)))
             continue
         if DISCARD.search(line):
             runs["discards"] += 1
@@ -48,6 +56,8 @@ def parse(path):
             if cur:
                 runs["fight_turns"].append(cur)
                 cur = 0
+            if hp_seen:
+                runs["hp_by_fight"].append((hp_seen[0], hp_seen[-1]))
             runs["result"] = m.group(1)
             runs["fights_won"] = int(m.group(3))
             runs["hp_end"] = int(m.group(4))
@@ -97,6 +107,17 @@ def main(paths):
         print("\n-- DLUGOSC WALKI (tury) --")
         print("   min=%d  mediana=%d  max=%d  srednia=%.1f"
               % (t[0], t[len(t) // 2], t[-1], sum(t) / len(t)))
+    costs = []
+    for p in paths:
+        for a, b in parse(p)["hp_by_fight"]:
+            costs.append(a - b)
+    if costs:
+        costs.sort()
+        print("\n-- KOSZT WALKI w HP (wejscie minus wyjscie) --")
+        print("   mediana=%d  p90=%d  max=%d   (gracz ma 55 HP)"
+              % (costs[len(costs) // 2], costs[int(0.9 * (len(costs) - 1))], costs[-1]))
+        free = sum(1 for c in costs if c <= 0)
+        print("   walk bez strat: %.0f%%" % pct(free, len(costs)))
     print("\n-- ZAKONCZENIA --")
     for k, v in results.most_common():
         print("   %-9s %d/%d" % (k, v, len(paths)))
