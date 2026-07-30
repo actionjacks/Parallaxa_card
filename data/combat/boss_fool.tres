@@ -1,11 +1,12 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_fool.tres" id="1_gy4lb"]
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/00_fool.jpg" id="2_8v6lr"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_uf6pr"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_fool.tres" id="1_8v6lr"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/00_fool.jpg" id="2_uf6pr"]
+[ext_resource type="Texture2D" path="res://assets/foes/00_fool.png" id="3_200kx"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_sp5ix"]
 
 [resource]
-script = ExtResource("3_uf6pr")
+script = ExtResource("4_sp5ix")
 name_key = "ENEMY_GLUPIEC"
 max_hp = 2145
 intents = PackedInt32Array(12, 12, 12)
@@ -13,5 +14,6 @@ enrage_step = 6
 reward_rtec = 40
 is_boss = true
 rule_key = "RULE_FOOL"
-art = ExtResource("2_8v6lr")
-arcanum = ExtResource("1_gy4lb")
+art = ExtResource("2_uf6pr")
+arcanum = ExtResource("1_8v6lr")
+figure = ExtResource("3_200kx")

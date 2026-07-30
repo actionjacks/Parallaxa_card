@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_01.jpg" id="1_1defl"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_k83cg"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_01.jpg" id="1_k83cg"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_01.png" id="2_yy760"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_kn5vi"]
 
 [resource]
-script = ExtResource("2_k83cg")
+script = ExtResource("3_kn5vi")
 name_key = "ENEMY_ACE_2"
 max_hp = 990
 intents = PackedInt32Array(13, 3, 13)
 enrage_step = 1
 reward_rtec = 10
-art = ExtResource("1_1defl")
+art = ExtResource("1_k83cg")
+figure = ExtResource("2_yy760")

@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_11.jpg" id="1_2jhx3"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_yaggh"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_11.jpg" id="1_yaggh"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_11.png" id="2_kgh1j"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_dmdn3"]
 
 [resource]
-script = ExtResource("2_yaggh")
+script = ExtResource("3_dmdn3")
 name_key = "ENEMY_CIEN"
 max_hp = 759
 intents = PackedInt32Array(12, 15, 9)
 enrage_step = 2
-art = ExtResource("1_2jhx3")
+art = ExtResource("1_yaggh")
+figure = ExtResource("2_kgh1j")

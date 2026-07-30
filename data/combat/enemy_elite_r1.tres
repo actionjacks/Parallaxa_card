@@ -1,14 +1,16 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_13.jpg" id="1_kcws8"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_sehoa"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_13.jpg" id="1_sehoa"]
+[ext_resource type="Texture2D" path="res://assets/foes/pents_13.png" id="2_gbunv"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_pi5g4"]
 
 [resource]
-script = ExtResource("2_sehoa")
+script = ExtResource("3_pi5g4")
 name_key = "ENEMY_ELITE_R1"
 max_hp = 1122
 intents = PackedInt32Array(22, 0, 16)
 enrage_step = 5
 reward_rtec = 12
-art = ExtResource("1_kcws8")
+art = ExtResource("1_sehoa")
 is_elite = true
+figure = ExtResource("2_gbunv")

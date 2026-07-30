@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_14.jpg" id="1_b5ww2"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_5n8xb"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_14.jpg" id="1_5n8xb"]
+[ext_resource type="Texture2D" path="res://assets/foes/wands_14.png" id="2_i8lwa"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_glmig"]
 
 [resource]
-script = ExtResource("2_5n8xb")
+script = ExtResource("3_glmig")
 name_key = "BIOME_CHAOS_4"
 max_hp = 957
 intents = PackedInt32Array(26, 0, 18)
 enrage_step = 3
-art = ExtResource("1_b5ww2")
+art = ExtResource("1_5n8xb")
+figure = ExtResource("2_i8lwa")

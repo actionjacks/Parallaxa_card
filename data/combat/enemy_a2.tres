@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_11.jpg" id="1_om2h6"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_dx07k"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_11.jpg" id="1_dx07k"]
+[ext_resource type="Texture2D" path="res://assets/foes/wands_11.png" id="2_nb7lq"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_rdwef"]
 
 [resource]
-script = ExtResource("2_dx07k")
+script = ExtResource("3_rdwef")
 name_key = "ENEMY_WIEDZMA"
 max_hp = 792
 intents = PackedInt32Array(16, 4, 16)
 enrage_step = 2
 reward_rtec = 5
-art = ExtResource("1_om2h6")
+art = ExtResource("1_dx07k")
+figure = ExtResource("2_nb7lq")

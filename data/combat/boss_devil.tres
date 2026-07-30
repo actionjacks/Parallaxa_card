@@ -1,11 +1,12 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_devil_boss.tres" id="1_g22b2"]
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/15_devil.jpg" id="2_bkt13"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_iri5o"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_devil_boss.tres" id="1_bkt13"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/15_devil.jpg" id="2_iri5o"]
+[ext_resource type="Texture2D" path="res://assets/foes/15_devil.png" id="3_2o1t7"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_woy61"]
 
 [resource]
-script = ExtResource("3_iri5o")
+script = ExtResource("4_woy61")
 name_key = "ENEMY_DIABEL"
 max_hp = 1287
 intents = PackedInt32Array(16, 20, 14)
@@ -14,5 +15,6 @@ reward_rtec = 14
 is_boss = true
 rule = 2
 rule_key = "RULE_DEVIL"
-art = ExtResource("2_bkt13")
-arcanum = ExtResource("1_g22b2")
+art = ExtResource("2_iri5o")
+arcanum = ExtResource("1_bkt13")
+figure = ExtResource("3_2o1t7")

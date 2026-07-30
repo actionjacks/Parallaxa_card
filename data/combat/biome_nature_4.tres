@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_10.jpg" id="1_dtcv5"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_4w8oe"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_10.jpg" id="1_4w8oe"]
+[ext_resource type="Texture2D" path="res://assets/foes/pents_10.png" id="2_sa8kc"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_rs0np"]
 
 [resource]
-script = ExtResource("2_4w8oe")
+script = ExtResource("3_rs0np")
 name_key = "BIOME_NATURE_4"
 max_hp = 1056
 intents = PackedInt32Array(10, 13, 16)
 enrage_step = 3
-art = ExtResource("1_dtcv5")
+art = ExtResource("1_4w8oe")
+figure = ExtResource("2_sa8kc")

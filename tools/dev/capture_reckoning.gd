@@ -69,6 +69,11 @@ func _go() -> void:
 		if take != null and not take.disabled:
 			await _click(_center(take))
 		await _frames(15)
+	# the run now offers a road (biome) before the map
+	var walk = _button("BIOME_WALK")
+	if walk != null:
+		await _click(_center(walk))
+		await _frames(25)
 	var go = _button("MAP_GO")
 	if go != null:
 		await _click(_center(go))

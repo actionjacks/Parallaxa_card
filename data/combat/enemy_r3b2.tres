@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_14.jpg" id="1_t0ng3"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_7dp66"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_14.jpg" id="1_7dp66"]
+[ext_resource type="Texture2D" path="res://assets/foes/wands_14.png" id="2_air0x"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_156cc"]
 
 [resource]
-script = ExtResource("2_7dp66")
+script = ExtResource("3_156cc")
 name_key = "ENEMY_HERALD"
 max_hp = 1799
 intents = PackedInt32Array(30, 0, 25)
 enrage_step = 5
 reward_rtec = 9
-art = ExtResource("1_t0ng3")
+art = ExtResource("1_7dp66")
+figure = ExtResource("2_air0x")

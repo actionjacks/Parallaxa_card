@@ -1,14 +1,16 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_09.jpg" id="1_3aa4r"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_qw2vr"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_09.jpg" id="1_qw2vr"]
+[ext_resource type="Texture2D" path="res://assets/foes/cups_09.png" id="2_is8lj"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_xjx1k"]
 
 [resource]
-script = ExtResource("2_qw2vr")
+script = ExtResource("3_xjx1k")
 name_key = "BIOME_LIFE_E"
 max_hp = 1254
 intents = PackedInt32Array(12, 12, 6)
 enrage_step = 4
 reward_rtec = 12
-art = ExtResource("1_3aa4r")
+art = ExtResource("1_qw2vr")
 is_elite = true
+figure = ExtResource("2_is8lj")

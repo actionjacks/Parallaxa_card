@@ -30,6 +30,11 @@ var _state := "idle"
 var _enrage := false
 var _accent := Color(0.55, 0.2, 0.24)
 var _react: Tween
+var _atlas: AtlasTexture       ## the figure sheet's current cell
+var _frames: int = 0           ## cells in the sheet (0 = no figure, fall back to the plate)
+var _cell: Vector2 = Vector2.ZERO
+var _frame_t := 0.0
+var _frame_i := 0
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,8 +109,33 @@ func set_enemy(enemy: EnemyData, accent: Color = Color(0.55, 0.2, 0.24)) -> void
 	_accent = accent
 	var fsb: StyleBoxFlat = _frame.get_meta("style")
 	fsb.border_color = Color(_accent, 0.75)
-	if enemy != null and enemy.art != null:
+	_frames = 0
+	_atlas = null
+	if enemy != null and enemy.figure != null:
+		# THE OPPONENT, not their card: the figure was cut out of the plate and animated
+		# (tools/gen/gen_foe_figures.py). It keeps its own aspect ratio and stands in the room.
+		_frames = maxi(1, enemy.figure_frames)
+		var tex: Texture2D = enemy.figure
+		_cell = Vector2(float(tex.get_width()) / float(_frames), float(tex.get_height()))
+		_atlas = AtlasTexture.new()
+		_atlas.atlas = tex
+		_atlas.region = Rect2(0, 0, _cell.x, _cell.y)
+		_art.texture = _atlas
+		_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_art.flip_v = false
+		_art.modulate = Color(0.86, 0.83, 0.88, 0.97)   # a figure needs far less dimming than a full plate
+		_art.visible = true
+		_glyph.visible = false
+		_frame_i = 0
+		_frame_t = 0.0
+		# A frame frames a CARD. Once the opponent is a cut-out figure standing in the room,
+		# the plate border reads as two stray rules floating either side of them.
+		_frame.visible = false
+	elif enemy != null and enemy.art != null:
+		_frame.visible = true
 		_art.texture = enemy.art
+		_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		_art.modulate = Color(0.58, 0.54, 0.60, 0.72)
 		# Elites are REVERSED cards: the portrait hangs upside down, same as their card does.
 		_art.flip_v = enemy.is_elite
 		_art.visible = true
@@ -188,3 +218,12 @@ func _process(delta: float) -> void:
 		_plate.position = _base_pos + Vector2(sin(_t * TAU / (period * 2.3)) * SWAY_PX, -b * 3.0)
 	if _enrage:
 		_tint.color = Color(1.0, 0.15, 0.12, 0.06 + 0.05 * (0.5 + 0.5 * b))
+	# THE ENGRAVING FRAMERATE: the figure steps between carved poses instead of tweening
+	# smoothly. Smooth motion reads as a photo with a filter; 10 steps a second reads as a
+	# woodcut that has been persuaded to move. Enrage quickens the breath.
+	if _frames > 1 and _atlas != null:
+		_frame_t += delta * (16.0 if _enrage else 10.0)
+		if _frame_t >= 1.0:
+			_frame_t -= 1.0
+			_frame_i = (_frame_i + 1) % _frames
+			_atlas.region = Rect2(float(_frame_i) * _cell.x, 0.0, _cell.x, _cell.y)

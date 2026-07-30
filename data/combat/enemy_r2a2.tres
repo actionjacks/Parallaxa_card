@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_12.jpg" id="1_kput3"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_sltqq"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_12.jpg" id="1_sltqq"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_12.png" id="2_f5lce"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_bxqr2"]
 
 [resource]
-script = ExtResource("2_sltqq")
+script = ExtResource("3_bxqr2")
 name_key = "ENEMY_UPIOR"
 max_hp = 1122
 intents = PackedInt32Array(21, 6, 21)
 enrage_step = 3
 reward_rtec = 7
-art = ExtResource("1_kput3")
+art = ExtResource("1_sltqq")
+figure = ExtResource("2_f5lce")

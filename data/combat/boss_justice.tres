@@ -1,11 +1,12 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_justice.tres" id="1_0fusm"]
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/11_justice.jpg" id="2_5et0m"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_8ccwk"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_justice.tres" id="1_5et0m"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/11_justice.jpg" id="2_8ccwk"]
+[ext_resource type="Texture2D" path="res://assets/foes/11_justice.png" id="3_2faea"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_5plqg"]
 
 [resource]
-script = ExtResource("3_8ccwk")
+script = ExtResource("4_5plqg")
 name_key = "ENEMY_SPRAWIEDLIWOSC"
 max_hp = 1221
 intents = PackedInt32Array(15, 19, 12)
@@ -14,5 +15,6 @@ reward_rtec = 14
 is_boss = true
 rule = 8
 rule_key = "RULE_JUSTICE"
-art = ExtResource("2_5et0m")
-arcanum = ExtResource("1_0fusm")
+art = ExtResource("2_8ccwk")
+arcanum = ExtResource("1_5et0m")
+figure = ExtResource("3_2faea")

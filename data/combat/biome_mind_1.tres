@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_11.jpg" id="1_8poaa"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_5fk6m"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_11.jpg" id="1_5fk6m"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_11.png" id="2_eyt4f"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_y1puc"]
 
 [resource]
-script = ExtResource("2_5fk6m")
+script = ExtResource("3_y1puc")
 name_key = "BIOME_MIND_1"
 max_hp = 776
 intents = PackedInt32Array(17, 3, 17)
 enrage_step = 2
 reward_rtec = 5
-art = ExtResource("1_8poaa")
+art = ExtResource("1_5fk6m")
+figure = ExtResource("2_eyt4f")

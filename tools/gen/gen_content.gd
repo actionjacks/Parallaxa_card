@@ -158,25 +158,32 @@ func _region() -> void:
 	# suit's Ten). Region rank ladder: Pages -> Knights -> Queens/Kings.
 	var a := _enemy("ENEMY_KULTYSTA", 520, [10, 13, 8], 5, false, EnemyData.Rule.NONE, "", 2)
 	a.art = load(MINOR + "pents_11.jpg")
+	a.figure = _figure_for(MINOR + "pents_11.jpg")
 	ResourceSaver.save(a, ENEMY_DIR + "enemy_a.tres")
 	var a2 := _enemy("ENEMY_WIEDZMA", 480, [16, 4, 16], 5, false, EnemyData.Rule.NONE, "", 2)
 	a2.art = load(MINOR + "wands_11.jpg")
+	a2.figure = _figure_for(MINOR + "wands_11.jpg")
 	ResourceSaver.save(a2, ENEMY_DIR + "enemy_a2.tres")
 	var b := _enemy("ENEMY_CIEN", 460, [12, 15, 9], 6, false, EnemyData.Rule.NONE, "", 2)
 	b.art = load(MINOR + "swords_11.jpg")
+	b.figure = _figure_for(MINOR + "swords_11.jpg")
 	ResourceSaver.save(b, ENEMY_DIR + "enemy_b.tres")
 	var b2 := _enemy("ENEMY_GOLEM", 500, [20, 0, 15], 6, false, EnemyData.Rule.NONE, "", 3)
 	b2.art = load(MINOR + "pents_10.jpg")
+	b2.figure = _figure_for(MINOR + "pents_10.jpg")
 	ResourceSaver.save(b2, ENEMY_DIR + "enemy_b2.tres")
 	# Pool wideners (runs 1-3 must not clone their foe lineups): a third candidate per node.
 	var a3 := _enemy("ENEMY_NOWICJUSZ", 500, [9, 14, 9], 5, false, EnemyData.Rule.NONE, "", 2)
 	a3.art = load(MINOR + "cups_11.jpg")
+	a3.figure = _figure_for(MINOR + "cups_11.jpg")
 	ResourceSaver.save(a3, ENEMY_DIR + "enemy_a3.tres")
 	var b3 := _enemy("ENEMY_PRZEBITY", 480, [18, 2, 12], 6, false, EnemyData.Rule.NONE, "", 3)
 	b3.art = load(MINOR + "swords_10.jpg")
+	b3.figure = _figure_for(MINOR + "swords_10.jpg")
 	ResourceSaver.save(b3, ENEMY_DIR + "enemy_b3.tres")
 	var boss := _enemy("ENEMY_WIEZA", 600, [15, 20, 13], 12, true, EnemyData.Rule.TOWER_IGNORES_BLOCK, "RULE_TOWER", 3)
 	boss.art = load(MAJOR + "16_tower.jpg")
+	boss.figure = _figure_for(MAJOR + "16_tower.jpg")
 	boss.arcanum = load(ARCANA_DIR + "arcanum_tower.tres")
 	ResourceSaver.save(boss, ENEMY_DIR + "boss_tower.tres")
 	_save_boss("boss_chariot", "ENEMY_RYDWAN", 560, [9, 12, 7], 12,
@@ -217,6 +224,7 @@ func _region() -> void:
 	_save_enemy("enemy_r2b2", "ENEMY_CHIMERA", 780, [24, 0, 19], 7, 4, "wands_10")
 	var devil := _enemy("ENEMY_DIABEL", 780, [16, 20, 14], 14, true, EnemyData.Rule.DEVIL_BLOOD_TAX, "RULE_DEVIL", 4)
 	devil.art = load(MAJOR + "15_devil.jpg")
+	devil.figure = _figure_for(MAJOR + "15_devil.jpg")
 	devil.arcanum = load(ARCANA_DIR + "arcanum_devil_boss.tres")
 	ResourceSaver.save(devil, ENEMY_DIR + "boss_devil.tres")
 	_save_boss("boss_hanged", "ENEMY_WISIELEC", 760, [17, 21, 14], 14,
@@ -235,6 +243,7 @@ func _region() -> void:
 	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 1090, [30, 0, 25], 9, 5, "wands_14")
 	var moon := _enemy("ENEMY_KSIEZYC", 980, [20, 25, 17], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 5)
 	moon.art = load(MAJOR + "18_moon.jpg")
+	moon.figure = _figure_for(MAJOR + "18_moon.jpg")
 	moon.arcanum = load(ARCANA_DIR + "arcanum_moon.tres")
 	ResourceSaver.save(moon, ENEMY_DIR + "boss_moon.tres")
 	_save_boss("boss_judgement", "ENEMY_SAD", 950, [21, 26, 17], 16,
@@ -249,6 +258,7 @@ func _region() -> void:
 	# ---- Region IV "Swiat": the finale -- a single duel against THE WORLD (all rules at once) ----
 	var world := _enemy("ENEMY_SWIAT", 1300, [26, 30, 22], 20, true, EnemyData.Rule.WORLD_ALL, "RULE_WORLD", 6)
 	world.art = load(MAJOR + "21_world.jpg")
+	world.figure = _figure_for(MAJOR + "21_world.jpg")
 	world.arcanum = load(ARCANA_DIR + "arcanum_world.tres")
 	ResourceSaver.save(world, ENEMY_DIR + "boss_world.tres")
 	_save_region("region_04", "REGION_04", [], [], "boss_world", "arcanum_world",
@@ -277,12 +287,14 @@ func _save_enemy(file: String, name_key: String, hp: int, intents: Array, reward
 	var e := _enemy(name_key, hp, intents, reward, false, EnemyData.Rule.NONE, "", enrage)
 	if art != "":
 		e.art = load(MINOR + art + ".jpg")
+		e.figure = _figure_for(MINOR + art + ".jpg")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
 ## A rotation boss: a Major Arcana with a field rule and its claimable relic.
 func _save_boss(file: String, name_key: String, hp: int, intents: Array, reward: int, rule: EnemyData.Rule, rule_key: String, enrage: int, art: String, arc_file: String) -> void:
 	var e := _enemy(name_key, hp, intents, reward, true, rule, rule_key, enrage)
 	e.art = load("%s%s.jpg" % [MAJOR, art])
+	e.figure = _figure_for("%s%s.jpg" % [MAJOR, art])
 	e.arcanum = load(ARCANA_DIR + arc_file + ".tres")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
@@ -291,6 +303,7 @@ func _save_elite(file: String, name_key: String, hp: int, intents: Array, reward
 	var e := _enemy(name_key, hp, intents, reward, false, EnemyData.Rule.NONE, "", enrage)
 	e.is_elite = true
 	e.art = load(MINOR + art + ".jpg")
+	e.figure = _figure_for(MINOR + art + ".jpg")
 	ResourceSaver.save(e, ENEMY_DIR + file + ".tres")
 
 # ---- BIOMES: five colours, five laws, five seals (+ the hidden sixth) ----
@@ -342,12 +355,14 @@ func _biomes() -> void:
 			var e := _enemy("%s_%d" % [spec[2], i + 1], hp + i * 30, intents[i], 5 + i / 2,
 				false, EnemyData.Rule.NONE, "", 2 + i / 2)
 			e.art = load("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
+			e.figure = _figure_for("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
 			var f: String = "%s_%d" % [id, i + 1]
 			ResourceSaver.save(e, ENEMY_DIR + f + ".tres")
 			files.append(f)
 		# the elite: the colour's reversed Nine (is_elite already renders it upside down)
 		var el := _enemy("%s_E" % spec[2], hp + 140, intents[3], 12, false, EnemyData.Rule.NONE, "", 4)
 		el.art = load("%s%s_09.jpg" % [MINOR, suit if suit != "nature" else "nature"])
+		el.figure = _figure_for("%s%s_09.jpg" % [MINOR, suit if suit != "nature" else "nature"])
 		el.is_elite = true
 		ResourceSaver.save(el, ENEMY_DIR + id + "_elite.tres")
 		_save_region(id, spec[2], [files[0], files[1]], [files[2], files[3]],
@@ -372,6 +387,7 @@ func _biomes() -> void:
 		var sp: Array = ace_specs[i]
 		var ace := _enemy("ENEMY_ACE_%d" % (i + 1), sp[1], sp[2], 10, false, EnemyData.Rule.NONE, "", 1)
 		ace.art = load("%s%s_01.jpg" % [MINOR, sp[0]])
+		ace.figure = _figure_for("%s%s_01.jpg" % [MINOR, sp[0]])
 		var af: String = "enemy_seal_%d" % (i + 1)
 		ResourceSaver.save(ace, ENEMY_DIR + af + ".tres")
 		ace_files.append(af)
@@ -421,6 +437,13 @@ func _arcanum(name_key: String, aspect: Aspects.Id, mult: float) -> ArcanumData:
 ## from 174 to 220 (measured, tools/dev/probe_deckmath.gd) and fights had shrunk to ~3 plays
 ## against a spec that wants 5-6, so HP is lifted by both factors at once.
 const HP_SCALE := 1.65
+
+## Attach the animated cut-out that belongs to a plate. Named after the plate, so an enemy
+## wearing "pents_11.jpg" automatically fields the pents_11 figure.
+func _figure_for(art_path: String) -> Texture2D:
+	var base := art_path.get_file().get_basename()
+	var p := "res://assets/foes/%s.png" % base
+	return load(p) if ResourceLoader.exists(p) else null
 
 func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: EnemyData.Rule, rule_key: String, enrage: int = 0) -> EnemyData:
 	var e := EnemyData.new()

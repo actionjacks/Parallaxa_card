@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_14.jpg" id="1_8tohb"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_sashx"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_14.jpg" id="1_sashx"]
+[ext_resource type="Texture2D" path="res://assets/foes/pents_14.png" id="2_0ckng"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_j3aa4"]
 
 [resource]
-script = ExtResource("2_sashx")
+script = ExtResource("3_j3aa4")
 name_key = "BIOME_DEATH_4"
 max_hp = 1073
 intents = PackedInt32Array(15, 14, 13)
 enrage_step = 3
-art = ExtResource("1_8tohb")
+art = ExtResource("1_sashx")
+figure = ExtResource("2_0ckng")

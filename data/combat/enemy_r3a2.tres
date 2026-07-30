@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_13.jpg" id="1_fwov4"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_sqpxf"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_13.jpg" id="1_sqpxf"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_13.png" id="2_6ckcv"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_dnwwf"]
 
 [resource]
-script = ExtResource("2_sqpxf")
+script = ExtResource("3_dnwwf")
 name_key = "ENEMY_WIDMO"
 max_hp = 1634
 intents = PackedInt32Array(27, 10, 27)
 enrage_step = 4
 reward_rtec = 9
-art = ExtResource("1_fwov4")
+art = ExtResource("1_sqpxf")
+figure = ExtResource("2_6ckcv")

@@ -24,3 +24,8 @@ enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL,
 @export var art: Texture2D                ## arena portrait; bosses use their Major Arcana card
 @export var is_elite: bool = false        ## map-fork elite (reversed court card: art renders flipped)
 @export var arcanum: ArcanumData          ## the relic this boss yields (beat the card, wear the card)
+## THE FIGURE: the opponent cut OUT of its plate and animated, as a horizontal sprite sheet
+## (tools/gen/gen_foe_figures.py). The arena shows this -- a cultist standing in the room --
+## while `art` stays the card, still used for the map, the claim screen and the relic chips.
+@export var figure: Texture2D
+@export var figure_frames: int = 8

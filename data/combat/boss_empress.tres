@@ -1,11 +1,12 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="1_yjsmp"]
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/03_empress.jpg" id="2_4vwto"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_dmiy1"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="1_4vwto"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/03_empress.jpg" id="2_dmiy1"]
+[ext_resource type="Texture2D" path="res://assets/foes/03_empress.png" id="3_1ubqv"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_y43uh"]
 
 [resource]
-script = ExtResource("3_dmiy1")
+script = ExtResource("4_y43uh")
 name_key = "ENEMY_CESARZOWA"
 max_hp = 1353
 intents = PackedInt32Array(14, 18, 11)
@@ -13,5 +14,6 @@ enrage_step = 4
 reward_rtec = 13
 is_boss = true
 rule_key = "RULE_EMPRESS"
-art = ExtResource("2_4vwto")
-arcanum = ExtResource("1_yjsmp")
+art = ExtResource("2_dmiy1")
+arcanum = ExtResource("1_4vwto")
+figure = ExtResource("3_1ubqv")

@@ -1,11 +1,12 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_wheel.tres" id="1_mbvus"]
-[ext_resource type="Texture2D" path="res://assets/cards/arcana/10_wheel_of_fortune.jpg" id="2_uayeu"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_goijm"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_wheel.tres" id="1_uayeu"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/10_wheel_of_fortune.jpg" id="2_goijm"]
+[ext_resource type="Texture2D" path="res://assets/foes/10_wheel_of_fortune.png" id="3_gwhpw"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_orivg"]
 
 [resource]
-script = ExtResource("3_goijm")
+script = ExtResource("4_orivg")
 name_key = "ENEMY_KOLO"
 max_hp = 1320
 intents = PackedInt32Array(16, 16, 16)
@@ -13,5 +14,6 @@ enrage_step = 5
 reward_rtec = 13
 is_boss = true
 rule_key = "RULE_WHEEL"
-art = ExtResource("2_uayeu")
-arcanum = ExtResource("1_mbvus")
+art = ExtResource("2_goijm")
+arcanum = ExtResource("1_uayeu")
+figure = ExtResource("3_gwhpw")

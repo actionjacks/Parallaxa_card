@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_12.jpg" id="1_wbsnx"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_yf7lg"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_12.jpg" id="1_yf7lg"]
+[ext_resource type="Texture2D" path="res://assets/foes/cups_12.png" id="2_8k250"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_b3iuf"]
 
 [resource]
-script = ExtResource("2_yf7lg")
+script = ExtResource("3_b3iuf")
 name_key = "ENEMY_KAPLAN"
 max_hp = 1188
 intents = PackedInt32Array(14, 17, 10)
 enrage_step = 3
 reward_rtec = 7
-art = ExtResource("1_wbsnx")
+art = ExtResource("1_yf7lg")
+figure = ExtResource("2_8k250")

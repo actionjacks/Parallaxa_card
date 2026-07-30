@@ -1,14 +1,16 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_13.jpg" id="1_1r2r1"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_hxi3l"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/wands_13.jpg" id="1_hxi3l"]
+[ext_resource type="Texture2D" path="res://assets/foes/wands_13.png" id="2_dv3l1"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_4kv7j"]
 
 [resource]
-script = ExtResource("2_hxi3l")
+script = ExtResource("3_4kv7j")
 name_key = "ENEMY_ELITE_R2"
 max_hp = 1436
 intents = PackedInt32Array(18, 18, 18)
 enrage_step = 5
 reward_rtec = 14
-art = ExtResource("1_1r2r1")
+art = ExtResource("1_hxi3l")
 is_elite = true
+figure = ExtResource("2_dv3l1")

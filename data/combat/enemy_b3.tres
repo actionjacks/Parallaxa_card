@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_10.jpg" id="1_2aeyf"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_47tu8"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_10.jpg" id="1_47tu8"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_10.png" id="2_rc6xf"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_ixo6r"]
 
 [resource]
-script = ExtResource("2_47tu8")
+script = ExtResource("3_ixo6r")
 name_key = "ENEMY_PRZEBITY"
 max_hp = 792
 intents = PackedInt32Array(18, 2, 12)
 enrage_step = 3
-art = ExtResource("1_2aeyf")
+art = ExtResource("1_47tu8")
+figure = ExtResource("2_rc6xf")

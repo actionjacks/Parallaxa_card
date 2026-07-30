@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_13.jpg" id="1_umwxj"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_e6c0c"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_13.jpg" id="1_e6c0c"]
+[ext_resource type="Texture2D" path="res://assets/foes/cups_13.png" id="2_35d8b"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_6ywui"]
 
 [resource]
-script = ExtResource("2_e6c0c")
+script = ExtResource("3_6ywui")
 name_key = "BIOME_LIFE_3"
 max_hp = 1122
 intents = PackedInt32Array(10, 10, 10)
 enrage_step = 3
-art = ExtResource("1_umwxj")
+art = ExtResource("1_e6c0c")
+figure = ExtResource("2_35d8b")

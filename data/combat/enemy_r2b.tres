@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_12.jpg" id="1_11023"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_ggaoi"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/pents_12.jpg" id="1_ggaoi"]
+[ext_resource type="Texture2D" path="res://assets/foes/pents_12.png" id="2_cu7x1"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_vb78c"]
 
 [resource]
-script = ExtResource("2_ggaoi")
+script = ExtResource("3_vb78c")
 name_key = "ENEMY_RYCERZ"
 max_hp = 1386
 intents = PackedInt32Array(16, 16, 16)
 enrage_step = 3
 reward_rtec = 7
-art = ExtResource("1_11023")
+art = ExtResource("1_ggaoi")
+figure = ExtResource("2_cu7x1")

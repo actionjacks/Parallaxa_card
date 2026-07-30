@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_13.jpg" id="1_xp4v5"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_hyaci"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/cups_13.jpg" id="1_hyaci"]
+[ext_resource type="Texture2D" path="res://assets/foes/cups_13.png" id="2_s0gn3"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_sqqeu"]
 
 [resource]
-script = ExtResource("2_hyaci")
+script = ExtResource("3_sqqeu")
 name_key = "ENEMY_STRAZNIK"
 max_hp = 1716
 intents = PackedInt32Array(20, 23, 15)
 enrage_step = 4
 reward_rtec = 9
-art = ExtResource("1_xp4v5")
+art = ExtResource("1_hyaci")
+figure = ExtResource("2_s0gn3")

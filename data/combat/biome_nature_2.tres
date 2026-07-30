@@ -1,13 +1,15 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_10.jpg" id="1_e2y60"]
-[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="2_viq1s"]
+[ext_resource type="Texture2D" path="res://assets/cards/minor/swords_10.jpg" id="1_viq1s"]
+[ext_resource type="Texture2D" path="res://assets/foes/swords_10.png" id="2_in7q7"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_1j74l"]
 
 [resource]
-script = ExtResource("2_viq1s")
+script = ExtResource("3_1j74l")
 name_key = "BIOME_NATURE_2"
 max_hp = 957
 intents = PackedInt32Array(7, 12, 15)
 enrage_step = 2
 reward_rtec = 5
-art = ExtResource("1_e2y60")
+art = ExtResource("1_viq1s")
+figure = ExtResource("2_in7q7")
