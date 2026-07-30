@@ -5,16 +5,21 @@ class_name CardWidget
 
 const BG := Color(0.09, 0.09, 0.13)
 const BG_SEL := Color(0.18, 0.18, 0.26)
-const CARD_SIZE := Vector2(80, 112)
+## Hand cards are read at a glance while the player counts a poker hand -- 80x112 was too small
+## to tell rank and suit apart without hovering, which turned every turn into a hover-hunt.
+const CARD_SIZE := Vector2(108, 151)
+const SPINE_W := 7.0             ## width of the Aspect colour bar down the card's left edge
 
-## RWS 1909 Minor Arcana illustrations for the hover preview. Four Aspects map onto the historical
-## suits (design: Life=Cups, Mind=Swords, Chaos=Wands, Death=Pentacles); Nature has no historical
-## suit and shows no illustration. Ranks map 1:1 (Ace=01..10, Page 11, Knight 12, Queen 13, King 14).
+## RWS 1909 Minor Arcana illustrations. Four Aspects map onto the historical suits
+## (Life=Cups, Mind=Swords, Chaos=Wands, Death=Pentacles). RWS never drew a fifth suit, so
+## NATURE is derived from the public-domain plates by tools/gen/gen_nature_suit.py.
+## Ranks map 1:1 (Ace=01..10, Page 11, Knight 12, Queen 13, King 14).
 const MINOR_SUIT := {
 	Aspects.Id.LIFE: "cups",
 	Aspects.Id.MIND: "swords",
 	Aspects.Id.CHAOS: "wands",
 	Aspects.Id.DEATH: "pents",
+	Aspects.Id.NATURE: "nature",
 }
 static var _minor_cache: Dictionary = {}
 
@@ -124,18 +129,32 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(t)
-	# rank badge, top-left
+	# COLOUR SPINE: a full-height bar of the Aspect colour down the left edge. A 2 px frame is
+	# invisible once eight cards overlap in a fan -- the spine is the part that stays on screen
+	# when a card is half-covered, so suit is countable without fanning the hand out.
+	var spine := ColorRect.new()
+	spine.color = Color(col, 0.95)
+	spine.anchor_bottom = 1.0
+	spine.offset_right = SPINE_W
+	spine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(spine)
+	# rank badge + suit sigil, top-left: rank and SUIT together, so a hand can be counted by eye
+	var badge_h: float = CARD_SIZE.y * 0.20
 	var badge := ColorRect.new()
-	badge.color = Color(0.05, 0.05, 0.08, 0.85)
-	badge.position = Vector2(0, 0)
-	badge.size = Vector2(22, 22)
+	badge.color = Color(0.05, 0.05, 0.08, 0.86)
+	badge.position = Vector2(SPINE_W, 0)
+	badge.size = Vector2(badge_h * 1.62, badge_h)
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(badge)
-	var rank := _lbl(card.rank_glyph(), 16, col)
-	rank.position = Vector2(0, 2)
-	rank.size = Vector2(22, 18)
+	var rank := _lbl(card.rank_glyph(), int(badge_h * 0.62), col)
+	rank.position = Vector2(SPINE_W + 1, badge_h * 0.08)
+	rank.size = Vector2(badge_h * 0.78, badge_h * 0.82)
 	rank.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(rank)
+	var sig := AspectSigil.new(card.aspect, col, true)
+	sig.position = Vector2(SPINE_W + badge_h * 0.80, badge_h * 0.16)
+	sig.size = Vector2(badge_h * 0.68, badge_h * 0.68)
+	layers.add_child(sig)
 	# bottom scrim with keyword / edition lines
 	var lines: Array = []
 	if card.keyword != CardData.Keyword.NONE:
@@ -147,7 +166,8 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 		lines.append(["+ " + TranslationServer.translate(CardData.edition_name_key(card.edition)), _ed_color(card.edition)])
 	if lines.is_empty():
 		return
-	var scrim_h := 6 + 14 * lines.size()
+	var row_h := 16
+	var scrim_h := 6 + row_h * lines.size()
 	var scrim := ColorRect.new()
 	scrim.color = Color(0.03, 0.03, 0.05, 0.78)
 	scrim.anchor_top = 1.0
@@ -157,12 +177,13 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(scrim)
 	for i in lines.size():
-		var l := _lbl(lines[i][0], 11, lines[i][1])
+		var l := _lbl(lines[i][0], 12, lines[i][1])
 		l.anchor_top = 1.0
 		l.anchor_bottom = 1.0
 		l.anchor_right = 1.0
-		l.offset_top = -scrim_h + 3 + i * 14
-		l.offset_bottom = -scrim_h + 17 + i * 14
+		l.offset_left = SPINE_W
+		l.offset_top = -scrim_h + 3 + i * row_h
+		l.offset_bottom = -scrim_h + 3 + row_h + i * row_h
 		layers.add_child(l)
 
 ## NATURE face: the fifth Aspect has no historical RWS suit, so it wears a DELIBERATE style

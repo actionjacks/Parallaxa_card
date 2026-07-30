@@ -37,10 +37,9 @@ var _heal_pool_label: Label
 var _gnicie_label: Label
 var _klatwa_label: Label
 var _relic_row: HBoxContainer
-var _enemy_emblem: Panel
-var _emblem_glyph: Label
-var _emblem_art: TextureRect
-var _emblem_idle: Tween
+var _portrait: EnemyPortrait       ## the opponent as a full-height plate BEHIND the arena
+var _portrait_of: EnemyData        ## which enemy the plate currently shows (rebuild guard)
+var _portrait_enraged := false     ## enrage ceremony fires once per fight, not once per render
 var _rule_label: Label
 var _preview_label: Label
 var _log_label: Label
@@ -93,7 +92,6 @@ func _ready() -> void:
 		_relics = [load(DEF_ARCANUM_PATH)]
 		_deck = DeckLibrary.starter_deck()
 	_build_ui()
-	_start_emblem_idle()
 	MusicLib.play(&"music_boss" if _enemy.is_boss else &"music_combat", 0.8)
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
@@ -109,11 +107,18 @@ func _build_ui() -> void:
 	if not standalone and RunState.region != null:
 		accent = RunState.region.accent
 	add_child(Backdrop.build(accent))
+	# The opponent goes in BEHIND the arena, not inside its column: a portrait big enough to be
+	# felt would otherwise push the hand past 720p (it has happened three times in this project).
+	_portrait = EnemyPortrait.new()
+	add_child(_portrait)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "top", "right", "bottom"]:
+	for side in ["left", "top", "right"]:
 		margin.add_theme_constant_override("margin_" + side, 24)
+	# Deeper bottom margin than the sides: the action buttons live in a fixed strip down there,
+	# and the taller hand cards would otherwise lie on top of them.
+	margin.add_theme_constant_override("margin_bottom", 48)
 	add_child(margin)
 
 	var root := VBoxContainer.new()
@@ -161,24 +166,25 @@ func _build_ui() -> void:
 	_relic_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_relic_row.add_theme_constant_override("separation", 8)
 	mid.add_child(_relic_row)
-	var emblem_wrap := CenterContainer.new()
-	emblem_wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mid.add_child(emblem_wrap)
-	_enemy_emblem = _make_emblem()
-	emblem_wrap.add_child(_enemy_emblem)
-	_preview_label = _label("", 24, Color(0.98, 0.95, 0.8))
+	# The middle column no longer carries the enemy art (it is the backdrop now) -- this spacer
+	# keeps the score readout pinned low, over the portrait's chest rather than its face.
+	var gap := Control.new()
+	gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mid.add_child(gap)
+	_preview_label = _inked(_label("", 26, Color(0.98, 0.95, 0.8)))
 	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_label)
-	_preview_extra = _label("", 16, Color(0.7, 0.85, 0.95))
+	_preview_extra = _inked(_label("", 16, Color(0.7, 0.85, 0.95)))
 	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_extra)
-	_cockpit_label = _label("", 16, Color(0.85, 0.87, 0.9))
+	_cockpit_label = _inked(_label("", 16, Color(0.85, 0.87, 0.9)))
 	_cockpit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_cockpit_label)
-	_breakdown_label = _label("", 13, Color(0.66, 0.72, 0.62))
+	_breakdown_label = _inked(_label("", 13, Color(0.66, 0.72, 0.62)))
 	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_breakdown_label)
-	_log_label = _label("", 13, Color(0.6, 0.6, 0.66))
+	_log_label = _inked(_label("", 13, Color(0.6, 0.6, 0.66)))
 	_log_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_log_label)
 
@@ -328,6 +334,9 @@ func _render() -> void:
 	# The enrage clock, spoken: once the authored cycle ends, every turn feeds the fury.
 	if controller.enrage_cycles() >= 1:
 		_enrage_label.text = tr("ENRAGE_TAG") % controller.enrage_step_effective()
+		if _portrait != null and not _portrait_enraged:
+			_portrait_enraged = true
+			_portrait.play_state("enrage")   # the plate itself turns furious, not just a label
 		if not standalone and Profile.claim_once("covenant_enrage"):
 			_covenant_line(tr("COVENANT_LINE_3"))
 	else:
@@ -365,23 +374,11 @@ func _render() -> void:
 	var etint := Color(0.92, 0.5, 0.28) if _enemy.is_boss else Color(0.55, 0.7, 0.42)
 	if _enemy.is_elite:
 		etint = Color("b23a48")
-	var esb: StyleBoxFlat = _enemy_emblem.get_meta("style")
-	esb.border_color = etint
-	if _enemy.art != null:
-		# A real tarot card stands in the arena (bosses are Major Arcana, regulars are the Minor
-		# courts -- Fool's Journey). Elites hang REVERSED: the profaned card is the brand.
-		_emblem_art.texture = _enemy.art
-		_emblem_art.flip_h = _enemy.is_elite
-		_emblem_art.flip_v = _enemy.is_elite
-		_emblem_art.visible = true
-		_emblem_glyph.visible = false
-		# Sized to fit the 720p layout budget -- taller art pushed the hand/buttons off-screen.
-		_enemy_emblem.custom_minimum_size = Vector2(116, 201)
-		_enemy_emblem.pivot_offset = Vector2(58, 100)
-	else:
-		_emblem_glyph.add_theme_color_override("font_color", etint)
-		var en := tr(_enemy.name_key)
-		_emblem_glyph.text = en.substr(0, 1) if en.length() > 0 else "?"
+	if _portrait != null and _portrait_of != _enemy:
+		# A real tarot card LOOMS behind the arena (bosses are Major Arcana, regulars the Minor
+		# courts -- the Fool's Journey). Elites hang REVERSED: the profaned card is the brand.
+		_portrait.set_enemy(_enemy, etint)
+		_portrait_of = _enemy
 	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
 	_rule_label.visible = _rule_label.text != ""
 	_player_hp_bar.max_value = controller.player_max_hp
@@ -419,8 +416,9 @@ func _reconcile_hand() -> void:
 func _make_card(card: CardData) -> Control:
 	var panel := CardWidget.build(card)
 	panel.gui_input.connect(_on_card_input.bind(card))
-	panel.mouse_entered.connect(_show_card_preview.bind(card))
-	panel.mouse_exited.connect(_hide_card_preview)
+	# No side-panel preview: hovering GROWS the card itself (HandFan.HOVER_SCALE), so a second
+	# copy of the same card parked on the right was redundant furniture stealing arena space.
+	# RMB still opens the full inspection overlay (CardWidget._route_rmb).
 	return panel
 
 func _animate_draw(panel: Control) -> void:
@@ -436,13 +434,7 @@ func _reset_hand() -> void:
 	_widgets.clear()
 	_selected.clear()
 
-func _show_card_preview(card: CardData) -> void:
-	_hide_card_preview()
-	var p := CardWidget.build_preview(card)
-	p.position = Vector2(1000, 172)   # below the enemy panel: never covers the intent readout
-	_fx.add_child(p)
-	_preview_node = p
-
+## Kept as a no-op seam: play/discard call it to dismiss any transient card visual.
 func _hide_card_preview() -> void:
 	if _preview_node != null and is_instance_valid(_preview_node):
 		_preview_node.queue_free()
@@ -1068,6 +1060,8 @@ func _on_awaiting_enemy() -> void:
 		return
 	# wind-up: the enemy tenses (scale + reddish flash) so its attack has a visible cause
 	_enemy_panel.pivot_offset = _enemy_panel.size * 0.5
+	if _portrait != null:
+		_portrait.play_state("windup")   # the plate gathers itself before it swings
 	var tw := create_tween()
 	tw.tween_property(_enemy_panel, "scale", Vector2(1.03, 1.03), wind)
 	tw.parallel().tween_property(_enemy_panel, "modulate", Color(1.5, 0.85, 0.85), wind)
@@ -1075,6 +1069,8 @@ func _on_awaiting_enemy() -> void:
 	tw.parallel().tween_property(_enemy_panel, "modulate", Color.WHITE, wind)
 	await tw.finished
 	if controller != null and controller.phase == "enemy":
+		if _portrait != null:
+			_portrait.play_state("attack")
 		controller.resolve_enemy_turn()
 		_update_heartbeat()
 
@@ -1112,21 +1108,13 @@ func _on_ended(won: bool) -> void:
 		var hb := create_tween()
 		hb.tween_property(_heartbeat, "volume_db", -60.0, 0.3)
 		hb.tween_callback(_heartbeat.stop)
-	if _emblem_idle != null:
-		_emblem_idle.kill()
 	if won and _enemy.is_boss:
-		# A Major Arcana falls: hitstop, white flash, the card drops off the table, one beat of
-		# silence before the sting -- the loop's dopamine peak gets its ceremony.
+		# A Major Arcana falls: hitstop, white flash, the plate fades out of the arena, one beat
+		# of silence before the sting -- the loop's dopamine peak gets its ceremony.
 		Juice.hitstop(0.16)
 		Juice.flash(_fx, Color(1, 1, 1, 0.5), 0.4)
-		var tw := create_tween()
-		tw.tween_property(_enemy_emblem, "rotation", 0.5, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.parallel().tween_property(_enemy_emblem, "position:y", _enemy_emblem.position.y + 90.0, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.parallel().tween_property(_enemy_emblem, "modulate", Color(0.4, 0.12, 0.12, 0.1), 0.6)
-	elif won:
-		var tw := create_tween()
-		tw.tween_property(_enemy_emblem, "modulate", Color(0.4, 0.12, 0.12, 0.12), 0.5)
-		tw.parallel().tween_property(_enemy_emblem, "rotation", 0.3, 0.5)
+	if won and _portrait != null:
+		_portrait.play_state("die")
 	await get_tree().create_timer(0.35 if Juice.fast_pace() else (1.0 if won and _enemy.is_boss else 0.6)).timeout   # death beat (bosses earn a longer one)
 	if not standalone:
 		# Feed the run: statistics, the overkill payout and the permanently shattered glass.
@@ -1153,6 +1141,13 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	return l
 
+## Readouts that sit ON the enemy plate need their own contrast -- an ink outline keeps them
+## legible over both a bright sky and a black robe, without a scrim boxing in the art.
+func _inked(l: Label) -> Label:
+	l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.92))
+	l.add_theme_constant_override("outline_size", 5)
+	return l
+
 func _set_bar(bar: ProgressBar, value: float) -> void:
 	var tw := create_tween()
 	tw.tween_property(bar, "value", value, 0.35).set_trans(Tween.TRANS_QUAD)
@@ -1174,31 +1169,6 @@ func _grave_fx_pos() -> Vector2:
 
 func _block_fx_pos() -> Vector2:
 	return _block_label.global_position + Vector2(0, -28)
-
-func _make_emblem() -> Panel:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.13, 0.08, 0.09, 0.92)
-	sb.set_border_width_all(3)
-	sb.border_color = Color(0.6, 0.25, 0.28)
-	sb.set_corner_radius_all(16)
-	var p := Panel.new()
-	p.add_theme_stylebox_override("panel", sb)
-	p.custom_minimum_size = Vector2(168, 168)
-	p.pivot_offset = Vector2(84, 84)
-	p.set_meta("style", sb)
-	_emblem_glyph = _label("", 92, Color(0.9, 0.5, 0.5))
-	_emblem_glyph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_emblem_glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_emblem_glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	p.add_child(_emblem_glyph)
-	_emblem_art = TextureRect.new()
-	_emblem_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_emblem_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_emblem_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_emblem_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR   # scans, not pixel art
-	_emblem_art.visible = false
-	p.add_child(_emblem_art)
-	return p
 
 func _relic_chip(a: ArcanumData) -> Control:
 	var sb := StyleBoxFlat.new()
@@ -1227,16 +1197,10 @@ func _relic_chip(a: ArcanumData) -> Control:
 	row.add_child(_label(tr(a.name_key), 13, Color(0.85, 0.8, 0.92)))
 	return p
 
-func _start_emblem_idle() -> void:
-	_emblem_idle = create_tween().set_loops()
-	_emblem_idle.tween_property(_enemy_emblem, "modulate:a", 0.82, 1.3).set_trans(Tween.TRANS_SINE)
-	_emblem_idle.tween_property(_enemy_emblem, "modulate:a", 1.0, 1.3).set_trans(Tween.TRANS_SINE)
-
+## The enemy REACTS: the plate flinches on every landed blow (was a 116 px chip pulsing).
 func _emblem_hit() -> void:
-	if _enemy_emblem == null:
-		return
-	_enemy_emblem.scale = Vector2(1.12, 1.12)
-	create_tween().tween_property(_enemy_emblem, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if _portrait != null:
+		_portrait.play_state("hurt")
 
 func _pulse(node: Control) -> void:
 	if node == null:

@@ -8,22 +8,24 @@ extends Control
 ## Hovered cards straighten, rise and GROW (readable at a glance, neighbours stay put); selected
 ## cards (meta "sel" from CardWidget.set_selected) stay half-raised so the staged play reads.
 
-const SPACING_MAX := 74.0        ## < card width: neighbours overlap like a held hand
+const SPACING_MAX := 98.0        ## < card width: neighbours overlap like a held hand
 const ARC_ROT_STEP := 1.8        ## degrees of tilt per slot away from the centre (subtle)
 const ARC_DIP := 3.0             ## vertical dip per slot^1.5 towards the edges
 ## Hover does NOT lift the card: it GROWS from its bottom edge (pivot bottom-centre), so the
 ## point under the cursor never leaves the card -- the enter/exit flicker cannot happen. The
 ## visual "rise" comes from the scale alone (the top edge climbs ~50 px at 1.45x), Arena-style.
 const RAISE_HOVER := 0.0
-const RAISE_SELECTED := 26.0
-const CARD_W := 80.0
-const CARD_H := 112.0
-const HOVER_SCALE := 1.45        ## the hovered card grows enough to read everything
+const RAISE_SELECTED := 30.0
+const CARD_W := CardWidget.CARD_SIZE.x
+const CARD_H := CardWidget.CARD_SIZE.y
+## The hovered card IS the card preview now (the old side-panel preview was removed): it has to
+## grow big enough to read the art, the keyword and the rank without a second widget.
+const HOVER_SCALE := 1.55
 
 var _tweens: Dictionary = {}     ## child -> its slot tween (killed on retarget)
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(0, 148)
+	custom_minimum_size = Vector2(0, CARD_H + 34.0)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE   # cards themselves take the mouse
 	# The first reconcile can run before the container layout assigns our width (size.x == 0),
 	# which piles every card at the origin -- re-fan whenever the actual width arrives.
