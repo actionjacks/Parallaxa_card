@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_fkhi1")
-rank = 12
-aspect = 3
-keyword = 6
-keyword_value = 9
+rank = 4
+aspect = 1

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_0hhvy")
 name_key = "ENEMY_WISIELEC"
-max_hp = 760
+max_hp = 1254
 intents = PackedInt32Array(17, 21, 14)
 enrage_step = 4
 reward_rtec = 14

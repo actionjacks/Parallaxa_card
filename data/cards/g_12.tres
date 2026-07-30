@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_d7cql")
-rank = 12
+rank = 5
 aspect = 1
-keyword = 7
-keyword_value = 7

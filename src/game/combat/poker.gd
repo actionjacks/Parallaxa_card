@@ -6,20 +6,35 @@ class_name Poker
 ## Never dealt from the starter (max 3 of a rank there); only ENGINEERED via drafted duplicates.
 enum Hand { HIGH_CARD, PAIR, TWO_PAIR, THREE, STRAIGHT, FLUSH, FULL_HOUSE, FOUR, STRAIGHT_FLUSH, FIVE, MAGNUM_OPUS }
 
-## Base [chips, mult] per hand — calibrated to Balatro level-1 values.
+## Base [chips, mult] per hand — payouts follow this deck's TRUE rarity, not inherited 4-suit lore.
+##
+## THE FLUSH CORRECTION: standard poker ranks hands for a FOUR-suit deck. This deck has FIVE
+## Aspects, which re-orders everything that depends on suits. Counted exhaustively over all
+## C(40,5) hands of the pentacle deck (tools/dev/probe_deckmath.gd, and the exact combinatorics):
+##   full house 1 in 118   four of a kind 1 in 470   FLUSH 1 in 2531
+## The flush is the third-hardest hand in the game -- five cards drawn from a fifth of the deck --
+## yet it used to pay sixth (35x4=140, below a full house). It is now priced where its rarity puts
+## it: above four of a kind, below a straight flush. This is also the mechanical spine of the
+## colour journey: gathering ONE Aspect is the game's central metaphor, so it has to pay like it.
 const BASE: Dictionary = {
 	Hand.HIGH_CARD: [5, 1],
 	Hand.PAIR: [10, 2],
 	Hand.TWO_PAIR: [20, 2],
 	Hand.THREE: [30, 3],
 	Hand.STRAIGHT: [30, 4],
-	Hand.FLUSH: [35, 4],
+	Hand.FLUSH: [70, 8],
 	Hand.FULL_HOUSE: [40, 4],
 	Hand.FOUR: [60, 7],
-	Hand.STRAIGHT_FLUSH: [100, 8],
+	Hand.STRAIGHT_FLUSH: [100, 10],
 	Hand.FIVE: [120, 12],
 	Hand.MAGNUM_OPUS: [160, 16],
 }
+
+## Payout value of a hand at a given level -- the ONLY correct way to compare two hands in this
+## game, because the enum order is legacy 4-suit ranking and no longer tracks what pays more.
+static func value_of(hand: int, level: int = 0) -> float:
+	var b: Array = leveled_base(hand, level)
+	return float(b[0]) * float(b[1])
 
 const NAME_KEYS: Dictionary = {
 	Hand.HIGH_CARD: "HAND_HIGH_CARD",
@@ -42,7 +57,7 @@ const LEVEL_UP: Dictionary = {
 	Hand.TWO_PAIR: [20, 1],
 	Hand.THREE: [20, 2],
 	Hand.STRAIGHT: [30, 3],
-	Hand.FLUSH: [15, 2],
+	Hand.FLUSH: [25, 3],
 	Hand.FULL_HOUSE: [25, 2],
 	Hand.FOUR: [30, 3],
 	Hand.STRAIGHT_FLUSH: [40, 4],

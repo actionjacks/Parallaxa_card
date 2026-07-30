@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_nd5xh")
-rank = 6
-keyword = 1
-keyword_value = 5
+rank = 8
+aspect = 1
+keyword = 15
+keyword_value = 50

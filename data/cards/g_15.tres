@@ -4,6 +4,5 @@
 
 [resource]
 script = ExtResource("1_cfwkm")
-rank = 11
-aspect = 3
-keyword = 5
+rank = 3
+aspect = 2

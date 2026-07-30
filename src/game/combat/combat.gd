@@ -480,7 +480,9 @@ func _best_available() -> int:
 			if mask & (1 << i):
 				cards.append(controller.hand[i])
 		var h: int = Poker.evaluate(cards)
-		if h > best:
+		# Compare by PAYOUT, not by enum order: the enum is legacy four-suit ranking, and in a
+		# five-Aspect deck a Flush outranks a Four of a Kind.
+		if Poker.value_of(h, int(_levels.get(h, 0))) > Poker.value_of(best, int(_levels.get(best, 0))):
 			best = h
 	return best
 
@@ -554,7 +556,11 @@ func _build_paytable() -> void:
 	_paytable.add_child(vb)
 	var title := _label(tr("PAYTABLE_TITLE"), 13, Color(0.8, 0.76, 0.88))
 	vb.add_child(title)
-	for hand in Poker.BASE:
+	# Listed cheapest-first by PAYOUT, not by enum order -- with five Aspects the Flush
+	# outranks a Four of a Kind, and a chart that lied about that would teach the wrong play.
+	var _ordered: Array = Poker.BASE.keys()
+	_ordered.sort_custom(func(a, b): return Poker.value_of(a) < Poker.value_of(b))
+	for hand in _ordered:
 		var row := _label("", 13, Color(0.66, 0.68, 0.76))
 		vb.add_child(row)
 		_paytable_rows[hand] = row

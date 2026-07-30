@@ -4,5 +4,4 @@
 
 [resource]
 script = ExtResource("1_n3pim")
-keyword = 1
-keyword_value = 5
+rank = 7

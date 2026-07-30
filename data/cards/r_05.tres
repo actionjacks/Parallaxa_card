@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_lxeyp")
-rank = 10
-aspect = 2
-keyword = 12
-keyword_value = 10
+rank = 1
+aspect = 1

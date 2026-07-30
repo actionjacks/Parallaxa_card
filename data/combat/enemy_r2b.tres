@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_ggaoi")
 name_key = "ENEMY_RYCERZ"
-max_hp = 840
+max_hp = 1386
 intents = PackedInt32Array(16, 16, 16)
 enrage_step = 3
 reward_rtec = 7

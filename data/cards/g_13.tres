@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_iexpo")
-rank = 5
+rank = 1
 aspect = 2
-keyword = 3
-keyword_value = 3

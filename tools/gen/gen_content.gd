@@ -319,10 +319,16 @@ func _arcanum(name_key: String, aspect: Aspects.Id, mult: float) -> ArcanumData:
 	arc.effect_mult = mult
 	return arc
 
+## Every enemy's HP is stated at the OLD damage scale and scaled here, so one constant re-tunes
+## the whole game when the deck's damage curve moves. The pentacle deck lifted the median play
+## from 174 to 220 (measured, tools/dev/probe_deckmath.gd) and fights had shrunk to ~3 plays
+## against a spec that wants 5-6, so HP is lifted by both factors at once.
+const HP_SCALE := 1.65
+
 func _enemy(name_key: String, hp: int, intents: Array, reward: int, is_boss: bool, rule: EnemyData.Rule, rule_key: String, enrage: int = 0) -> EnemyData:
 	var e := EnemyData.new()
 	e.name_key = name_key
-	e.max_hp = hp
+	e.max_hp = int(round(hp * HP_SCALE))
 	e.intents = PackedInt32Array(intents)
 	e.reward_rtec = reward
 	e.is_boss = is_boss
@@ -354,19 +360,41 @@ func _omens() -> void:
 
 # ---- specs ----
 
-## Balanced starter (5 Death / 4 Chaos / 3 Life / 2 Mind / 2 Nature), MAX 3 OF ANY RANK: the apex
-## hands (Five / Magnum Opus) must be BUILT via drafted duplicates, never dealt. Three 7s across
-## three Aspects teach cross-colour sets; 5 Death cards give the draft its first goal.
+## THE PENTACLE DECK: five Aspects x ranks 1..8 = 40 cards, every rank present in every colour.
+##
+## The 16-card deck this replaces could not produce the game it was printed on. Measured on the
+## real engine (tools/dev/probe_deckmath.gd, 9000 plays): two pair was played 48% of the time and
+## FOUR OF A KIND, STRAIGHT FLUSH, FIVE and MAGNUM OPUS came up 0.00% -- four of the eleven rungs
+## of the hand ladder were unreachable content. Damage sat between 120 and 426 no matter what the
+## player did, so no choice in the turn could change the outcome by much. Playtest verdict, exactly:
+## "at best I could make pairs".
+##
+## The grid fixes the geometry: with a card of every rank in every colour, sets and straights are
+## build-able and the ladder is climbable (measured: 2 pair 37%, full house 32%, four 4.8%, and a
+## damage ceiling of 1920 instead of 474). Rank multiplicity is 5, not 4, which is deliberate:
+## five of a kind is one card of EACH Aspect at the same rank -- the pentagram itself -- so the
+## rarest set in the game is also the game's own symbol.
+##
+## MAGNUM OPUS stays impossible to be dealt (five of one rank AND one Aspect cannot exist in a
+## grid where each rank appears once per colour), so the apex is still something you BUILD.
+## Court cards (Page/Knight/Queen/King) are deliberately absent: they arrive only from rewards
+## and shops, which is what makes a card reward matter against a 40-card deck.
 func _starter() -> Array:
-	return [
-		[7, A.DEATH, KW.GNICIE, 3], [7, A.DEATH, KW.NONE, 0], [9, A.DEATH, KW.GNICIE, 4],
-		[14, A.DEATH, KW.GNICIE, 5], [2, A.DEATH, KW.NONE, 0],
-		[7, A.CHAOS, KW.NONE, 0], [5, A.CHAOS, KW.FURIA, 0], [9, A.CHAOS, KW.FURIA, 0],
-		[12, A.CHAOS, KW.SPALENIE, 6],
-		[3, A.LIFE, KW.OSLONA, 6], [14, A.LIFE, KW.OSLONA, 8], [6, A.LIFE, KW.OPATRZNOSC, 5],
-		[5, A.MIND, KW.ECHO, 4], [10, A.MIND, KW.ECHO, 6],
-		[8, A.NATURE, KW.BUJNOSC, 20], [6, A.NATURE, KW.NONE, 0],
-	]
+	var out: Array = []
+	# Keyword seats: two per Aspect, on ranks chosen so no colour hoards the high pips. Everything
+	# else is a clean pip -- the starter has to teach the poker layer before the keyword layer.
+	var seats: Dictionary = {
+		A.DEATH: {3: [KW.GNICIE, 3], 7: [KW.ZNIWO, 1]},
+		A.CHAOS: {4: [KW.FURIA, 0], 8: [KW.SPALENIE, 8]},
+		A.LIFE: {2: [KW.OSLONA, 6], 6: [KW.OPATRZNOSC, 5]},
+		A.MIND: {5: [KW.ECHO, 4], 8: [KW.ECHO, 6]},
+		A.NATURE: {4: [KW.BUJNOSC, 20], 7: [KW.WZROST, 2]},
+	}
+	for aspect in [A.LIFE, A.MIND, A.DEATH, A.CHAOS, A.NATURE]:
+		for rank in range(1, 9):
+			var kw: Array = seats[aspect].get(rank, [KW.NONE, 0])
+			out.append([rank, aspect, kw[0], kw[1]])
+	return out
 
 ## 42-card reward/shop pool: every keyword across aspects and ranks plus plain cards for
 ## pair/straight fishing. Wave 3 (glass / avalanche / combine) is the exponential vector -- base
@@ -395,37 +423,40 @@ func _pool() -> Array:
 		[5, A.NATURE, KW.KORZENIE, 4, R.RARE], [9, A.NATURE, KW.KORZENIE, 6, R.RARE],
 	]
 
+## The alt starters are the SAME grid bent toward a philosophy: their two colours run the full
+## rank 1..8 (eight cards each -- enough that a Flush is a build target rather than a rumour),
+## the other three run 1..5. 34 cards, so a drafted card still moves the deck.
+func _lean(major: Array, seats: Dictionary) -> Array:
+	var out: Array = []
+	for aspect in [A.LIFE, A.MIND, A.DEATH, A.CHAOS, A.NATURE]:
+		var top: int = 8 if major.has(aspect) else 5
+		for rank in range(1, top + 1):
+			var kw: Array = seats.get(aspect, {}).get(rank, [KW.NONE, 0])
+			out.append([rank, aspect, kw[0], kw[1]])
+	return out
+
 ## Alt starter "Reaper's Deal" (Sol unlock): Death/Chaos -- rot, harvest and burst.
 func _reaper() -> Array:
-	return [
-		[4, A.DEATH, KW.GNICIE, 3], [4, A.DEATH, KW.ZNIWO, 1], [6, A.DEATH, KW.GNICIE, 4],
-		[8, A.DEATH, KW.ZNIWO, 2], [8, A.DEATH, KW.PIJAWKA, 15], [10, A.DEATH, KW.KLATWA, 10],
-		[13, A.DEATH, KW.GNICIE, 5],
-		[6, A.CHAOS, KW.FURIA, 0], [8, A.CHAOS, KW.SPALENIE, 8], [10, A.CHAOS, KW.FURIA, 0],
-		[12, A.CHAOS, KW.SPALENIE, 10], [3, A.CHAOS, KW.SPALENIE, 6],
-		[5, A.MIND, KW.ECHO, 4], [9, A.MIND, KW.ECHO, 6],
-		[5, A.LIFE, KW.OPATRZNOSC, 4], [11, A.LIFE, KW.OSLONA, 6],
-	]
+	return _lean([A.DEATH, A.CHAOS], {
+		A.DEATH: {3: [KW.GNICIE, 3], 5: [KW.ZNIWO, 1], 8: [KW.PIJAWKA, 15]},
+		A.CHAOS: {4: [KW.FURIA, 0], 6: [KW.SPALENIE, 8], 8: [KW.FURIA, 0]},
+		A.MIND: {5: [KW.ECHO, 4]},
+		A.LIFE: {4: [KW.OPATRZNOSC, 4]},
+	})
 
 ## Alt starter "Gardener's Path" (Sol unlock): Nature/Life -- growth, block and sustain.
 func _gardener() -> Array:
-	return [
-		[3, A.NATURE, KW.WZROST, 2], [5, A.NATURE, KW.WZROST, 3], [7, A.NATURE, KW.SYMBIOZA, 4],
-		[9, A.NATURE, KW.SYMBIOZA, 5], [9, A.NATURE, KW.BUJNOSC, 25], [13, A.NATURE, KW.WZROST, 4],
-		[2, A.LIFE, KW.OSLONA, 5], [5, A.LIFE, KW.OPATRZNOSC, 4], [7, A.LIFE, KW.OSLONA, 7],
-		[9, A.LIFE, KW.OPATRZNOSC, 6], [14, A.LIFE, KW.OSLONA, 9],
-		[7, A.MIND, KW.ECHO, 5], [12, A.MIND, KW.ECHO, 7],
-		[5, A.DEATH, KW.GNICIE, 3], [8, A.CHAOS, KW.SPALENIE, 7], [11, A.CHAOS, KW.FURIA, 0],
-	]
+	return _lean([A.NATURE, A.LIFE], {
+		A.NATURE: {3: [KW.WZROST, 2], 5: [KW.SYMBIOZA, 4], 7: [KW.BUJNOSC, 25]},
+		A.LIFE: {2: [KW.OSLONA, 5], 5: [KW.OPATRZNOSC, 4], 8: [KW.OSLONA, 7]},
+		A.MIND: {4: [KW.ECHO, 5]},
+	})
 
 ## Alt starter "Oracle's Gambit" (achievement unlock): Mind/Chaos -- Echo scaling and fury.
 func _oracle() -> Array:
-	return [
-		[2, A.MIND, KW.ECHO, 3], [5, A.MIND, KW.ECHO, 4], [8, A.MIND, KW.ECHO, 6],
-		[11, A.MIND, KW.ECHO, 7], [13, A.MIND, KW.ECHO, 8],
-		[3, A.CHAOS, KW.SPALENIE, 5], [6, A.CHAOS, KW.SPALENIE, 7], [9, A.CHAOS, KW.FURIA, 0],
-		[12, A.CHAOS, KW.SPALENIE, 9], [14, A.CHAOS, KW.FURIA, 0],
-		[4, A.DEATH, KW.KLATWA, 8], [9, A.DEATH, KW.PIJAWKA, 12],
-		[6, A.LIFE, KW.OSLONA, 5], [10, A.LIFE, KW.OPATRZNOSC, 5],
-		[4, A.NATURE, KW.WZROST, 2], [10, A.NATURE, KW.SYMBIOZA, 4],
-	]
+	return _lean([A.MIND, A.CHAOS], {
+		A.MIND: {3: [KW.ECHO, 4], 5: [KW.ECHO, 6], 8: [KW.KOMBINAT, 50]},
+		A.CHAOS: {4: [KW.FURIA, 0], 6: [KW.LAWINA, 0], 8: [KW.SPALENIE, 8]},
+		A.DEATH: {5: [KW.GNICIE, 3]},
+		A.NATURE: {4: [KW.BUJNOSC, 20]},
+	})

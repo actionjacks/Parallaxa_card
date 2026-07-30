@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_dx07k")
 name_key = "ENEMY_WIEDZMA"
-max_hp = 480
+max_hp = 792
 intents = PackedInt32Array(16, 4, 16)
 enrage_step = 2
 reward_rtec = 5

@@ -4,6 +4,5 @@
 
 [resource]
 script = ExtResource("1_j3dpp")
-rank = 6
-aspect = 3
-keyword = 5
+rank = 3
+aspect = 1

@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_yf7lg")
 name_key = "ENEMY_KAPLAN"
-max_hp = 720
+max_hp = 1188
 intents = PackedInt32Array(14, 17, 10)
 enrage_step = 3
 reward_rtec = 7

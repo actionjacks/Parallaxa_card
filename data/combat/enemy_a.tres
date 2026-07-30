@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_vx8wb")
 name_key = "ENEMY_KULTYSTA"
-max_hp = 520
+max_hp = 858
 intents = PackedInt32Array(10, 13, 8)
 enrage_step = 2
 reward_rtec = 5

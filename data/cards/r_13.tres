@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_skdo6")
-rank = 9
-aspect = 1
-keyword = 7
-keyword_value = 6
+rank = 4
+aspect = 2

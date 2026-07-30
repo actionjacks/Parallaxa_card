@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_7hn5j")
 name_key = "ENEMY_GOLEM"
-max_hp = 500
+max_hp = 825
 intents = PackedInt32Array(20, 0, 15)
 enrage_step = 3
 art = ExtResource("1_f8ryb")

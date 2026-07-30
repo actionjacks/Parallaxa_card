@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://src/game/cards/card_data.gd" id="1_jwd7b"]
+
+[resource]
+script = ExtResource("1_jwd7b")
+rank = 6
+aspect = 2

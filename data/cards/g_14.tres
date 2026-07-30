@@ -4,7 +4,4 @@
 
 [resource]
 script = ExtResource("1_w7jv4")
-rank = 8
-aspect = 3
-keyword = 6
-keyword_value = 7
+aspect = 2

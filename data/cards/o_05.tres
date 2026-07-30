@@ -4,7 +4,5 @@
 
 [resource]
 script = ExtResource("1_lkdgn")
-rank = 3
-aspect = 3
-keyword = 6
-keyword_value = 5
+rank = 1
+aspect = 1

@@ -324,6 +324,7 @@ func _start_encounter(elite: bool = false) -> void:
 	_statusbar.visible = false
 	var debt := RunState.omen_debt
 	RunState.omen_debt = 0   # the Wheel's bill is due exactly once, on the very next duel
+	RunState.shuffle_for_fight()   # a duel deals from a shuffled deck, not from last duel's order
 	var combat: Node = load(COMBAT_SCENE).instantiate()
 	combat.setup(RunState.deck, _current_enemy(), RunState.relics,
 		RunState.player_hp, RunState.player_max_hp, RunState.hand_levels, RunState.veil, RunState.depth, debt)

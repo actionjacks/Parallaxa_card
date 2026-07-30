@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_sqpxf")
 name_key = "ENEMY_WIDMO"
-max_hp = 990
+max_hp = 1634
 intents = PackedInt32Array(27, 10, 27)
 enrage_step = 4
 reward_rtec = 9

@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_sehoa")
 name_key = "ENEMY_ELITE_R1"
-max_hp = 680
+max_hp = 1122
 intents = PackedInt32Array(22, 0, 16)
 enrage_step = 5
 reward_rtec = 12

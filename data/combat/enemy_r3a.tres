@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_hyaci")
 name_key = "ENEMY_STRAZNIK"
-max_hp = 1040
+max_hp = 1716
 intents = PackedInt32Array(20, 23, 15)
 enrage_step = 4
 reward_rtec = 9

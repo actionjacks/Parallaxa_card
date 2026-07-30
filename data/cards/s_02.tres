@@ -4,7 +4,4 @@
 
 [resource]
 script = ExtResource("1_h553w")
-rank = 9
-aspect = 2
-keyword = 3
-keyword_value = 4
+rank = 3

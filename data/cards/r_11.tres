@@ -4,7 +4,4 @@
 
 [resource]
 script = ExtResource("1_hbc8l")
-rank = 3
-aspect = 3
-keyword = 6
-keyword_value = 6
+aspect = 2

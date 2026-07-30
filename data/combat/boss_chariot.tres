@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_jwu34")
 name_key = "ENEMY_RYDWAN"
-max_hp = 560
+max_hp = 924
 intents = PackedInt32Array(9, 12, 7)
 enrage_step = 3
 reward_rtec = 12

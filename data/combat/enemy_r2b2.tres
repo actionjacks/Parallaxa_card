@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_wbjqd")
 name_key = "ENEMY_CHIMERA"
-max_hp = 780
+max_hp = 1287
 intents = PackedInt32Array(24, 0, 19)
 enrage_step = 4
 reward_rtec = 7

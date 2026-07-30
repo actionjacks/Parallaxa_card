@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_7dp66")
 name_key = "ENEMY_HERALD"
-max_hp = 1090
+max_hp = 1799
 intents = PackedInt32Array(30, 0, 25)
 enrage_step = 5
 reward_rtec = 9

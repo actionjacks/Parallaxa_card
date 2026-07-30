@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_8ccwk")
 name_key = "ENEMY_SPRAWIEDLIWOSC"
-max_hp = 740
+max_hp = 1221
 intents = PackedInt32Array(15, 19, 12)
 enrage_step = 4
 reward_rtec = 14

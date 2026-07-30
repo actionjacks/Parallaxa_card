@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_nvj2s")
 name_key = "ENEMY_SAD"
-max_hp = 950
+max_hp = 1568
 intents = PackedInt32Array(21, 26, 17)
 enrage_step = 5
 reward_rtec = 16

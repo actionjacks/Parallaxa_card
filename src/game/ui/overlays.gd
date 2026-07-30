@@ -129,7 +129,11 @@ func _open_overview() -> void:
 	for a in RunState.relics:
 		right.add_child(_lbl("* %s — %s" % [tr(a.name_key), a.describe()], 13, Color(0.82, 0.76, 0.9)))
 	right.add_child(_title(tr("PAYTABLE_TITLE")))
-	for hand in Poker.BASE:
+	# Listed cheapest-first by PAYOUT, not by enum order -- with five Aspects the Flush
+	# outranks a Four of a Kind, and a chart that lied about that would teach the wrong play.
+	var _ordered: Array = Poker.BASE.keys()
+	_ordered.sort_custom(func(a, b): return Poker.value_of(a) < Poker.value_of(b))
+	for hand in _ordered:
 		var lv := int(RunState.hand_levels.get(hand, 0))
 		var base: Array = Poker.leveled_base(hand, lv)
 		var row := "%s  %d x %s" % [tr(Poker.name_key(hand)), int(base[0]), String.num(float(base[1]), 1)]

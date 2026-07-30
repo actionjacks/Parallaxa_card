@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_unr82")
-rank = 9
-aspect = 3
-keyword = 5
+rank = 3
+aspect = 1
+keyword = 7
+keyword_value = 4

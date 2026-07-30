@@ -286,6 +286,16 @@ func pick_tiered_offers(pool: Array, n: int, boosted: bool = false) -> Array:
 			out.append(pick)
 	return out
 
+## Shuffle the run deck before a duel. The deck used to be ordered ONCE at run start and every
+## fight then drew from that same fixed order -- with a 16-card deck it cycled two or three times
+## per fight and the repetition hid, but the 40-card pentacle deck only gets ~13 cards deep in a
+## short fight, so every duel opened with the SAME eight cards. A bot found one good opening and
+## replayed it for an entire journey. Cards are shuffled between duels, never inside one: the
+## preview still cannot lie, and peek_draw stays exact for the whole fight.
+## SEED CONTRACT: exactly one main-rng draw per fight, same shape as pick_offers.
+func shuffle_for_fight() -> void:
+	_shuffle_with(deck, _sub_rng())
+
 func _sub_rng() -> RandomNumberGenerator:
 	var sub := RandomNumberGenerator.new()
 	sub.seed = int(rng.randi())

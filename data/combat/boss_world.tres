@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("3_usn4l")
 name_key = "ENEMY_SWIAT"
-max_hp = 1300
+max_hp = 2145
 intents = PackedInt32Array(26, 30, 22)
 enrage_step = 6
 reward_rtec = 20

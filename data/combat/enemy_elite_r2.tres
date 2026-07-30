@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_hxi3l")
 name_key = "ENEMY_ELITE_R2"
-max_hp = 870
+max_hp = 1436
 intents = PackedInt32Array(18, 18, 18)
 enrage_step = 5
 reward_rtec = 14

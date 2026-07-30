@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_sltqq")
 name_key = "ENEMY_UPIOR"
-max_hp = 680
+max_hp = 1122
 intents = PackedInt32Array(21, 6, 21)
 enrage_step = 3
 reward_rtec = 7
