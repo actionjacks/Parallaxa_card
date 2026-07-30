@@ -8,6 +8,11 @@ func _initialize() -> void:
 	fails += _expect("tower ignores block (50 - 20 = 30)", _hp_after(EnemyData.Rule.TOWER_IGNORES_BLOCK) == 30)
 	fails += _expect("enrage: grace cycle exact, then +step per turn (10,12,14)", _enraged_intents() == [10, 12, 14])
 	fails += _expect("next_intent looks one turn ahead", _next_intent_check())
+	# The three field rules whose TEXT once promised something the engine did not do.
+	fails += _expect("Empress blooms on a short hand (+40)", _empress_heal(3) == 40)
+	fails += _expect("Empress does NOT bloom on a full five", _empress_heal(5) == 0)
+	fails += _expect("Wheel skips a step each turn (16, 9)", _wheel_intents() == [16, 9])
+	fails += _expect("Fool mirrors the blow (dmg/14, floor 8, cap 34)", _fool_answers())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -330,6 +335,58 @@ func _world_hp() -> int:
 	ctrl.play([0])              # +8 block, -2 blood tax
 	ctrl.resolve_enemy_turn()   # 20 ignores block
 	return ctrl.player_hp
+
+## The Empress heals when the play was shorter than a full hand -- and only then.
+func _empress_heal(cards_played: int) -> int:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(9)
+	var e := EnemyData.new()
+	e.max_hp = 9999
+	e.intents = PackedInt32Array([0])
+	e.rule = EnemyData.Rule.EMPRESS_BLOOM
+	ctrl.start(deck, e, [], 50, 50)
+	var idx: Array = []
+	for i in cards_played:
+		idx.append(i)
+	ctrl.play(idx)
+	var before := ctrl.enemy_hp
+	ctrl.enemy_hp = maxi(1, ctrl.enemy_max_hp - 500)   # room to heal into
+	before = ctrl.enemy_hp
+	ctrl.resolve_enemy_turn()
+	return ctrl.enemy_hp - before
+
+## The Wheel advances its cycle TWICE a turn, so intents [16,22,9,30] read 16 then 9.
+func _wheel_intents() -> Array:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(9)
+	var e := EnemyData.new()
+	e.max_hp = 9999
+	e.intents = PackedInt32Array([16, 22, 9, 30])
+	e.rule = EnemyData.Rule.WHEEL_TURN
+	ctrl.start(deck, e, [], 500, 500)
+	var out: Array = []
+	out.append(ctrl.current_intent())
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()
+	out.append(ctrl.current_intent())
+	return out
+
+## The Fool's intent IS the player's last blow, scaled and clamped -- and before any blow he
+## falls back to his authored opener.
+func _fool_answers() -> bool:
+	var ctrl := CombatController.new()
+	var deck := _flat_deck(9)
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([12])
+	e.rule = EnemyData.Rule.FOOL_MIRROR
+	ctrl.start(deck, e, [], 500, 500)
+	if ctrl.current_intent() != 12:
+		return false                       # turn one: nothing to answer yet
+	ctrl.play([0])
+	var dealt: int = int(ctrl.last_score.get("damage", 0))
+	var want: int = clampi(dealt / 14, 8, 34)
+	return ctrl.current_intent() == want and ctrl.mirror_intent(700) == 34 and ctrl.mirror_intent(14) == 8
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

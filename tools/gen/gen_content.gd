@@ -337,9 +337,9 @@ func _biomes() -> void:
 	_save_arcanum_simple("arcanum_wheel", "ARCANUM_KOLA", ArcanumData.Effect.MULT_IF_ASPECT,
 		A.NATURE, 1.45, 0, "10_wheel_of_fortune", [2.1, -1, ArcanumData.Price.SELF_CURSE, 2])
 	_save_boss("boss_empress", "ENEMY_CESARZOWA", 820, [14, 18, 11], 13,
-		EnemyData.Rule.NONE, "RULE_EMPRESS", 4, "03_empress", "arcanum_empress")
-	_save_boss("boss_wheel", "ENEMY_KOLO", 800, [16, 16, 16], 13,
-		EnemyData.Rule.NONE, "RULE_WHEEL", 5, "10_wheel_of_fortune", "arcanum_wheel")
+		EnemyData.Rule.EMPRESS_BLOOM, "RULE_EMPRESS", 4, "03_empress", "arcanum_empress")
+	_save_boss("boss_wheel", "ENEMY_KOLO", 800, [16, 22, 9, 30], 13,
+		EnemyData.Rule.WHEEL_TURN, "RULE_WHEEL", 5, "10_wheel_of_fortune", "arcanum_wheel")
 
 	for spec in specs:
 		var aspect: int = spec[0]
@@ -391,8 +391,8 @@ func _biomes() -> void:
 		var af: String = "enemy_seal_%d" % (i + 1)
 		ResourceSaver.save(ace, ENEMY_DIR + af + ".tres")
 		ace_files.append(af)
-	_save_boss("boss_fool", "ENEMY_GLUPIEC", 1300, [12, 12, 12], 40,
-		EnemyData.Rule.NONE, "RULE_FOOL", 6, "00_fool", "arcanum_fool")
+	_save_boss("boss_fool", "ENEMY_GLUPIEC", 1300, [12], 40,
+		EnemyData.Rule.FOOL_MIRROR, "RULE_FOOL", 0, "00_fool", "arcanum_fool")
 	_save_region("region_sealed", "BIOME_SEALED", [ace_files[0], ace_files[1]],
 		[ace_files[2], ace_files[3]], "boss_fool", "arcanum_fool",
 		Color(0.88, 0.88, 0.92), "", ["boss_fool"],

@@ -9,10 +9,11 @@
 script = ExtResource("4_orivg")
 name_key = "ENEMY_KOLO"
 max_hp = 1320
-intents = PackedInt32Array(16, 16, 16)
+intents = PackedInt32Array(16, 22, 9, 30)
 enrage_step = 5
 reward_rtec = 13
 is_boss = true
+rule = 12
 rule_key = "RULE_WHEEL"
 art = ExtResource("2_goijm")
 arcanum = ExtResource("1_uayeu")

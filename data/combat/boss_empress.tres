@@ -13,6 +13,7 @@ intents = PackedInt32Array(14, 18, 11)
 enrage_step = 4
 reward_rtec = 13
 is_boss = true
+rule = 11
 rule_key = "RULE_EMPRESS"
 art = ExtResource("2_dmiy1")
 arcanum = ExtResource("1_4vwto")

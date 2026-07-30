@@ -11,7 +11,10 @@ extends Resource
 ##  JUSTICE_RIPOSTE - reflection: a play of 40+ damage draws an exact riposte (dmg/40, max 8)
 ##  JUDGEMENT_FRAIL - the deck is judged: each played card of rank <= 3 costs 1 HP
 ##  STAR_REGEN      - hope: heals a flat +12 at the start of every enemy turn
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN }
+##  EMPRESS_BLOOM  - abundance: she heals 40 whenever you play FEWER than five cards
+##  WHEEL_TURN      - the wheel turns: her intent cycle advances TWO steps a turn, not one
+##  FOOL_MIRROR     - the Fool answers with your own blow: his intent IS your last play, scaled
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

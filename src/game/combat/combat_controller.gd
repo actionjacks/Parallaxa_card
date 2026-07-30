@@ -14,6 +14,7 @@ const PLAYER_MAX_HP: int = 55
 const FIGHT_HEAL_CAP: int = 15       ## shared per-fight heal pool (Opatrznosc + relic heal + leech)
 const MOON_MEND_HEAL: int = 15       ## the Moon self-mends when a round deals too little...
 const MOON_MEND_THRESHOLD: int = 60  ## ...i.e. under this much damage between its turns
+const EMPRESS_BLOOM_HEAL: int = 40   ## the Empress feeds on any play shorter than five cards
 
 var relics: Array = []          ## Array[ArcanumData] applied to every play
 var hand_levels: Dictionary = {}   ## Poker.Hand -> level (Star consumables)
@@ -48,6 +49,8 @@ var kill_mono_death_flush: bool = false
 var flush_played: bool = false    ## any flush-family hand scored this fight (first-blood ach)
 var intent_debt: int = 0          ## Wheel omen's price: flat +N on every intent this fight
 var law: int = 0                  ## RegionData.Law of the biome this duel is fought in
+var _last_play_size: int = 0      ## cards in the player's most recent play (the Empress reads it)
+var _last_play_damage: int = 0    ## damage of that play (the Fool answers with it)
 
 var _draw: Array = []
 var _used: Array = []
@@ -104,6 +107,8 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	fight_best_hand = 0
 	kill_mono_death_flush = false
 	flush_played = false
+	_last_play_size = 0
+	_last_play_damage = 0
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -124,7 +129,21 @@ func _intent_at(idx: int) -> int:
 	return base + over * step
 
 func current_intent() -> int:
+	# The Fool answers with your own blow. His clock is the player, not a table, so he ignores
+	# the authored intents entirely once a play has landed. Still exact: the HUD feeds the live
+	# preview damage into mirror_intent() while cards are being picked, so the number moves with
+	# the selection and never lies about what is coming.
+	if enemy != null and enemy.rule == EnemyData.Rule.FOOL_MIRROR:
+		return mirror_intent(_last_play_damage)
 	return _intent_at(_intent_index)
+
+## What the Fool will answer with, given a blow of `play_damage`. Public so the combat HUD can
+## show it updating live while the player is still choosing.
+func mirror_intent(play_damage: int) -> int:
+	if play_damage <= 0:
+		return _intent_at(0)          # turn one: he has nothing to answer yet
+	@warning_ignore("integer_division")
+	return clampi(play_damage / 14, 8, 34)
 
 ## One-step lookahead (turn planning): the exact damage of the FOLLOWING enemy turn.
 func next_intent() -> int:
@@ -250,6 +269,10 @@ func play(selected: Array) -> void:
 			death_cause = "pact"
 			_finish(false)
 			return
+	# Remembered for the field rules that answer the PLAYER rather than a table: the Empress
+	# feeds on a short hand, the Fool strikes back with the blow he just took.
+	_last_play_size = cards.size()
+	_last_play_damage = dmg
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
 	if int(result["block"]) > 0:
 		message.emit("LOG_BLOCK", [int(result["block"])])
@@ -313,6 +336,11 @@ func resolve_enemy_turn() -> void:
 	if enemy.rule == EnemyData.Rule.STAR_REGEN:
 		enemy_hp = mini(enemy_max_hp, enemy_hp + 12)
 		message.emit("LOG_STAR_REGEN", [12])
+	# The Empress blooms on a half-hearted hand: anything short of five cards feeds her.
+	# Deterministic and stated up front -- the player knows the price of nibbling before paying it.
+	if enemy.rule == EnemyData.Rule.EMPRESS_BLOOM and _last_play_size in range(1, 5):
+		enemy_hp = mini(enemy_max_hp, enemy_hp + EMPRESS_BLOOM_HEAL)
+		message.emit("LOG_EMPRESS_BLOOM", [EMPRESS_BLOOM_HEAL])
 	var incoming: int = current_intent()
 	# The Tower's field-rule ignores block, so defence can't save you against it.
 	var taken: int = maxi(0, incoming - (0 if _rule_ignores_block() else player_block))
@@ -326,6 +354,10 @@ func resolve_enemy_turn() -> void:
 	player_block = 0
 	message.emit("LOG_ATTACK", [taken])
 	_intent_index += 1
+	# The Wheel turns: its cycle skips a step every turn, so the pattern cannot be memorised --
+	# the player has to read the number the game is showing them, which it always shows honestly.
+	if enemy.rule == EnemyData.Rule.WHEEL_TURN:
+		_intent_index += 1
 	_dmg_this_round = 0
 	if player_hp <= 0:
 		player_hp = 0
@@ -420,8 +452,12 @@ func peek_draw(n: int) -> Array:
 
 ## EXACT damage the player will take on the coming enemy turn if the pending play adds
 ## `extra_block` (cockpit line; mirrors resolve_enemy_turn's math to the point).
-func predicted_taken(extra_block: int = 0) -> int:
-	var incoming := current_intent()
+func predicted_taken(extra_block: int = 0, staged_damage: int = -1) -> int:
+	# Against the Fool the counter-blow is the blow you are ABOUT to throw, so the cockpit has to
+	# ask about the staged play rather than the last one -- otherwise the preview under-reports
+	# exactly the hit the player is choosing to take.
+	var incoming := (mirror_intent(staged_damage) if (enemy != null
+		and enemy.rule == EnemyData.Rule.FOOL_MIRROR and staged_damage > 0) else current_intent())
 	if incoming <= 0:
 		return 0
 	var blk := 0 if _rule_ignores_block() else player_block + extra_block

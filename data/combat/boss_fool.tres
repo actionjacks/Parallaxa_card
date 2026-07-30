@@ -9,10 +9,10 @@
 script = ExtResource("4_sp5ix")
 name_key = "ENEMY_GLUPIEC"
 max_hp = 2145
-intents = PackedInt32Array(12, 12, 12)
-enrage_step = 6
+intents = PackedInt32Array(12)
 reward_rtec = 40
 is_boss = true
+rule = 13
 rule_key = "RULE_FOOL"
 art = ExtResource("2_uf6pr")
 arcanum = ExtResource("1_8v6lr")

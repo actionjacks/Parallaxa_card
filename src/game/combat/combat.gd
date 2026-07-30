@@ -522,9 +522,12 @@ func _hide_card_preview() -> void:
 func _refresh_cockpit(eff_dmg: int, play_block: int, lethal: bool) -> void:
 	if _cockpit_label == null or controller == null:
 		return
-	var taken := controller.predicted_taken(play_block)
+	var taken := controller.predicted_taken(play_block, eff_dmg)
 	var hp_after: int = maxi(0, controller.player_hp - taken)
-	var you := tr("COCKPIT_YOU") % [controller.intent_shown(controller.current_intent()),
+	# The Fool's number is the staged blow reflected: show THAT, live, not the stale one.
+	var shown_intent: int = controller.mirror_intent(eff_dmg) if (_enemy != null
+		and _enemy.rule == EnemyData.Rule.FOOL_MIRROR and eff_dmg > 0) else controller.current_intent()
+	var you := tr("COCKPIT_YOU") % [controller.intent_shown(shown_intent),
 		controller.player_block + play_block, controller.player_hp, hp_after]
 	if eff_dmg > 0:
 		var ehp_after: int = maxi(0, controller.enemy_hp - eff_dmg)

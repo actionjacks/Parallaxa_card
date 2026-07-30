@@ -315,7 +315,7 @@ OMEN_SKIP,Leave it,Zostaw
 OMEN_STAR,The Star,Gwiazda
 OMEN_STAR_DESC,Hope restores +10 HP.,Nadzieja przywraca +10 HP.
 OMEN_WHEEL,Wheel of Fortune,Koło Fortuny
-OMEN_WHEEL_DESC,"The Wheel pays +6 ☿ now — but the NEXT duel hits +2 harder on every blow.","Koło płaci +6 ☿ teraz — lecz NASTĘPNY pojedynek bije +2 mocniej każdym ciosem."
+OMEN_WHEEL_DESC,The Wheel pays +6 ☿ now — but the NEXT duel hits +2 harder on every blow.,Koło płaci +6 ☿ teraz — lecz NASTĘPNY pojedynek bije +2 mocniej każdym ciosem.
 OMEN_HANGED,The Hanged Man,Wisielec
 OMEN_HANGED_DESC,"Sacrifice: -5 HP, +8 ☿.","Poświęcenie: -5 HP, +8 ☿."
 OMEN_JUSTICE,Justice,Sprawiedliwość
@@ -324,7 +324,7 @@ OMEN_TEMPERANCE,Temperance,Umiarkowanie
 OMEN_TEMPERANCE_DESC,"Balance: +6 HP, +2 ☿.","Równowaga: +6 HP, +2 ☿."
 RULE_TOWER,"Tower: block does not protect, heal pool halved","Wieża: blok nie chroni, zapas leczenia o połowę mniejszy"
 RULE_DEVIL,Devil: each play costs blood — 2 HP +1 per cycle,Diabeł: każde zagranie kosztuje krew — 2 HP +1 za cykl
-RULE_MOON,"Moon: Rot washes away; deal under 60 a round and it mends 15","Księżyc: Gnicie się rozpływa; poniżej 60 obrażeń na rundę zasklepia 15"
+RULE_MOON,Moon: Rot washes away; deal under 60 a round and it mends 15,Księżyc: Gnicie się rozpływa; poniżej 60 obrażeń na rundę zasklepia 15
 RULE_WORLD,The World: every previous rule at once,Świat: wszystkie poprzednie reguły naraz
 COMBAT_CLEANSED,cleansed,oczyszczone
 LOG_PACT,Pact: -%d,Pakt: -%d
@@ -410,7 +410,7 @@ COMBAT_TAG_HEAL_CAP,(heal clipped by the pool),(leczenie przycięte przez zapas)
 LOG_HEAL_CAPPED,Heal capped: +%d (of +%d),Limit leczenia: +%d (z +%d)
 LOG_MOON_MEND,The Moon mends itself: +%d,Księżyc się zasklepia: +%d
 KW_PRZECIAZENIE,Overload,Przeciążenie
-KWD_PRZECIAZENIE,"x2 Mult. Cracks each time it is played; shatters and is lost at 0 (counter on the card).","x2 Mult. Pęka przy każdym zagraniu; przy 0 rozpada się i znika (licznik na karcie)."
+KWD_PRZECIAZENIE,x2 Mult. Cracks each time it is played; shatters and is lost at 0 (counter on the card).,x2 Mult. Pęka przy każdym zagraniu; przy 0 rozpada się i znika (licznik na karcie).
 KW_LAWINA,Avalanche,Lawina
 KWD_LAWINA,Card chips score again once per Chaos card in the play (max 3).,Chipsy kart liczone ponownie za każdą kartę Chaosu w zagraniu (maks. 3).
 KW_KOMBINAT,Combine,Kombinat
@@ -433,7 +433,7 @@ ARC_PRICE_MAXHP,Price: -%d max HP,Cena: -%d maks. HP
 ARC_PRICE_TAX,Price: -%d ☿ after every fight,Cena: -%d ☿ po każdej walce
 ARC_PRICE_CURSE,Price: enemy hits hurt +%d more,Cena: ciosy wroga bolą o +%d mocniej
 BOSSREW_TITLE,Claim the Arcanum,Weź Arkanum
-BOSSREW_HINT,"Upright is safe. Reversed is stronger — and it collects.","Proste jest bezpieczne. Odwrócone jest silniejsze — i zbiera swoją cenę."
+BOSSREW_HINT,Upright is safe. Reversed is stronger — and it collects.,Proste jest bezpieczne. Odwrócone jest silniejsze — i zbiera swoją cenę.
 BOSSREW_UPRIGHT,Upright,Proste
 BOSSREW_REVERSED,Reversed,Odwrócone
 CLAIM_TAKE,Claim,Zabierz
@@ -648,8 +648,8 @@ ENRAGE_TAG,fury: +%d per turn,szał: +%d na turę
 COVENANT_LINE_3,Delay feeds the fury — past the first cycle every turn adds strength.,Zwłoka karmi szał — po pierwszym cyklu każda tura dodaje siły.
 TIP_DISCARDS,Discards renew every turn — trade freely.,Odrzuty odnawiają się co turę — wymieniaj śmiało.
 TIP_DECK_ORDER,The deck returns in PLAYED order — never shuffled. Count your cards.,Talia wraca w ZAGRANEJ kolejności — bez tasowania. Licz swoje karty.
-HEAL_POOL_TIP,"Shared healing limit for THIS fight (cards + relics + leech). Tower and World halve it.","Wspólny limit leczenia na TĘ walkę (karty + relikty + pijawka). Wieża i Świat go połowią."
-DECK_TIP,"Draw pile / grave. The grave returns to the deck in played order — no shuffle.","Talia / grób. Grób wraca do talii w zagranej kolejności — bez tasowania."
+HEAL_POOL_TIP,Shared healing limit for THIS fight (cards + relics + leech). Tower and World halve it.,Wspólny limit leczenia na TĘ walkę (karty + relikty + pijawka). Wieża i Świat go połowią.
+DECK_TIP,Draw pile / grave. The grave returns to the deck in played order — no shuffle.,Talia / grób. Grób wraca do talii w zagranej kolejności — bez tasowania.
 NEXT_DRAWS,Next:,Następne:
 PAYTABLE_TITLE,Hands,Układy
 PAYTABLE_TOGGLE,Hands,Układy
@@ -673,7 +673,7 @@ SCORE_PRODUCT,%d  x  %s  =  %d,%d  x  %s  =  %d
 SORT_DEALT,Order: dealt,Układ: dobrane
 SORT_RANK,Order: rank,Układ: rangi
 SORT_ASPECT,Order: colour,Układ: kolory
-SORT_TIP,"Reorder the hand on screen. The deck order never changes.","Przestawia karty na ekranie. Kolejność talii się nie zmienia."
+SORT_TIP,Reorder the hand on screen. The deck order never changes.,Przestawia karty na ekranie. Kolejność talii się nie zmienia.
 HAND_BEST_AVAILABLE,In hand: %s,W ręce: %s
 BIOME_LIFE,The Orchard of Cups,Sad Kielichów
 BIOME_MIND,The Library of Swords,Biblioteka Mieczy
@@ -681,22 +681,22 @@ BIOME_DEATH,The Catacombs of Pentacles,Katakumby Pentakli
 BIOME_CHAOS,The Burnt Field of Wands,Pogorzelisko Buław
 BIOME_NATURE,The Overgrowth,Przerost
 BIOME_SEALED,The Sealed Biome — Arcanum Zero,Biom Zapieczętowany — Arkanum Zero
-LAW_LIFE,"Law of the Orchard: +2 block for every card played; a deeper heal pool.","Prawo Sadu: +2 bloku za każdą zagraną kartę; głębszy zapas leczenia."
-LAW_MIND,"Law of the Library: one more card in hand.","Prawo Biblioteki: jedna karta więcej w ręce."
-LAW_DEATH,"Law of the Catacombs: +2 chips for every card in the grave.","Prawo Katakumb: +2 chipsy za każdą kartę w grobie."
-LAW_CHAOS,"Law of the Burnt Field: five-card plays x1.5 Mult; one or two cards x0.75.","Prawo Pogorzeliska: zagranie 5 kart x1.5 Mult; jedna lub dwie karty x0.75."
-LAW_NATURE,"Law of the Overgrowth: every card left in hand gains +3 chips each turn.","Prawo Przerostu: każda karta zostawiona w ręce zyskuje +3 chipsy co turę."
-LAW_SEAL,"Law of the Seal: +1 Mult for every distinct Aspect in the play.","Prawo Pieczęci: +1 Mult za każdy odmienny Aspekt w zagraniu."
+LAW_LIFE,Law of the Orchard: +2 block for every card played; a deeper heal pool.,Prawo Sadu: +2 bloku za każdą zagraną kartę; głębszy zapas leczenia.
+LAW_MIND,Law of the Library: one more card in hand.,Prawo Biblioteki: jedna karta więcej w ręce.
+LAW_DEATH,Law of the Catacombs: +2 chips for every card in the grave.,Prawo Katakumb: +2 chipsy za każdą kartę w grobie.
+LAW_CHAOS,Law of the Burnt Field: five-card plays x1.5 Mult; one or two cards x0.75.,Prawo Pogorzeliska: zagranie 5 kart x1.5 Mult; jedna lub dwie karty x0.75.
+LAW_NATURE,Law of the Overgrowth: every card left in hand gains +3 chips each turn.,Prawo Przerostu: każda karta zostawiona w ręce zyskuje +3 chipsy co turę.
+LAW_SEAL,Law of the Seal: +1 Mult for every distinct Aspect in the play.,Prawo Pieczęci: +1 Mult za każdy odmienny Aspekt w zagraniu.
 SEAL_TAKEN,Seal taken: %s.,Pieczęć zdobyta: %s.
 SEAL_PROGRESS,Seals: %d of %d.,Pieczęcie: %d z %d.
 SEAL_PLAQUE,Seals of the colours,Pieczęcie kolorów
 SEAL_PLAQUE_FULL,The pentagram is closed. The Seal answers at the end of a Journey.,Pentagram zamknięty. Pieczęć odpowiada na końcu Podróży.
 SEAL_MISSING,Missing: %s,Brakuje: %s
 GATE_SEAL,Break the Seal — Arcanum Zero,Złam Pieczęć — Arkanum Zero
-GATE_SEAL_HINT,"Five colours answered. The Fool answers a closed circle once; the Journey ends there.","Pięć kolorów odpowiedziało. Głupiec odpowiada zamkniętemu kręgowi raz; Podróż kończy się tam."
-RULE_EMPRESS,"Field rule: the Empress — her intent grows with every cycle.","Reguła pola: Cesarzowa — jej intencja rośnie z każdym cyklem."
-RULE_WHEEL,"Field rule: the Wheel — its intents turn in a fixed circle.","Reguła pola: Koło — jego intencje obracają się w stałym kręgu."
-RULE_FOOL,"Field rule: the Fool answers with your own blow.","Reguła pola: Głupiec odpowiada twoim własnym ciosem."
+GATE_SEAL_HINT,Five colours answered. The Fool answers a closed circle once; the Journey ends there.,Pięć kolorów odpowiedziało. Głupiec odpowiada zamkniętemu kręgowi raz; Podróż kończy się tam.
+RULE_EMPRESS,Field rule: the Empress — any play of fewer than five cards heals her 40.,Reguła pola: Cesarzowa — każde zagranie poniżej pięciu kart leczy ją o 40.
+RULE_WHEEL,Field rule: the Wheel — its intent cycle skips a step every turn.,Reguła pola: Koło — jego cykl intencji przeskakuje o krok co turę.
+RULE_FOOL,Field rule: the Fool answers with YOUR blow — his hit is your last damage / 14 (8-34).,Reguła pola: Głupiec odpowiada TWOIM ciosem — jego uderzenie to twoje obrażenia / 14 (8-34).
 ENEMY_GLUPIEC,The Fool,Głupiec
 ENEMY_CESARZOWA,The Empress,Cesarzowa
 ENEMY_KOLO,The Wheel,Koło Fortuny
@@ -732,7 +732,7 @@ ENEMY_ACE_2,Ace of Swords,As Mieczy
 ENEMY_ACE_3,Ace of Wands,As Buław
 ENEMY_ACE_4,Ace of Pentacles,As Pentakli
 BIOME_CHOICE_TITLE,Choose the road,Wybierz drogę
-BIOME_CHOICE_HINT,"Each colour rules its duels differently. Beat its boss and its seal is yours for good.","Każdy kolor inaczej rządzi swoimi pojedynkami. Pokonaj jego bossa, a jego pieczęć zostaje twoja na zawsze."
+BIOME_CHOICE_HINT,Each colour rules its duels differently. Beat its boss and its seal is yours for good.,"Każdy kolor inaczej rządzi swoimi pojedynkami. Pokonaj jego bossa, a jego pieczęć zostaje twoja na zawsze."
 BIOME_WALK,Walk this road,Idź tą drogą
 BIOME_SEAL_OPEN,Seal not taken yet,Pieczęć jeszcze niezdobyta
 BIOME_SEAL_OWNED,Seal already yours,Pieczęć już twoja
@@ -740,3 +740,4 @@ TOWER_RUNG,Rung %d,Szczebel %d
 TOWER_SUMMIT,SUMMIT,SZCZYT
 TOWER_PROGRESS,Rung %d of %d,Szczebel %d z %d
 KEYSTONE_TAG,Keystone: last card scores double,Klucz: ostatnia karta liczy podwójnie
+LOG_EMPRESS_BLOOM,The Empress blooms: +%d HP,Cesarzowa rozkwita: +%d HP
