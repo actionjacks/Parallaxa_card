@@ -67,6 +67,8 @@ static func build(card: CardData) -> PanelContainer:
 		_start_legend_glow(panel, sb)
 	if card.keyword == CardData.Keyword.PRZECIAZENIE:
 		_add_durability_pip(panel, card)
+	if card.scar > 0:
+		_add_scar_mark(panel, card)
 	panel.set_meta("border", sb.border_color)
 	panel.mouse_entered.connect(_on_hover.bind(panel, true))
 	panel.mouse_exited.connect(_on_hover.bind(panel, false))
@@ -105,6 +107,23 @@ static func _add_durability_pip(panel: PanelContainer, card: CardData) -> void:
 	pip.offset_bottom = -2
 	pip.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	overlay.add_child(pip)
+
+## A card that felled a Major Arcana wears the mark for the rest of the run -- the player has to
+## be able to FIND their veteran in the hand, otherwise the attachment the scar exists to create
+## never happens.
+static func _add_scar_mark(panel: PanelContainer, card: CardData) -> void:
+	var overlay := Control.new()
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(overlay)
+	var mark := _lbl("+%d" % card.scar, 13, Color(0.98, 0.82, 0.35))
+	mark.anchor_left = 0.0
+	mark.anchor_top = 1.0
+	mark.anchor_bottom = 1.0
+	mark.offset_left = SPINE_W + 3
+	mark.offset_right = SPINE_W + 40
+	mark.offset_top = -36
+	mark.offset_bottom = -20
+	overlay.add_child(mark)
 
 ## RMB on ANY card, anywhere, opens the centered inspection overlay (todo.md UX brief).
 static func _route_rmb(ev: InputEvent, card: CardData) -> void:

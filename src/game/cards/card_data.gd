@@ -43,6 +43,12 @@ var wear: int = 0
 ## which feeds chips -- roots must not double-dip into chip value). Transient like growth.
 var bloom: int = 0
 
+## THE SCAR (docs/PLAN_TODO.md T5): permanent chips a card earned by landing the killing blow on
+## a boss. Its own field, NOT `growth` -- growth is deliberately transient (Wzrost resets every
+## fight and is never written to the run save), so reusing it would both break Wzrost and lose
+## the scar on the next load. Scars are saved with the run.
+var scar: int = 0
+
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
 	var base := rank
@@ -50,7 +56,7 @@ func chip_value() -> int:
 		base = 11
 	elif rank >= 11:
 		base = 10
-	return base + growth
+	return base + growth + scar
 
 ## Short rank glyph for the card face (language-neutral card notation).
 func rank_glyph() -> String:

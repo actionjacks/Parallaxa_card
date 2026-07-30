@@ -16,6 +16,7 @@ var _veil: int = 0
 var _depth: int = 0
 var _debt: int = 0
 var _law: int = 0                  ## RegionData.Law of the biome this duel is fought in
+const SCAR_CHIPS := 5              ## permanent chips a card earns for felling a Major Arcana
 var _prev_klatwa: int = 0
 var _heartbeat: AudioStreamPlayer   ## enrage stem: owned here, never a stolen pool voice
 
@@ -1258,6 +1259,13 @@ func _on_ended(won: bool) -> void:
 	if not standalone:
 		# Feed the run: statistics, the overkill payout and the permanently shattered glass.
 		RunState.record_fight(won, _enemy.name_key, controller)
+		# THE SCAR (PLAN_TODO T5): the card that struck the killing blow on a MAJOR ARCANA carries
+		# it for the rest of the run. The trigger is deterministic -- the last card of the last
+		# play, never a roll -- so the covenant holds and the player can aim for it on purpose.
+		if won and _enemy.is_boss and not controller.killing_cards.is_empty():
+			var killer: CardData = controller.killing_cards[controller.killing_cards.size() - 1]
+			killer.scar += SCAR_CHIPS
+			_popup(tr("SCAR_EARNED") % SCAR_CHIPS, Color(0.98, 0.82, 0.35), _enemy_fx_pos(), 24)
 		RunState.pending_overkill = controller.overkill_rtec
 		if won:
 			for c in controller.destroyed_cards:

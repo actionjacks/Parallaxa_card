@@ -51,6 +51,9 @@ var intent_debt: int = 0          ## Wheel omen's price: flat +N on every intent
 var law: int = 0                  ## RegionData.Law of the biome this duel is fought in
 var _last_play_size: int = 0      ## cards in the player's most recent play (the Empress reads it)
 var _last_play_damage: int = 0    ## damage of that play (the Fool answers with it)
+## The cards of the blow that ENDED the fight, in play order. The last of them is the one that
+## struck the killing blow, and against a boss it earns a permanent scar (PLAN_TODO T5).
+var killing_cards: Array = []
 
 var _draw: Array = []
 var _used: Array = []
@@ -109,6 +112,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	flush_played = false
 	_last_play_size = 0
 	_last_play_damage = 0
+	killing_cards = []
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -297,6 +301,7 @@ func play(selected: Array) -> void:
 	_refill()
 	if enemy_hp <= 0:
 		enemy_hp = 0
+		killing_cards = cards.duplicate()
 		_finish(true)
 		return
 	# Deck burnout: an all-glass deck can shatter itself to nothing. With no cards anywhere the
