@@ -216,3 +216,24 @@ T3 Zaslony III-V zmieniajace ZASADY + Ksiega Astrologa, T4 odwrocone karty (po P
 inwersja ZAGESZCZA talie, 1.86%->4.83% szansy na Kolor), T5 blizny (wlasne pole `scar`, bo
 `growth` jest celowo nietrwaly). T6 swiadomie zastapione prawami pola biomow.
 ZASADA, ktora sie oplacila: pomiar przed kodem. Dwa razy obalil zalozenie planu.
+
+## Wieza 3D + raport balansu (2026-07-30, czwarta tura) — ZROBIONE
+WIEZA 3D (`src/game/region/tower_view.gd`): biom to wspinaczka, a byl rysowany jako stos plaskich
+plakietek. Teraz stoi prawdziwa wieza w ciemnosci — jeden beben kamienia na szczebel, zwezajaca
+sie ku gorze, zwienczona blankami. Budowana PROCEDURALNIE z prymitywow (projekt nie ma pipeline'u
+3D, a wieza z liczb zostaje edytowalna z liczb) i renderowana do SubViewportu, wiec cale 2D UI mapy
+(etykiety szczebli, tooltipy, omen, przyciski) dziala nad nia bez zmian.
+Klimat niesie SWIATLO, nie farba: prawie czarne tlo, gesta krotka mgla, jeden cieply kaganek u
+stop i zimny rim z tylu wycinajacy sylwetke z pustki. Kondygnacja, na ktorej stoisz, ma zapalone
+okna; szczyt plonie czerwono; zdobyte szczeble to zimny kamien. Ziarno muru z FastNoiseLite
+(cellular) generowane w runtime — bez tekstury bebny czytaja sie jak gladki plastik.
+DWIE PULAPKI OMINIETE SWIADOMIE: SubViewport dostaje WLASNY World3D i kamera ma jawnie
+`current = true` (dziedziczenie swiata glownego viewportu to klasyczny objaw "wszystko czarne");
+tint albedo MNOZY teksture, wiec kamien zostaje sredniosszary, a ciemnosc bierze sie ze swiatla —
+prawie czarny tint dalby czarna plyte pod kazda lampa. Wydajnosc pod software GL: bez cieni,
+bez SDFGI, bez mgly wolumetrycznej, cylindry po 14 segmentow.
+
+NAPRAWIONE PRZY ZBIERANIU DANYCH: bot nie umial obsluzyc WYBORU KARTY Z TALII, wiec omeny
+Kochankow i Smierci (ktore rozwiazuje sie wskazaniem karty, nie przyciskiem) zapetlaly go na
+mapie i po cichu zjadly kilka runow balansowych. `tools/dev/balance_report.py` agreguje logi
+przeklikow w raport (uklady realnie grane, obrazenia, dlugosc walk, zakonczenia).
