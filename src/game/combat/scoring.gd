@@ -36,9 +36,13 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	var glass_count: int = 0
 	var kombinat_cards: Array = []
 
+	# A splashed card counts under BOTH of its colours, which is the whole point of carving one:
+	# it makes a two-colour deck coherent instead of a compromise. Bujnosc, Symbioza, the Seal
+	# law and the relics all read this table, so they learn about hybrids for free.
 	var aspect_counts: Dictionary = {}
 	for c in cards:
-		aspect_counts[c.aspect] = int(aspect_counts.get(c.aspect, 0)) + 1
+		for a in c.aspects():
+			aspect_counts[int(a)] = int(aspect_counts.get(int(a), 0)) + 1
 
 	# THE KEYSTONE (docs/PLAN_TODO.md T1): the LAST card in the play order carries double weight.
 	# This is what turns "which five cards" -- one right answer -- into "which five, and which
@@ -52,7 +56,7 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		var key: int = 2 if ci == keystone else 1
 		chips += c.chip_value() * key
 		retrig_total += c.chip_value() * key
-		if c.aspect == Aspects.Id.CHAOS:
+		if c.has_aspect(Aspects.Id.CHAOS):
 			chaos_count += 1
 		# A reversed card pays for the colour it gave up. Multiplicative, and deliberately smaller
 		# than it looks: five of them is already x6.4, and the real cost is that the card now
@@ -83,13 +87,17 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 			CardData.Keyword.ZNIWO:
 				mult += float(c.keyword_value * grave)   # MULTIPLYING: never keystoned
 			CardData.Keyword.BUJNOSC:
-				if int(aspect_counts[c.aspect]) >= 3:
+				if int(aspect_counts.get(int(c.aspect), 0)) >= 3:
 					chips += c.keyword_value * key
 			CardData.Keyword.SYMBIOZA:
 				# +value chips per allied-colour card played alongside (pentagram neighbours)
 				var pals: Array = Aspects.allies(c.aspect)
 				for other in cards:
-					if other != c and pals.has(other.aspect):
+					var allied := false
+					for oa in other.aspects():
+						if pals.has(int(oa)):
+							allied = true
+					if other != c and allied:
 						chips += c.keyword_value * key
 			CardData.Keyword.FURIA:
 				has_furia = true
@@ -137,7 +145,7 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		match relic.effect:
 			ArcanumData.Effect.MULT_IF_ASPECT:
 				for c in cards:
-					if c.aspect == relic.effect_aspect:
+					if c.has_aspect(relic.effect_aspect):
 						mult *= 1.0 + (relic.effect_mult - 1.0) * magnify_k
 						break
 			ArcanumData.Effect.PACT_MULT:

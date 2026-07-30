@@ -751,3 +751,6 @@ PICK_INVERT,Choose a card to reverse,Wybierz kartę do odwrócenia
 BOOK_TITLE,Astrologer's Book,Księga Astrologa
 BOOK_EMPTY,"No Daily Fate walked yet. The same date deals the same cards to everyone.","Żaden Dzienny Los jeszcze nie przeszedł. Ta sama data rozdaje wszystkim te same karty."
 BOOK_ROW,%s — %d dmg / %d duels,%s — %d obr. / %d pojedynków
+SHOP_SPLASH,Carve a second colour (%d),Wyrzeźb drugi kolor (%d)
+SHOP_SPLASH_TIP,"The card gains an ALLIED second Aspect and counts as BOTH -- for flushes, Bujnosc, Symbioza and relics alike.","Karta zyskuje SPRZYMIERZONY drugi Aspekt i liczy się jako OBA — do koloru, Bujności, Symbiozy i reliktów."
+PICK_SPLASH,Choose a card to carve,Wybierz kartę do wyrzeźbienia

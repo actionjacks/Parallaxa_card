@@ -55,6 +55,19 @@ var scar: int = 0
 ## keep working unchanged. This flag only drives the payoff multiplier and the inverted art.
 var inverted: bool = false
 
+## SPLASH (docs/todo.md "Karty Dwukolorowe"): a SECOND Aspect the card also counts as, carved in
+## a shop. -1 = single-coloured. A splashed card belongs to BOTH colours at once, which is what
+## makes a two-colour deck coherent instead of a compromise.
+var splash: int = -1
+
+## Every Aspect this card counts as. One entry for a plain card, two for a splashed one --
+## everything that asks about colour asks THIS, so a hybrid works everywhere at once.
+func aspects() -> Array:
+	return [int(aspect), splash] if splash >= 0 else [int(aspect)]
+
+func has_aspect(a: int) -> bool:
+	return int(aspect) == a or splash == a
+
 ## Chip material a card contributes: pips = face, Ace = 11, courts flat 10 (Balatro-like).
 func chip_value() -> int:
 	var base := rank

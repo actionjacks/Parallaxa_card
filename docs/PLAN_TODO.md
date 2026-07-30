@@ -65,7 +65,7 @@ trwala mutacja talii, wiec idzie do T5, nie tutaj.
 
 ---
 
-## T2. HYBRYDY DWUKOLOROWE + SEKRETNE UKLADY (Pentagram, Pelny Dwor)
+## T2. HYBRYDY DWUKOLOROWE + SEKRETNE UKLADY (Pentagram, Pelny Dwor)  ✅ WDROZONE (2026-07-30)
 
 **Wartosc 4/5 · Koszt M (same uklady) / L (hybrydy) · Konflikt: NIE · Po T1**
 
@@ -91,7 +91,7 @@ Magnum Opus komus, kto zagral Pentagram. **Przed T2 przejsc calosc na `value_of`
 
 ---
 
-## T3. METAGRA: WTAJEMNICZENIA + KSIEGA ASTROLOGA
+## T3. METAGRA: WTAJEMNICZENIA + KSIEGA ASTROLOGA  ✅ WDROZONE (2026-07-30)
 
 **Wartosc 4/5 · Koszt M · Konflikt: NIE (determinizm jest tu ATUTEM) · Po biomach**
 
@@ -114,7 +114,7 @@ jest smieciowy.
 
 ---
 
-## T4. ODWROCONE KARTY / INWERSJA ASPEKTU
+## T4. ODWROCONE KARTY / INWERSJA ASPEKTU  ✅ WDROZONE (2026-07-30)
 
 **Wartosc 3/5 · Koszt M · Konflikt: TAK, rozwiazywalny · Po T2**
 
@@ -132,7 +132,7 @@ musi zachowywac kolor i zmieniac tylko RANGE.
 
 ---
 
-## T5. EWOLUCJA KART W RUNIE (Blizny i Blogoslawienstwa)
+## T5. EWOLUCJA KART W RUNIE (Blizny i Blogoslawienstwa)  ✅ WDROZONE (2026-07-30)
 
 **Wartosc 3/5 · Koszt M · Konflikt: NIE (o ile wyzwalacz jawny) · Po T2**
 
@@ -183,3 +183,29 @@ jest dostarczona za ulamek kosztu.
 Ta gra ma juz jeden precedens, w ktorym "oczywista" zmiana projektowa (talia 70 kart) zostala
 odrzucona, bo pomiar pokazal, ze **pogarsza** dokladnie te skarge, ktora miala naprawic
 (P(najlepszy uklad <= dwie pary) 78.1% wobec 42.8%). Liczby przed intuicja.
+
+
+---
+
+## STAN KONCOWY (2026-07-30)
+
+Wszystkie szesc pomyslow z todo.md jest zamknietych:
+
+| | Co | Jak wyszlo |
+|---|---|---|
+| T1 | Klucz | ostatnia karta x2 (chipsy + plaskie keywordy); numery 1..5 + zlota plakietka |
+| T2 | Pentagram / Pelny Dwor | ZMIERZONE: Pentagram dostepny 40.2%, wiec 30x3 + zwrot odrzutu; grany 16%, zabral udzial DWOM PAROM (34.9->21.3%), Koloru nie ruszyl |
+| T2b | Hybrydy | drugi aspekt karty (`splash`); flush i Pentagram to teraz problem POKRYCIA, nie zliczania |
+| T3 | Wtajemniczenia | Zaslony III-V zmieniaja ZASADY: sklep 2 karty / Klucz wylaczony / brak calego Aspektu |
+| T3 | Ksiega Astrologa | rekord na Dzienny Los w profilu + w menu (lokalnie, bez serwera) |
+| T4 | Odwrocone karty | ZMIERZONE: inwersja NIE glodzi Koloru, zageszcza go (1.86%->4.83%); x1.45 Mult, sklep 6 |
+| T5 | Blizny | karta konczaca bossa: +5 chipow na stale, wlasne zapisywane pole `scar` |
+| T6 | Rozklady tarota | swiadomie zastapione PRAWAMI POLA biomow (pelna wersja to drugi tryb gry, nie modyfikator) |
+
+Kazdy punkt ma testy w `tests/test_combat.gd` (13 nowych asercji), w tym przypadki NEGATYWNE:
+Cesarzowa NIE leczy sie przy pieciu kartach, a strit z pieciu aspektow NIE spada do Pentagramu.
+
+CO ZOSTAJE DLA CZLOWIEKA (bot tego nie sprawdzi):
+- balans praw biomow, zwlaszcza Biblioteka (+1 karta w rece) i Pogorzelisko (x1.5 za piec kart);
+- czy Zaslona V (brak calego Aspektu) jest ciekawa czy tylko frustrujaca;
+- czy cena inwersji (6) i rzezbienia (9) jest wlasciwa wobec 5 za karte.

@@ -199,3 +199,20 @@ ostatniej; kolejnosc klikania = kolejnosc zagrania.
 NAPRAWIONE (oba wykryte OBSERWACJA bota, nie czytaniem kodu): final podrozy testowal stara
 tablice 4 regionow, wiec po upadku Swiata run ladowal Swiat PONOWNIE w kolko; harness znal tylko
 OMEN_TAKE/OMEN_SKIP, wiec omeny-prezenty z E1 (jeden przycisk OMEN_GIFT) zapetlaly go na mapie.
+
+## Domkniecie dlugow + CALE todo.md (2026-07-30, trzecia tura) — ZROBIONE
+DLUGI: (1) boss_empress/boss_wheel/boss_fool mialy `rule_key` bez `rule` — gra WYPISYWALA regule
+pola i nic sie nie dzialo; wdrozone EMPRESS_BLOOM (leczy 40 przy zagraniu <5 kart), WHEEL_TURN
+(cykl intencji przeskakuje o krok), FOOL_MIRROR (intencja = twoj ostatni cios /14, clamp 8-34,
+z podgladem na ZAINSCENIZOWANYM zagraniu, nie na poprzednim). (2) Plakietka 5 pieczeci w menu
+(wypelnione/puste sigile + lista brakujacych). (3) Biom Zapieczetowany PRZEKLIKANY (PT_SEAL=1):
+brama ma trzy drzwi, Asy + Glupiec rozegrani. (4) region_01..03 wycofane; Glebia wchodzila w nie
+zamiast wspinac sie na kolejna wieze.
+
+TODO.MD ZAMKNIETE W CALOSCI (szczegoly i liczby w docs/PLAN_TODO.md):
+T1 Klucz, T2 Pentagram+Pelny Dwor (po POMIARZE: dostepny 40.2% -> wyceniony na TEMPO, nie
+obrazenia; grany 16%, kosztem dwoch par, Kolor nietkniety), T2b hybrydy dwukolorowe (`splash`),
+T3 Zaslony III-V zmieniajace ZASADY + Ksiega Astrologa, T4 odwrocone karty (po POMIARZE:
+inwersja ZAGESZCZA talie, 1.86%->4.83% szansy na Kolor), T5 blizny (wlasne pole `scar`, bo
+`growth` jest celowo nietrwaly). T6 swiadomie zastapione prawami pola biomow.
+ZASADA, ktora sie oplacila: pomiar przed kodem. Dwa razy obalil zalozenie planu.

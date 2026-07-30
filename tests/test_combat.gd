@@ -21,6 +21,9 @@ func _initialize() -> void:
 	fails += _expect("a scar adds permanent chips and survives a save round-trip", _scar_persists())
 	fails += _expect("a reversed card multiplies Mult by 1.45", _inverted_mult())
 	fails += _expect("Aspects.foes are the two NON-neighbours on the wheel", _foes_are_non_neighbours())
+	fails += _expect("a splashed card completes a Flush of either colour", _splash_flush())
+	fails += _expect("a splashed card can fill an empty Pentagram seat", _splash_pentagram())
+	fails += _expect("a splash counts for BOTH colours in aspect_counts", _splash_counts_twice())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -473,6 +476,39 @@ func _foes_are_non_neighbours() -> bool:
 			if Aspects.allies(a).has(x) or x == a:
 				return false
 	return true
+
+## Four LIFE cards plus a MIND card carved with a LIFE splash: still a Flush, because the
+## hybrid supplies the shared colour.
+func _splash_flush() -> bool:
+	var cards: Array = []
+	for i in 4:
+		cards.append(_card(2 + i, 0))
+	var hybrid := _card(9, 1)
+	hybrid.splash = 0
+	cards.append(hybrid)
+	return Poker.evaluate(cards) == Poker.Hand.FLUSH
+
+## Four distinct colours plus a hybrid holding the fifth: the circle closes.
+func _splash_pentagram() -> bool:
+	var cards: Array = []
+	for a in 4:
+		cards.append(_card(2 + a, a))
+	var hybrid := _card(9, 0)
+	hybrid.splash = 4
+	cards.append(hybrid)
+	return Poker.evaluate(cards) == Poker.Hand.PENTAGRAM
+
+## Bujnosc asks whether three cards share its colour; a hybrid has to be able to be the third.
+func _splash_counts_twice() -> bool:
+	var a := _card(5, 0)
+	a.keyword = CardData.Keyword.BUJNOSC
+	a.keyword_value = 20
+	var b := _card(6, 0)
+	var hybrid := _card(7, 1)
+	hybrid.splash = 0
+	var with_hybrid: Dictionary = Scoring.score([a, b, hybrid], [], {})
+	var without: Dictionary = Scoring.score([a, b, _card(7, 1)], [], {})
+	return int(with_hybrid["chips"]) - int(without["chips"]) == 20
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

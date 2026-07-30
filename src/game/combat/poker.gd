@@ -110,10 +110,10 @@ static func _secret_hand(cards: Array) -> int:
 			court[c.rank] = true
 	if court.size() == 4:
 		return Hand.FULL_COURT
-	var asp := {}
-	for c in cards:
-		asp[c.aspect] = true
-	if asp.size() == 5:
+	# Splashed cards make this a MATCHING problem, not a count: a hybrid can fill whichever
+	# colour seat is still empty, so the question is whether five different Aspects can be
+	# assigned one per card.
+	if _covers_five(cards):
 		return Hand.PENTAGRAM
 	return -1
 
@@ -152,14 +152,38 @@ static func _evaluate_plain(cards: Array) -> int:
 		return Hand.PAIR
 	return Hand.HIGH_CARD
 
+## A flush is five cards sharing ONE colour. A splashed card counts as either of its two, so the
+## question is no longer "are all aspects equal" but "does some colour appear on every card".
+## Can these five cards be assigned five DIFFERENT Aspects, one each? With splashed cards this
+## is a matching problem, not a count -- five cards over five colours is small enough to solve by
+## exhaustive assignment, and it stays deterministic.
+static func _covers_five(cards: Array) -> bool:
+	return _assign(cards, 0, {})
+
+static func _assign(cards: Array, i: int, used: Dictionary) -> bool:
+	if i >= cards.size():
+		return used.size() == 5
+	for a in cards[i].aspects():
+		if used.has(int(a)):
+			continue
+		used[int(a)] = true
+		if _assign(cards, i + 1, used):
+			return true
+		used.erase(int(a))
+	return false
+
 static func _is_flush(cards: Array) -> bool:
 	if cards.size() != 5:
 		return false
-	var a: int = cards[0].aspect
-	for c in cards:
-		if c.aspect != a:
-			return false
-	return true
+	for a in cards[0].aspects():
+		var all := true
+		for c in cards:
+			if not c.has_aspect(int(a)):
+				all = false
+				break
+		if all:
+			return true
+	return false
 
 static func _is_straight(cards: Array, counts: Dictionary) -> bool:
 	if cards.size() != 5 or counts.size() != 5:

@@ -161,6 +161,21 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 	spine.offset_right = SPINE_W
 	spine.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(spine)
+	# A splashed card wears BOTH colours: the spine splits down the middle and a second sigil
+	# sits under the first. A hybrid the player cannot SEE is a hybrid they will never plan with.
+	if card.splash >= 0:
+		var col2 := Aspects.color(card.splash)
+		var half := ColorRect.new()
+		half.color = Color(col2, 0.95)
+		half.anchor_top = 0.5
+		half.anchor_bottom = 1.0
+		half.offset_right = SPINE_W
+		half.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layers.add_child(half)
+		var sig2 := AspectSigil.new(card.splash, col2, true)
+		sig2.position = Vector2(SPINE_W + CARD_SIZE.y * 0.20 * 0.80, CARD_SIZE.y * 0.20 * 1.05)
+		sig2.size = Vector2(CARD_SIZE.y * 0.20 * 0.60, CARD_SIZE.y * 0.20 * 0.60)
+		layers.add_child(sig2)
 	# rank badge + suit sigil, top-left: rank and SUIT together, so a hand can be counted by eye
 	var badge_h: float = CARD_SIZE.y * 0.20
 	var badge := ColorRect.new()

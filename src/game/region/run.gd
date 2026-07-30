@@ -27,6 +27,9 @@ const THIN_COST := 3
 ## Turning a card upside down: it pays x1.45 Mult and BECOMES its enemy colour. Priced above
 ## thinning because it is the only tool that reshapes the deck's colour identity.
 const INVERT_COST := 6
+## Carving a SECOND colour into a card: the dearest shop action, because a hybrid counts for
+## both colours everywhere at once and is how a two-colour deck stops being a compromise.
+const SPLASH_COST := 9
 
 ## Veil III -- the Sealed Market: one fewer card on the counter. The economy stops being a
 ## shopping list and becomes a choice between two compromises.
@@ -576,8 +579,12 @@ func _show_shop() -> void:
 	var invert := _button(tr("SHOP_INVERT") % _cost(INVERT_COST), _invert_card)
 	invert.disabled = RunState.rtec < _cost(INVERT_COST) or RunState.deck.is_empty()
 	invert.tooltip_text = tr("SHOP_INVERT_TIP")
+	var splash := _button(tr("SHOP_SPLASH") % _cost(SPLASH_COST), _splash_card)
+	splash.disabled = RunState.rtec < _cost(SPLASH_COST) or RunState.deck.is_empty()
+	splash.tooltip_text = tr("SHOP_SPLASH_TIP")
 	controls.add_child(thin)
 	controls.add_child(invert)
+	controls.add_child(splash)
 	controls.add_child(_button(tr("SHOP_NEXT"), _leave_shop))
 	root.add_child(controls)
 	_mount(root)
@@ -620,6 +627,25 @@ func _invert_card() -> void:
 		RunState.changed.emit()
 		_show_shop()
 	_open_deck_picker(tr("PICK_INVERT"), cb)
+
+## THE SPLASH (docs/todo.md "Karty Dwukolorowe"): carve an ALLIED colour into a card, so it
+## counts for both. Allied, not enemy -- the Lovers join what already belongs together, and a
+## hybrid of two opposed colours would let one card serve any flush at all.
+func _splash_card() -> void:
+	if RunState.rtec < _cost(SPLASH_COST) or RunState.deck.is_empty():
+		return
+	var cb := func(card: CardData) -> void:
+		if card.splash >= 0:
+			return                       # a card carries at most two colours
+		var pals: Array = Aspects.allies(card.aspect)
+		if pals.is_empty():
+			return
+		card.splash = int(pals[0])
+		RunState.spend(_cost(SPLASH_COST))
+		RunState.stat_bought += 1
+		RunState.changed.emit()
+		_show_shop()
+	_open_deck_picker(tr("PICK_SPLASH"), cb)
 
 func _enchant(edition: CardData.Edition) -> void:
 	if RunState.rtec < _cost(ENCHANT_COST) or RunState.deck.is_empty():
