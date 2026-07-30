@@ -544,6 +544,10 @@ func _pool() -> Array:
 		[8, A.MIND, KW.KOMBINAT, 50, R.RARE], [13, A.MIND, KW.KOMBINAT, 75, R.LEGENDARY],
 		# wave C: rooting block (the defensive twin of Wzrost)
 		[5, A.NATURE, KW.KORZENIE, 4, R.RARE], [9, A.NATURE, KW.KORZENIE, 6, R.RARE],
+		# wave D: the POSITIONAL pair. Both are worthless in the wrong seat, which is the point --
+		# they are the first cards that make the player compose a play rather than pick a set.
+		[6, A.MIND, KW.WROZBA, 8, R.RARE], [11, A.MIND, KW.WROZBA, 14, R.LEGENDARY],
+		[4, A.DEATH, KW.OFIARA, 0, R.RARE], [12, A.DEATH, KW.OFIARA, 0, R.LEGENDARY],
 	]
 
 ## The alt starters are the SAME grid bent toward a philosophy: their two colours run the full

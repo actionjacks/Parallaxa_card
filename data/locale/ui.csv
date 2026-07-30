@@ -754,3 +754,8 @@ BOOK_ROW,%s — %d dmg / %d duels,%s — %d obr. / %d pojedynków
 SHOP_SPLASH,Carve a second colour (%d),Wyrzeźb drugi kolor (%d)
 SHOP_SPLASH_TIP,"The card gains an ALLIED second Aspect and counts as BOTH -- for flushes, Bujnosc, Symbioza and relics alike.","Karta zyskuje SPRZYMIERZONY drugi Aspekt i liczy się jako OBA — do koloru, Bujności, Symbiozy i reliktów."
 PICK_SPLASH,Choose a card to carve,Wybierz kartę do wyrzeźbienia
+KW_WROZBA,Wróżba,Wróżba
+KWD_WROZBA,"Played FIRST: every card to its right scores +%d chips.","Zagrana PIERWSZA: każda karta na prawo od niej liczy +%d chipsów."
+KW_OFIARA,Ofiara,Ofiara
+KWD_OFIARA,"Played LAST: devours the card to its left — that card is destroyed and its chips are added to this one.","Zagrana OSTATNIA: pożera kartę po swojej lewej — ta karta ginie, a jej chipsy dochodzą do tej."
+LOG_OFIARA,The sacrifice devours: +%d chips,Ofiara pożera: +%d chipsów

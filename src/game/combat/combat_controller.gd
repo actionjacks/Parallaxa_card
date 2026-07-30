@@ -297,6 +297,15 @@ func play(selected: Array) -> void:
 			c.wear += 1
 			if c.wear >= c.keyword_value:
 				destroyed_cards.append(c)
+	# THE SACRIFICE (docs/todo.md par.1): an Ofiara played last devours its left-hand neighbour.
+	# The victim leaves the fight for good, exactly like shattered glass, and the run deck loses
+	# it after a won fight -- so the geometry of a play can permanently reshape the deck.
+	var eaten: int = int(result.get("devoured", -1))
+	if eaten >= 0 and eaten < cards.size():
+		var victim: CardData = cards[eaten]
+		if not destroyed_cards.has(victim):
+			destroyed_cards.append(victim)
+		message.emit("LOG_OFIARA", [victim.chip_value()])
 	_move_to_used(selected)
 	_refill()
 	if enemy_hp <= 0:

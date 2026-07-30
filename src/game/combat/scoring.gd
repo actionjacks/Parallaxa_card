@@ -51,11 +51,32 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	# x2 on glass would hand out x8 for a click. Off by default (ctx has no "keystone"), so every
 	# existing test asserts the same numbers it always did.
 	var keystone: int = (cards.size() - 1) if bool(ctx.get("keystone", false)) and cards.size() > 1 else -1
+
+	# --- POSITIONAL PASS (docs/todo.md par.1). Resolved BEFORE anything scores, because both of
+	# these change WHAT is in the play rather than how much it is worth.
+	# WROZBA: if the FIRST card foretells, every card to its right gains chips.
+	var foretold: int = 0
+	if cards.size() > 1 and cards[0].keyword == CardData.Keyword.WROZBA:
+		foretold = cards[0].keyword_value
+	# OFIARA: if the LAST card is a sacrifice, it devours its left-hand neighbour. The victim is
+	# REPORTED, not mutated here -- Scoring stays a pure function and the controller does the
+	# destroying, exactly as glass (PRZECIAZENIE) already works.
+	var devoured: int = -1
+	var devoured_chips: int = 0
+	if cards.size() > 1 and cards[cards.size() - 1].keyword == CardData.Keyword.OFIARA:
+		devoured = cards.size() - 2
+		devoured_chips = cards[devoured].chip_value()
 	for ci in cards.size():
 		var c = cards[ci]
 		var key: int = 2 if ci == keystone else 1
+		if ci == devoured:
+			continue          # eaten by the Ofiara to its right: it scores nothing itself
 		chips += c.chip_value() * key
 		retrig_total += c.chip_value() * key
+		if foretold > 0 and ci > 0:
+			chips += foretold * key      # everything to the right of the Wrozba
+		if ci == devoured + 1 and devoured >= 0:
+			chips += devoured_chips * key   # the sacrifice swallows its neighbour whole
 		if c.has_aspect(Aspects.Id.CHAOS):
 			chaos_count += 1
 		# A reversed card pays for the colour it gave up. Multiplicative, and deliberately smaller
@@ -198,6 +219,9 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		# The Pentagram's real payout is TEMPO: closing the circle hands a discard back, which is
 		# why it can sit at 30x3 without becoming the default play in the 40% of hands that hold one.
 		"refund_discard": hand == Poker.Hand.PENTAGRAM,
+		# index WITHIN the played set of the card the Ofiara devoured (-1 = none). The controller
+		# destroys it; Scoring never mutates the cards it is asked about.
+		"devoured": devoured,
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,

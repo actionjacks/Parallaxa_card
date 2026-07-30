@@ -16,7 +16,13 @@ extends Resource
 ## MIND Kombinat (xMult grows per consecutive play of the same hand type).
 ## Wave C (appended): NATURE Korzenie -- block that ROOTS: +2 block for every turn the card
 ## waited in hand (run-local ramp, preview-exact; the block twin of Wzrost).
-enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA, PRZECIAZENIE, LAWINA, KOMBINAT, KORZENIE }
+## Wave D -- POSITIONAL keywords (docs/todo.md par.1). These are the first keywords whose effect
+## depends on WHERE in the play the card sits, which is what turns "which five cards" into a
+## sentence you compose rather than a set you pick:
+##   WROZBA (MIND)  played FIRST, it foretells: every card to its RIGHT scores +value chips.
+##   OFIARA (DEATH) played LAST, it devours the card immediately to its LEFT -- that card is
+##                  destroyed and its chips are absorbed for the rest of the fight.
+enum Keyword { NONE, OSLONA, OPATRZNOSC, GNICIE, ZNIWO, FURIA, SPALENIE, ECHO, BUJNOSC, WZROST, SYMBIOZA, PIJAWKA, KLATWA, PRZECIAZENIE, LAWINA, KOMBINAT, KORZENIE, WROZBA, OFIARA }
 
 ## Shop editions (bought with Rtec): Foil +chips, Holo +mult, Polychrome xmult.
 enum Edition { NONE, FOIL, HOLO, POLYCHROME }
@@ -105,6 +111,8 @@ static func keyword_name_key(kw: int) -> String:
 		Keyword.LAWINA: return "KW_LAWINA"
 		Keyword.KOMBINAT: return "KW_KOMBINAT"
 		Keyword.KORZENIE: return "KW_KORZENIE"
+		Keyword.WROZBA: return "KW_WROZBA"
+		Keyword.OFIARA: return "KW_OFIARA"
 	return ""
 
 static func edition_name_key(e: int) -> String:
@@ -132,6 +140,8 @@ static func keyword_desc_key(kw: int) -> String:
 		Keyword.LAWINA: return "KWD_LAWINA"
 		Keyword.KOMBINAT: return "KWD_KOMBINAT"
 		Keyword.KORZENIE: return "KWD_KORZENIE"
+		Keyword.WROZBA: return "KWD_WROZBA"
+		Keyword.OFIARA: return "KWD_OFIARA"
 	return ""
 
 ## Aspect that a keyword thematically belongs to (for generated content / tinting).
@@ -146,4 +156,6 @@ static func keyword_aspect(kw: int) -> int:
 		Keyword.PRZECIAZENIE, Keyword.LAWINA: return Aspects.Id.CHAOS
 		Keyword.KOMBINAT: return Aspects.Id.MIND
 		Keyword.KORZENIE: return Aspects.Id.NATURE
+		Keyword.WROZBA: return Aspects.Id.MIND
+		Keyword.OFIARA: return Aspects.Id.DEATH
 	return Aspects.Id.LIFE

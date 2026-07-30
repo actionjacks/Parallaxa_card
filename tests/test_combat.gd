@@ -24,6 +24,11 @@ func _initialize() -> void:
 	fails += _expect("a splashed card completes a Flush of either colour", _splash_flush())
 	fails += _expect("a splashed card can fill an empty Pentagram seat", _splash_pentagram())
 	fails += _expect("a splash counts for BOTH colours in aspect_counts", _splash_counts_twice())
+	# Positional keywords (docs/todo.md par.1): the play is an ordered sentence, not a set.
+	fails += _expect("Wrozba played FIRST boosts every card to its right", _wrozba_chain())
+	fails += _expect("Wrozba played LAST boosts nothing", _wrozba_wrong_seat())
+	fails += _expect("Ofiara played LAST eats its left neighbour's chips", _ofiara_eats())
+	fails += _expect("the devoured card is destroyed, not just unscored", _ofiara_destroys())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -509,6 +514,54 @@ func _splash_counts_twice() -> bool:
 	var with_hybrid: Dictionary = Scoring.score([a, b, hybrid], [], {})
 	var without: Dictionary = Scoring.score([a, b, _card(7, 1)], [], {})
 	return int(with_hybrid["chips"]) - int(without["chips"]) == 20
+
+func _seer(value: int) -> CardData:
+	var c := _card(4, 1)
+	c.keyword = CardData.Keyword.WROZBA
+	c.keyword_value = value
+	return c
+
+## Foretelling from the FIRST seat adds its value to each of the other four cards.
+func _wrozba_chain() -> bool:
+	var plain: Array = [_card(4, 1), _card(5, 0), _card(6, 0), _card(7, 0), _card(8, 0)]
+	var withseer: Array = [_seer(10), _card(5, 0), _card(6, 0), _card(7, 0), _card(8, 0)]
+	var a: Dictionary = Scoring.score(plain, [], {})
+	var b: Dictionary = Scoring.score(withseer, [], {})
+	return int(b["chips"]) - int(a["chips"]) == 40      # four cards to its right, +10 each
+
+## The same card in the LAST seat foretells nothing -- position IS the mechanic.
+func _wrozba_wrong_seat() -> bool:
+	var plain: Array = [_card(5, 0), _card(6, 0), _card(7, 0), _card(8, 0), _card(4, 1)]
+	var last: Array = [_card(5, 0), _card(6, 0), _card(7, 0), _card(8, 0), _seer(10)]
+	return int(Scoring.score(last, [], {})["chips"]) == int(Scoring.score(plain, [], {})["chips"])
+
+func _knife() -> CardData:
+	var c := _card(3, 2)
+	c.keyword = CardData.Keyword.OFIARA
+	return c
+
+## The victim stops scoring for itself and its chips move into the sacrifice.
+func _ofiara_eats() -> bool:
+	var victim := _card(9, 0)          # 9 chips
+	var play: Array = [_card(2, 0), victim, _knife()]
+	var res: Dictionary = Scoring.score(play, [], {})
+	# without the sacrifice the same three cards score their own chips
+	var plainres: Dictionary = Scoring.score([_card(2, 0), _card(9, 0), _card(3, 2)], [], {})
+	return int(res["devoured"]) == 1 and int(res["chips"]) == int(plainres["chips"])
+
+## Eaten means GONE: the controller must move it into destroyed_cards, like shattered glass.
+func _ofiara_destroys() -> bool:
+	var ctrl := CombatController.new()
+	var deck: Array = [_card(2, 0), _card(9, 0), _knife()]
+	for i in 6:
+		deck.append(_card(4, 0))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [], 50, 50)
+	var before := ctrl.destroyed_cards.size()
+	ctrl.play([0, 1, 2])
+	return ctrl.destroyed_cards.size() == before + 1
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:
