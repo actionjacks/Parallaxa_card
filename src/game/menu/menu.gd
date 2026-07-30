@@ -319,6 +319,7 @@ func _open_character() -> void:
 	var xp_l := _lbl(tr("CHAR_XP") % [Profile.xp, need], 13, Color(0.6, 0.6, 0.68))
 	xp_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left.add_child(xp_l)
+	left.add_child(_seal_plaque())
 
 	# --- right: the lifetime ledger ---
 	var sbx := StyleBoxFlat.new()
@@ -587,6 +588,42 @@ func _center_lbl(text: String, font_size: int, color: Color) -> Label:
 	var l := _lbl(text, font_size, color)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return l
+
+## THE FIVE SEALS: which colours have answered you, and which have not. This is the meta-goal
+## made visible -- a run yields exactly one seal, so the player has to come back for the colour
+## they are MISSING, and a goal you cannot see is not a goal.
+func _seal_plaque() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	var title := _lbl(tr("SEAL_PLAQUE"), 13, Color(0.72, 0.68, 0.5))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+	for a in [Aspects.Id.LIFE, Aspects.Id.MIND, Aspects.Id.DEATH, Aspects.Id.CHAOS, Aspects.Id.NATURE]:
+		var held: bool = Profile.has_seal(a)
+		# Held colours are FILLED, missing ones are hollow: the shape reads the state even for a
+		# player who cannot tell violet from red.
+		var sig := AspectSigil.new(a, Aspects.color(a) if held else Color(0.34, 0.34, 0.40), held)
+		sig.custom_minimum_size = Vector2(30, 30)
+		sig.tooltip_text = tr(Aspects.name_key(a)) + "\n" + tr("BIOME_SEAL_OWNED" if held else "BIOME_SEAL_OPEN")
+		sig.mouse_filter = Control.MOUSE_FILTER_STOP
+		row.add_child(sig)
+	box.add_child(row)
+	var line: Label
+	if Profile.seals_complete():
+		line = _lbl(tr("SEAL_PLAQUE_FULL"), 12, Color(0.95, 0.9, 0.75))
+	else:
+		var missing: Array = []
+		for a in Profile.seals_missing():
+			missing.append(tr(Aspects.name_key(a)))
+		line = _lbl(tr("SEAL_MISSING") % ", ".join(missing), 12, Color(0.62, 0.6, 0.68))
+	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.custom_minimum_size = Vector2(220, 0)
+	box.add_child(line)
+	return box
 
 func _lbl(text: String, font_size: int, color: Color) -> Label:
 	var l := Label.new()
