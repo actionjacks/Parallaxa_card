@@ -629,6 +629,15 @@ func _invert_card() -> void:
 		# they are buying before they spend.
 		card.aspect = foes[0] as Aspects.Id
 		card.inverted = true
+		# A carved second colour must FOLLOW the reversal. Left alone it stayed allied to the OLD
+		# aspect, which after the flip is an ENEMY of the new one -- and a hybrid of two opposed
+		# colours is exactly what _splash_card refuses to sell, because one such card closes a
+		# Flush in either of them. Neither shop action is wrong alone; the bug lived only in
+		# buying both on the same card.
+		if card.splash >= 0:
+			var new_pals: Array = Aspects.allies(card.aspect)
+			if not new_pals.has(card.splash):
+				card.splash = int(new_pals[0])
 		RunState.spend(_cost(INVERT_COST))
 		RunState.stat_bought += 1
 		RunState.changed.emit()

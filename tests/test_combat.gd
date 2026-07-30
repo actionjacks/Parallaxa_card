@@ -40,6 +40,7 @@ func _initialize() -> void:
 	fails += _expect("CHAOS_KINDLING: five cards x1.5, one or two x0.75", _law_chaos())
 	fails += _expect("NATURE_OVERGROWTH: cards left in hand fatten", _law_nature())
 	fails += _expect("SEAL_FIVE: +1 Mult per distinct Aspect", _law_seal())
+	fails += _expect("a reversed card never ends up hybridised with an ENEMY colour", _splash_stays_allied())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -681,6 +682,24 @@ func _law_seal() -> bool:
 	var m_law: float = float(Scoring.score(mono, [], _law_ctx(6))["mult"])
 	var m_plain: float = float(Scoring.score(mono, [], {})["mult"])
 	return abs(r_law - (r_plain + 5.0)) < 0.001 and abs(m_law - (m_plain + 1.0)) < 0.001
+
+## Buying a splash and then a reversal on the same card used to leave the second colour allied to
+## the OLD aspect -- an enemy of the new one -- and one such card closes a Flush in either colour.
+## Neither shop action is wrong alone; only their composition was.
+func _splash_stays_allied() -> bool:
+	for a in 5:
+		var c := _card(7, a)
+		c.splash = int(Aspects.allies(a)[0])
+		var foes: Array = Aspects.foes(a)
+		# mirror what the shop does on a reversal
+		c.aspect = int(foes[0]) as Aspects.Id
+		c.inverted = true
+		var pals: Array = Aspects.allies(c.aspect)
+		if not pals.has(c.splash):
+			c.splash = int(pals[0])
+		if not Aspects.allies(c.aspect).has(c.splash):
+			return false
+	return true
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:
