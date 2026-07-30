@@ -8,7 +8,7 @@ extends SceneTree
 ## Env: PD_DECK=classic|reaper|gardener|oracle   PD_FIGHTS=2000   PD_TURNS=6
 
 const HAND_NAMES := ["HIGH", "PAIR", "2PAIR", "THREE", "STRAIGHT", "FLUSH", "FULL",
-	"FOUR", "STR_FLUSH", "FIVE", "MAGNUM"]
+	"FOUR", "STR_FLUSH", "FIVE", "MAGNUM", "PENTAGRAM", "FULLCOURT"]
 
 var _rng := RandomNumberGenerator.new()
 var _grave_size := 0     ## cards in the used pile right now (ZNIWO scales on this)

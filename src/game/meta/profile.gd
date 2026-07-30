@@ -137,7 +137,7 @@ func check_run_achievements(victory: bool) -> Array:
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
 	# Wave C: the prestige ledger (no unlocks -- proof, not power).
-	if RunState.stat_best_hand >= Poker.Hand.MAGNUM_OPUS and grant_achievement("ACH_MAGNUM"):
+	if RunState.stat_best_hand == Poker.Hand.MAGNUM_OPUS and grant_achievement("ACH_MAGNUM"):
 		fresh.append("ACH_MAGNUM")
 	var any_reversed := false
 	for a: ArcanumData in RunState.relics:

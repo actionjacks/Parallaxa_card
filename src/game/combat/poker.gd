@@ -4,7 +4,10 @@ class_name Poker
 
 ## MAGNUM_OPUS (appended, enum append-only): the secret apex -- five of a kind, all one Aspect.
 ## Never dealt from the starter (max 3 of a rank there); only ENGINEERED via drafted duplicates.
-enum Hand { HIGH_CARD, PAIR, TWO_PAIR, THREE, STRAIGHT, FLUSH, FULL_HOUSE, FOUR, STRAIGHT_FLUSH, FIVE, MAGNUM_OPUS }
+## PENTAGRAM and FULL_COURT are the SECRET hands (docs/todo.md): appended, never inserted.
+##  PENTAGRAM  five cards, one of EACH Aspect -- the pentagram itself
+##  FULL_COURT Page, Knight, Queen and King together -- the whole court of the Minor Arcana
+enum Hand { HIGH_CARD, PAIR, TWO_PAIR, THREE, STRAIGHT, FLUSH, FULL_HOUSE, FOUR, STRAIGHT_FLUSH, FIVE, MAGNUM_OPUS, PENTAGRAM, FULL_COURT }
 
 ## Base [chips, mult] per hand — payouts follow this deck's TRUE rarity, not inherited 4-suit lore.
 ##
@@ -28,6 +31,14 @@ const BASE: Dictionary = {
 	Hand.STRAIGHT_FLUSH: [100, 10],
 	Hand.FIVE: [120, 12],
 	Hand.MAGNUM_OPUS: [160, 16],
+	# MEASURED on the live deck (probe_deckmath): a Pentagram is available in 40.2% of hands.
+	# Paying it like a Flush would make it the DEFAULT play and kill the Flush we just repaired,
+	# so its power is TEMPO, not damage: modest chips and a discard handed back (Scoring returns
+	# "refund_discard"). Pentagram versus Full House then costs the player something either way.
+	Hand.PENTAGRAM: [30, 3],
+	# The full court cannot be dealt from a starter deck at all (0.00% measured -- courts arrive
+	# only from rewards and shops), so it is pure engineering and paid like it.
+	Hand.FULL_COURT: [110, 9],
 }
 
 ## Payout value of a hand at a given level -- the ONLY correct way to compare two hands in this
@@ -48,6 +59,8 @@ const NAME_KEYS: Dictionary = {
 	Hand.STRAIGHT_FLUSH: "HAND_STRAIGHT_FLUSH",
 	Hand.FIVE: "HAND_FIVE",
 	Hand.MAGNUM_OPUS: "HAND_MAGNUM_OPUS",
+	Hand.PENTAGRAM: "HAND_PENTAGRAM",
+	Hand.FULL_COURT: "HAND_FULL_COURT",
 }
 
 ## Per-level base gains for each hand ("Star" consumables level hands up, Balatro-Planet style).
@@ -63,6 +76,8 @@ const LEVEL_UP: Dictionary = {
 	Hand.STRAIGHT_FLUSH: [40, 4],
 	Hand.FIVE: [50, 3],
 	Hand.MAGNUM_OPUS: [50, 5],
+	Hand.PENTAGRAM: [20, 2],
+	Hand.FULL_COURT: [35, 4],
 }
 
 ## Base [chips, mult] for a hand at the given level (level 0 = the BASE table).
@@ -74,7 +89,35 @@ static func leveled_base(hand: int, level: int) -> Array:
 static func name_key(hand: int) -> String:
 	return NAME_KEYS.get(hand, "")
 
+## THE SECRET HANDS never DEMOTE a hand. A straight of five different Aspects is both a Straight
+## and a Pentagram; a Pentagram pays 90 and a Straight 120, so it stays a Straight. The rule is
+## simply "take whichever pays more", which also means adding a secret hand can never quietly
+## make an existing hand worse.
 static func evaluate(cards: Array) -> int:
+	var plain := _evaluate_plain(cards)
+	if cards.size() != 5:
+		return plain
+	var secret := _secret_hand(cards)
+	if secret < 0:
+		return plain
+	return secret if value_of(secret) > value_of(plain) else plain
+
+## FULL_COURT (Page+Knight+Queen+King) or PENTAGRAM (one card of every Aspect), else -1.
+static func _secret_hand(cards: Array) -> int:
+	var court := {}
+	for c in cards:
+		if c.rank >= 11:
+			court[c.rank] = true
+	if court.size() == 4:
+		return Hand.FULL_COURT
+	var asp := {}
+	for c in cards:
+		asp[c.aspect] = true
+	if asp.size() == 5:
+		return Hand.PENTAGRAM
+	return -1
+
+static func _evaluate_plain(cards: Array) -> int:
 	if cards.is_empty():
 		return Hand.HIGH_CARD
 	var counts: Dictionary = {}

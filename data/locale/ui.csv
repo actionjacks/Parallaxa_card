@@ -741,3 +741,6 @@ TOWER_SUMMIT,SUMMIT,SZCZYT
 TOWER_PROGRESS,Rung %d of %d,Szczebel %d z %d
 KEYSTONE_TAG,Keystone: last card scores double,Klucz: ostatnia karta liczy podwójnie
 LOG_EMPRESS_BLOOM,The Empress blooms: +%d HP,Cesarzowa rozkwita: +%d HP
+HAND_PENTAGRAM,Pentagram,Pentagram
+HAND_FULL_COURT,Full Court,Pełny Dwór
+LOG_PENTAGRAM,The Pentagram closes: a discard returns.,Pentagram się zamyka: odrzut wraca.

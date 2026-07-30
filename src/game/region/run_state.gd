@@ -257,7 +257,8 @@ func rest() -> int:
 func record_fight(won: bool, foe_key: String, c: CombatController) -> void:
 	stat_damage_total += c.fight_damage
 	stat_turns_total += c.turn
-	stat_best_hand = maxi(stat_best_hand, c.fight_best_hand)
+	if Poker.value_of(c.fight_best_hand) > Poker.value_of(stat_best_hand):
+		stat_best_hand = c.fight_best_hand
 	if c.flush_played:
 		stat_flush_played = true
 	if c.fight_best_hit > stat_best_hit:

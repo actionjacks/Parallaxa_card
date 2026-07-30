@@ -13,6 +13,11 @@ func _initialize() -> void:
 	fails += _expect("Empress does NOT bloom on a full five", _empress_heal(5) == 0)
 	fails += _expect("Wheel skips a step each turn (16, 9)", _wheel_intents() == [16, 9])
 	fails += _expect("Fool mirrors the blow (dmg/14, floor 8, cap 34)", _fool_answers())
+	# The secret hands (docs/todo.md T2)
+	fails += _expect("Pentagram: one card of every Aspect", _pentagram_reads() == Poker.Hand.PENTAGRAM)
+	fails += _expect("Pentagram hands a discard back", _pentagram_refund())
+	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
+	fails += _expect("Full Court: Page+Knight+Queen+King", _full_court_reads() == Poker.Hand.FULL_COURT)
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -387,6 +392,52 @@ func _fool_answers() -> bool:
 	var dealt: int = int(ctrl.last_score.get("damage", 0))
 	var want: int = clampi(dealt / 14, 8, 34)
 	return ctrl.current_intent() == want and ctrl.mirror_intent(700) == 34 and ctrl.mirror_intent(14) == 8
+
+func _card(rank: int, aspect: int) -> CardData:
+	var c := CardData.new()
+	c.rank = rank
+	c.aspect = aspect as Aspects.Id
+	return c
+
+func _pentagram_reads() -> int:
+	return Poker.evaluate([_card(2, 0), _card(4, 1), _card(6, 2), _card(8, 3), _card(10, 4)])
+
+## Five consecutive ranks that happen to be five different Aspects: a Straight pays 120 and a
+## Pentagram 90, so it must stay a Straight. Adding a hand may never make another hand worse.
+func _straight_not_demoted() -> int:
+	return Poker.evaluate([_card(3, 0), _card(4, 1), _card(5, 2), _card(6, 3), _card(7, 4)]) == Poker.Hand.STRAIGHT
+
+func _full_court_reads() -> int:
+	return Poker.evaluate([_card(11, 0), _card(12, 0), _card(13, 1), _card(14, 2), _card(5, 3)])
+
+func _pentagram_refund() -> bool:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 5:
+		deck.append(_card(2 + i * 2, i))
+	for i in 8:
+		deck.append(_card(9, 0))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [], 50, 50)
+	var before := ctrl.discards_left
+	ctrl.discard([0])                     # spend one so the refund has room
+	var spent := ctrl.discards_left
+	# the pentagram is now the first five of the refilled hand
+	var idx: Array = []
+	for i in ctrl.hand.size():
+		idx.append(i)
+	var asp := {}
+	var play: Array = []
+	for i in idx:
+		if not asp.has(ctrl.hand[i].aspect) and play.size() < 5:
+			asp[ctrl.hand[i].aspect] = true
+			play.append(i)
+	if play.size() < 5:
+		return false
+	ctrl.play(play)
+	return spent < before and ctrl.discards_left == before
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

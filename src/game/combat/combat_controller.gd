@@ -213,7 +213,10 @@ func play(selected: Array) -> void:
 	enemy_hp -= dmg
 	fight_damage += dmg
 	_dmg_this_round += dmg
-	fight_best_hand = maxi(fight_best_hand, int(result["hand"]))
+	# By PAYOUT, not by enum position: the enum is append-only, so a hand added at the end would
+	# otherwise outrank Magnum Opus purely by being newer.
+	if Poker.value_of(int(result["hand"])) > Poker.value_of(fight_best_hand):
+		fight_best_hand = int(result["hand"])
 	if int(result["hand"]) in [Poker.Hand.FLUSH, Poker.Hand.STRAIGHT_FLUSH, Poker.Hand.MAGNUM_OPUS]:
 		flush_played = true
 	if dmg > fight_best_hit:
@@ -273,6 +276,11 @@ func play(selected: Array) -> void:
 	# feeds on a short hand, the Fool strikes back with the blow he just took.
 	_last_play_size = cards.size()
 	_last_play_damage = dmg
+	# The Pentagram returns a discard (Scoring flags it) -- capped so it can never bank more
+	# discards than a turn starts with.
+	if bool(result.get("refund_discard", false)):
+		discards_left = mini(discards_left + 1, START_DISCARDS + _bonus_discards())
+		message.emit("LOG_PENTAGRAM", [])
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
 	if int(result["block"]) > 0:
 		message.emit("LOG_BLOCK", [int(result["block"])])

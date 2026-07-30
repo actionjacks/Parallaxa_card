@@ -182,6 +182,9 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	heal = mini(heal, int(ctx.get("heal_budget", 999999)))
 
 	return {
+		# The Pentagram's real payout is TEMPO: closing the circle hands a discard back, which is
+		# why it can sit at 30x3 without becoming the default play in the 40% of hands that hold one.
+		"refund_discard": hand == Poker.Hand.PENTAGRAM,
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,
