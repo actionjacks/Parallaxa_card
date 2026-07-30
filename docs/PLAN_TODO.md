@@ -60,8 +60,12 @@ na x2 szkla daloby x8 z jednego klikniecia.
 
 **Dlaczego bez konfliktu:** kolejnosc jest jawna, widoczna i policzona PRZED kliknieciem Zagraj.
 
-**"Geometria ofiary"** z todo.md (karta Smierci niszczy sasiada po lewej) to juz drugi mechanizm —
-trwala mutacja talii, wiec idzie do T5, nie tutaj.
+**"Geometria ofiary"** i **lancuchy przyczynowo-skutkowe** — WDROZONE (2026-07-30) jako para slow
+pozycyjnych, ktore w zlym miejscu nie robia NIC:
+- `WROZBA` (Umysl): zagrana PIERWSZA daje +N chipsow kazdej karcie na prawo od siebie.
+- `OFIARA` (Smierc): zagrana OSTATNIA pozera kartre po swojej lewej — ta ginie na stale
+  (`destroyed_cards`, jak szklo), a jej chipsy dochodza do Ofiary.
+Scoring zostaje CZYSTA funkcja: raportuje indeks pozartej karty, niszczy ja kontroler.
 
 ---
 
@@ -141,7 +145,12 @@ Polowa infrastruktury juz istnieje: `CardData.growth` (WZROST), `bloom` (KORZENI
 samo pole, inny wyzwalacz.
 
 **Co dodac:** karta, ktora zadala decydujacy cios bossowi, dostaje na stale +5 chipow i znacznik
-wizualny. `CombatController` zna juz `fight_best_hit` i karte konczaca.
+wizualny. `CombatController` zna juz `fight_best_hit` i karte konczaca. — ZROBIONE.
+
+**"Trauma po Wiezy"** — ZROBIONE (2026-07-30): wygrana z Wieza po tym, jak zniszczyla ci karty,
+zostawia jednego ocalalego SPEKANEGO: `cracked = true`, jedna trzecia bazy mniej na stale, ale
+LAWINA przechodzi po nim DWA razy. Nie do kupienia — trzeba za to zaplacic. Wybor ocalalego
+deterministyczny (pierwsza niespekana karta w talii), nigdy losowany.
 
 **Pulapka:** `growth` NIE jest zapisywany w `run_save` (celowo transient). Trwala ewolucja wymaga
 NOWEGO, zapisywanego pola (`scar: int`) — recykling `growth` zlamie WZROST.
@@ -186,6 +195,21 @@ odrzucona, bo pomiar pokazal, ze **pogarsza** dokladnie te skarge, ktora miala n
 
 
 ---
+
+## GLEBSZA WARSTWA (2026-07-30, po zamknieciu T1-T6)
+
+Poza szescioma glownymi punktami todo.md zawieralo pomysly szczegolowe, ktore pierwsze przejscie
+tylko musnelo. Wdrozone:
+
+| Skad | Co | Jak dziala |
+|---|---|---|
+| par.1 | Lancuchy przyczynowo-skutkowe | `WROZBA` zagrana PIERWSZA: +N chipsow kazdej karcie na prawo |
+| par.1 | Geometria ofiary | `OFIARA` zagrana OSTATNIA: pozera i NISZCZY karte po swojej lewej |
+| par.5 | Trauma po Wiezy | ocalala karta wraca SPEKANA: -1/3 bazy, ale podwojny retrigger Lawiny |
+| zakonczenie | Wskrzeszanie z cmentarza | Arkanum Sadu = `RAISE_DEAD`: RAZ na walke grob wraca do talii |
+
+Wspolna zasada: kazdy z nich zamienia HISTORIE albo POZYCJE karty w mechanike, zamiast dokladac
+kolejna liczbe. Zadnego z nich nie da sie kupic w sklepie — trzeba je wygrac albo ulozyc.
 
 ## STAN KONCOWY (2026-07-30)
 

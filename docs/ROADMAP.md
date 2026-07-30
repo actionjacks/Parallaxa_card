@@ -237,3 +237,19 @@ NAPRAWIONE PRZY ZBIERANIU DANYCH: bot nie umial obsluzyc WYBORU KARTY Z TALII, w
 Kochankow i Smierci (ktore rozwiazuje sie wskazaniem karty, nie przyciskiem) zapetlaly go na
 mapie i po cichu zjadly kilka runow balansowych. `tools/dev/balance_report.py` agreguje logi
 przeklikow w raport (uklady realnie grane, obrazenia, dlugosc walk, zakonczenia).
+
+## Glebsza warstwa todo.md (2026-07-30, piata tura) — ZROBIONE
+Poza szescioma glownymi punktami todo.md zawieralo pomysly szczegolowe, ktore pierwsze przejscie
+tylko musnelo:
+- LANCUCHY POZYCYJNE (par.1): `WROZBA` (Umysl) zagrana PIERWSZA daje +N chipsow kazdej karcie na
+  prawo od siebie; `OFIARA` (Smierc) zagrana OSTATNIA POZERA karte po swojej lewej — ta ginie na
+  stale (destroyed_cards, jak szklo), a jej chipsy dochodza do Ofiary. Oba w zlym miejscu nie
+  robia NIC, i o to chodzi: razem z Kluczem gracz UKLADA zdanie (wrozka pierwsza, mieso w srodku,
+  noz albo ladunek na koncu), zamiast wybierac zbior. Scoring zostaje czysta funkcja — raportuje
+  indeks pozartej karty, niszczy ja kontroler.
+- SPEKANE KARTY (par.5): wygrana z Wieza po tym, jak zniszczyla ci karty, zostawia ocalalego
+  SPEKANEGO: -1/3 bazy chipsow na stale, ale LAWINA przechodzi po nim DWA razy. Nie do kupienia.
+- WSKRZESZANIE (zakonczenie todo.md): Arkanum Sadu bylo duplikatem paktu; teraz `RAISE_DEAD` —
+  RAZ na pojedynek, w momencie wyczerpania talii, grob wraca do gry. Jawny warunek, nie rzut,
+  wiec da sie na tym planowac; czyni cienka talie ZALETA, nie ryzykiem.
+Testy: 44 asercje w test_combat, w tym negatywne (Wrozba w zlym miejscu = zero, Sad odpala RAZ).
