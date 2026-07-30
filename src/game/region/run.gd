@@ -216,8 +216,14 @@ func _show_map() -> void:
 		root.add_child(_hint(tr("REST_HEALED") % _last_rest))
 		_last_rest = 0
 
-	# THE TOWER: the biome is a climb, so the rungs stack upward and are read top-down --
-	# the boss stands at the summit and the player can see how far up they still have to go.
+	# THE TOWER, in 3D: a real stack of stone standing in the dark behind the rung labels. The
+	# labels stay 2D on top of it -- crisp text, and every existing tooltip and click still works.
+	var tower_row := HBoxContainer.new()
+	tower_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	tower_row.add_theme_constant_override("separation", 18)
+	var tower := TowerView.new(Vector2(360, 400))
+	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent)
+	tower_row.add_child(tower)
 	var ladder := VBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
 	ladder.add_theme_constant_override("separation", 6)
@@ -247,7 +253,8 @@ func _show_map() -> void:
 		rung.add_theme_constant_override("separation", 10)
 		rung.add_child(chip)
 		ladder.add_child(rung)
-	root.add_child(ladder)
+	tower_row.add_child(ladder)
+	root.add_child(tower_row)
 
 	if RunState.relics.size() > 0:
 		var rr := HBoxContainer.new()

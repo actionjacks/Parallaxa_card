@@ -162,7 +162,17 @@ func _play_fight(tag: String) -> void:
 				await _click(_center(combat._discard_btn))
 				await _frames(15)
 				continue
-		_log("[bc]  t%d best=%d ehp=%d" % [c.turn, best.size(), c.enemy_hp])
+		# Log the HAND the play will actually score, not just how many cards: a balance report
+		# needs to know which rungs of the ladder real play reaches, and the probe only models
+		# an optimal player.
+		var staged: Array = []
+		for bi in best:
+			if bi < c.hand.size():
+				staged.append(c.hand[bi])
+		var hname: String = TranslationServer.translate(Poker.name_key(Poker.evaluate(staged)))
+		var pv: Dictionary = c.preview(best)
+		_log("[bc]  t%d %s dmg=%d ehp=%d hp=%d" % [c.turn, hname, int(pv.get("damage", 0)),
+			c.enemy_hp, c.player_hp])
 		for idx in best:
 			if idx < kids.size():
 				await _click(_center(kids[idx]))
@@ -172,6 +182,23 @@ func _play_fight(tag: String) -> void:
 		if not combat._play_btn.disabled:
 			await _click(_center(combat._play_btn))
 		await _frames(45)
+
+## Click the first card in an open deck picker. Used by omens and by every shop action that
+## asks the player to point at a card (thin, enchant, reverse, splash).
+func _resolve_picker(tag: String) -> void:
+	for attempt in 3:
+		var cancel = _button_with("COMMON_CANCEL")
+		if cancel == null:
+			return
+		var cards: Array = []
+		_collect(_rn, func(x): return x is PanelContainer and x.has_meta("card") and x.is_visible_in_tree(), cards)
+		if cards.is_empty():
+			await _click(_center(cancel))
+			await _frames(10)
+			return
+		_log("[bc] picker (%s): %d cards, taking the first" % [tag, cards.size()])
+		await _click(_center(cards[0]))
+		await _frames(18)
 
 func _pass_draft() -> void:
 	await _shoot("00_draft")
@@ -206,6 +233,10 @@ func _handle_map() -> void:
 			_log("[bc] omen '%s' offered no button -- walking on" % oid)
 			_rn._pending_omen = null
 		await _frames(12)
+		# Some omens (Lovers, Death) resolve through a DECK PICKER rather than a button. Without
+		# handling it the picker stayed open, the omen never cleared, and the bot re-read the same
+		# map forever -- which is how it silently ate several balance runs.
+		await _resolve_picker("omen " + oid)
 	if _take_elite:
 		var rs := root.get_node("RunState")
 		var elite_text := ""
