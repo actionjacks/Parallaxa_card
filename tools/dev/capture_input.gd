@@ -85,6 +85,11 @@ func _go() -> void:
 	await _shoot("01_map")
 
 	# --- click ENTER as a real player ---
+	# the run now offers a road (biome tower) before the map appears
+	var road = _button_with("BIOME_WALK")
+	if road != null:
+		await _click(_center(road))
+		await _frames(25)
 	var enter = _button_with("MAP_GO")
 	print("[in] Enter button found: %s" % str(enter != null))
 	if enter == null:
