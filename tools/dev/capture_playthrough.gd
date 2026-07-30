@@ -267,10 +267,16 @@ func _go() -> void:
 	_boost = OS.get_environment("PT_BOOST") == "1"
 	_take_elite = OS.get_environment("PT_ELITE") == "1"
 	await _frames(2)
+	# The Veil must be chosen BEFORE the run scene enters the tree: RunState.begin() reads
+	# next_veil during run.gd's _ready, so setting it afterwards would have done nothing.
+	if OS.get_environment("PT_VEIL") != "":
+		root.get_node("RunState").next_veil = int(OS.get_environment("PT_VEIL"))
 	_rn = load(RUN).instantiate()
 	root.add_child(_rn)
 	await _frames(20)
 	var rs := root.get_node("RunState")
+	if rs.veil > 0:
+		_log("[pt2] VEIL %d active" % rs.veil)
 	if _boost:
 		# Victory-path harness: a deck a good player COULD assemble by region 2 (glass + avalanche
 		# + leveled hands + funded shop). The UI is still driven by real clicks.
@@ -313,6 +319,35 @@ func _go() -> void:
 			continue
 		# biome choice: walk the first road offered
 		var walk = _button_with("BIOME_WALK")
+		if walk != null and OS.get_environment("PT_BIOME") != "":
+			# PT_BIOME=<0..4> walks a NAMED colour. Without it the bot always took the first road,
+			# so five of the six biomes -- and every law but LIFE_TITHE -- were never once played.
+			var want: String = ["BIOME_LIFE", "BIOME_MIND", "BIOME_DEATH", "BIOME_CHAOS", "BIOME_NATURE"][int(OS.get_environment("PT_BIOME"))]
+			var wanted := TranslationServer.translate(want)
+			var buttons: Array = []
+			_collect(_rn, func(c): return c is Button and c.text == TranslationServer.translate("BIOME_WALK") and c.is_visible_in_tree(), buttons)
+			var titles: Array = []
+			_collect(_rn, func(c): return c is Label and c.text == wanted and c.is_visible_in_tree(), titles)
+			var pick = walk
+			if not titles.is_empty() and not buttons.is_empty():
+				# the button under the matching title: same card, so nearest by x
+				var tx: float = _center(titles[0]).x
+				var best_d: float = 1e9
+				for b in buttons:
+					var d: float = absf(_center(b).x - tx)
+					if d < best_d:
+						best_d = d
+						pick = b
+			_log("[bc] biome choice -> %s" % wanted)
+			if not _biome_shot:
+				_biome_shot = true
+				await _shoot("biome_choice")
+			await _click(_center(pick))
+			await _frames(20)
+			var rsb := root.get_node("RunState")
+			if rsb.region != null:
+				_log("[pt2] biome: %s (law %d, seal %d)" % [tr(rsb.region.name_key), rsb.region.law, rsb.region.seal_aspect])
+			continue
 		if walk != null:
 			var rs2 := root.get_node("RunState")
 			_log("[bc] biome choice (walked %d)" % rs2.biomes_walked.size())
