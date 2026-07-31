@@ -319,3 +319,19 @@ podlodze, w tej samej swiecy, z plama cienia pod stopami, zamiast plaskiej warst
 Do tej pory podloga i postac byly dwoma niepowiazanymi swiatami i caly koszt zbudowania pokoju nie
 kupowal nic poza tlem. Warstwa 2D zostaje wylacznie dla wroga bez figury — nikt nie renderuje sie
 jako pusta ramka.
+
+## todo.md ZAMKNIETY W CALOSCI (2026-07-31) — f59451a..eb6a611
+Audyt 27 obietnic (docs/AUDYT_TODO.md) pokazal 7 zrobionych, 10 czesciowo, 10 brak — mimo ze
+docs/PLAN_TODO.md deklarowal wszystkie szesc punktow za zamkniete. Trzy fazy wg PLAN_TODO_V2.md
+domknely wszystkie 20 luk.
+NAJCIEZSZE ZNALEZISKO: efekt Pentagramu nie mogl sie odpalic ANI RAZU — zwrot odrzutu byl
+wpisywany w discards_left na zagraniu, a zagranie konczy ture, wiec reset w resolve_enemy_turn
+nadpisywal go, zanim gracz mogl go wydac. Drugie: RAISE_DEAD byl no-opem, bo silnik i tak
+recyklinguje grob. Trzecie: Pelny Dwor z czterech kart punktowal jako wysoka karta.
+NOWE MECHANIKI: ROZKLAD TRZECH KART (Pustelnik) — tura wpada w slot Przeszlosc/Terazniejszosc/
+Przyszlosc, a odlozony cios spada za dwie tury i jest wypisany w kokpicie OD RAZU (talia jest
+deterministyczna, wiec przyszlosc JEST znana); KRZYZ CELTYCKI (Umiarkowanie) — cztery sloty obok
+reki, zamrozenie kosztuje odrzut.
+LEKCJA NARZEDZIOWA: obie suity byly zielone przy BLEDZIE PARSOWANIA w combat.gd — testy nie
+laduja combat.tscn. Dopiero harness zrzutowy to zlapal, razem z ceremonia wejscia bossa
+zakotwiczona na PRESET_CENTER (lewy gorny rog kolumny na srodku ekranu). Zrzut nie jest ozdoba.

@@ -215,3 +215,34 @@ Trzy powtarzajace sie wzorce, wazniejsze od pojedynczych bledow:
 - **Wybor odebrany graczowi przez `[0]`.** Hybryda bierze `pals[0]`, inwersja bierze `foes[0]` —
   dwa miejsca, gdzie todo.md dawalo decyzje, a kod wybiera za gracza. Oba przyklady liczbowe z
   todo.md sa przez to nieosiagalne.
+
+---
+
+# STAN PO WDROZENIU (2026-07-31, commity f59451a..eb6a611)
+
+Wszystkie 20 luk z tego audytu zostalo zamknietych w trzech fazach wg `docs/PLAN_TODO_V2.md`.
+
+| Faza | Co | Commit |
+|---|---|---|
+| 1 | 12 bledow (rzeczy ZEPSUTE) | f59451a |
+| 2 | 10 obietnic przycietych do polowy | 68ce678 |
+| 3 | 2 mechaniki, ktorych nie bylo wcale | eb6a611 |
+
+**Nowy bilans:** 27 obietnic todo.md — **27 zrobionych**, 0 czesciowo, 0 brak.
+
+Trzy odstepstwa od LITERY todo.md, kazde swiadome i uzasadnione pomiarem:
+1. **Inwersja daje x1.45 + 20 chipsow, nie x3 Mult.** x3 na karte to x243 przy pieciu kartach w
+   jednym ukladzie — koniec gry. Plaskie chipsy daja odczuwalna sile na POJEDYNCZEJ karcie
+   (o co chodzilo w todo.md) bez detonacji przy piaciu.
+2. **Blizna daje +5 chipsow, nie "dodatkowe slowo kluczowe".** todo.md podaje te dwie rzeczy jako
+   ALTERNATYWE ("+5 Chips ALBO"), wiec galaz chipsowa wypelnia obietnice.
+3. **Ksiega Astrologa nie ma tablicy wynikow online.** Rekord jest lokalny, ale share-string niesie
+   teraz wynik, zestaw Arkanow jest narzucony wszystkim i liczy sie PIERWSZE podejscie — czyli
+   rywalizacja jest mozliwa, tylko nosnikiem jest wklejony tekst, nie serwer.
+
+## Czego ten audyt NIE sprawdzi (zostaje dla czlowieka)
+
+- Czy Rozklad Trzech Kart jest CIEKAWY, czy tylko sprytny: tura bez obrazen to duzo do zniesienia.
+- Czy Krzyz Celtycki nie jest za silny — cztery sloty to potencjalnie idealna reka co trzecia ture.
+- Czy odsetki Zaslony IV (tylko od kolorow wrogich) nie zabijaja mono-buildow zbyt twardo.
+- Balans dwoch nowych bossow: HP 1180 / 1520 to pierwsze przyblizenie, nie pomiar.
