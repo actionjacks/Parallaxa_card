@@ -269,3 +269,23 @@ NAJBARDZIEJ podstawowych pojec (Chips, Mult, Rteć, prawo pola, Zaslona, pieczec
 tlumaczy slowa kluczowe kart, ale nie tlumaczy wlasnego jezyka.
 KOLEJNOSC MA UZASADNIENIE: zrozumialosc PRZED epickoscia, bo epicki boss, ktorego zasad gracz nie
 rozumie, jest frustrujacy, nie epicki.
+
+## N3 zrozumialosc + N4.1/N4.2 techniki wrogow (2026-07-31) — ZROBIONE
+N3: gra tlumaczyla KARTY (kazde slowo kluczowe ma opis) i nigdy wlasnego jezyka. SLOWNIK w menu
+pauzy ("Co znaczą te słowa"): 13 pojec po jednym zdaniu — Chipsy, Mult, Klucz, Odrzuty, Aspekt,
+Prawo pola, Rteć, Sol, Arkanum, Edycja, Pieczec, Zaslona, Glebia. Kazda definicja mowi to, co
+naprawde wazne (Rteć = pieniadz WEWNATRZ runu, Sol = MIEDZY runami; Kolor jest najrzadszy, bo
+talia ma piec kolorow, nie cztery). KAZDA LICZBA W ARENIE ma teraz tooltip: HP, blok, tura, HP
+wroga, intencja, telegraf, zegar szalu, linia kokpitu. KLUCZ wreszcie wyjasniony — KEYSTONE_TAG
+lezal nieuzyty w ui.csv od dnia napisania. Zaslona V nazywa kolor, ktory zabrala.
+
+N4.1/N4.2: 46 zwyklych wrogow mialo ZERO regul (wszystkie 14 nalezalo do bossow), wiec kazda
+zwykla walka byla ta sama walka z innymi liczbami. Piec nowych technik, po jednej na kolor,
+kazda LICZALNA W PODGLADZIE: VAMPIRE_MEND (Zycie, +25 gdy runda zadala <90), HAND_THIEF (Umysl,
+co druga tura podkrada karte OBOK ciosu — intencja zostaje prawdziwa), GRAVE_GLUTTON (Smierc,
++1 za karte w grobie), THIRD_BURST (Chaos, co trzeci cios podwojny), BARK_HIDE (Natura, zagrania
+<5 kart robia 40% mniej). Prosta technika na szczeblach 1-2 UCZY prawa biomu, zaawansowana na
+3-4 i elicie je LAMIE. 25/25 wrogow biomow ma teraz regule i jej opis.
+KLUCZOWA DECYZJA: BARK_HIDE i modyfikatory intencji ida przez `effective_damage()` i `_intent_at()`
+— to sa lejki, ktore podglad, proroctwo i kokpit juz czytaja, wiec nie ma drugiego miejsca do
+zapomnienia. Technika, ktorej kokpit nie umie wycenic, NIE WCHODZI.
