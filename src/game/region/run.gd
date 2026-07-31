@@ -1176,6 +1176,20 @@ func _biome_card(biome: RegionData, path: String, idx: int) -> Control:
 	var sig_wrap := CenterContainer.new()
 	sig_wrap.add_child(sig)
 	col.add_child(sig_wrap)
+	# THREAT, read off the biome's own pools (RegionData.threat) rather than authored by hand --
+	# a label that can drift from the content is worse than no label.
+	var th: int = biome.threat()
+	var th_l := _label_center(tr("BIOME_THREAT") % ["|".repeat(th), th], 13,
+		Color(0.95, 0.85, 0.5).lerp(Color(0.95, 0.42, 0.38), (th - 1) / 4.0))
+	th_l.tooltip_text = tr("BIOME_THREAT_TIP")
+	col.add_child(th_l)
+	var rh: Array = biome.rhythm()
+	var rh_txt: String = tr("BIOME_RHYTHM") % [int(rh[0]), int(rh[1])]
+	if bool(rh[2]):
+		rh_txt += " " + tr("BIOME_RHYTHM_REST")
+	var rh_l := _label_center(rh_txt, 12, Color(0.62, 0.64, 0.72))
+	rh_l.tooltip_text = tr("BIOME_RHYTHM_TIP")
+	col.add_child(rh_l)
 	# The law of the place is the densest jargon on this screen and the reason a road is chosen.
 	var law_l := _hint_ink(tr(biome.law_key), 190)
 	col.add_child(law_l)

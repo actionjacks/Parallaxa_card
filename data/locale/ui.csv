@@ -875,3 +875,8 @@ LEX_VEIL,"veil","zaslona|zasłona|zaslony|zasłony|zaslonie|zasłonie|zaslone|za
 LEX_DEPTH,"depth","glebia|głębia|glebi|głębi|glebie|głębię"
 LEX_CLOSE,click anywhere to close,kliknij gdziekolwiek aby zamknąć
 LEX_HINT,Highlighted words explain themselves — click one.,Podświetlone słowa tłumaczą się same — kliknij.
+BIOME_THREAT,Threat %s (%d/5),Zagrożenie %s (%d/5)
+BIOME_THREAT_TIP,"Measured from this biome's own enemies — their health and the damage they deal per turn. Not an author's opinion.","Liczone z prawdziwych wrogów tego biomu — ich życia i obrażeń na turę. To nie jest opinia autora."
+BIOME_RHYTHM,avg %d / peak %d,śr. %d / szczyt %d
+BIOME_RHYTHM_REST,· rests a turn,· z turą oddechu
+BIOME_RHYTHM_TIP,"How this colour hits: the average blow per turn and the hardest one it throws. A road that rests a turn hits far harder on the others.","Jak ten kolor uderza: średni cios na turę i najmocniejszy, jaki zadaje. Droga z turą oddechu bije o wiele mocniej w pozostałych."

@@ -37,3 +37,54 @@ enum Law { NONE, LIFE_TITHE, MIND_ARCHIVE, DEATH_HARVEST, CHAOS_KINDLING, NATURE
 ## the hidden biome, which is the seals' reward rather than one of them).
 @export var seal_aspect: int = -1
 @export var hidden: bool = false                   ## never offered as a normal biome choice
+
+## THE THREAT OF A ROAD, COMPUTED FROM ITS OWN CONTENT. The player picks a colour before seeing a
+## single enemy, and the measured spread between the easiest and hardest biome was 3x -- a choice
+## made blind is not a choice. This reads the actual pools, so it can never drift away from what
+## the biome really does: hand-authored difficulty labels are exactly the kind of promise this
+## project keeps having to audit. Returns 1..5.
+func threat() -> int:
+	var hp: float = 0.0
+	var dmg: float = 0.0
+	var n: int = 0
+	for pool in [fight_pool_1, fight_pool_2]:
+		for e in pool:
+			if e == null:
+				continue
+			n += 1
+			hp += float(e.max_hp)
+			var t: float = 0.0
+			for i in e.intents:
+				t += float(i)
+			dmg += t / maxf(1.0, float(e.intents.size()))
+	if n == 0:
+		return 3
+	# HP is what a run must chew through, the intent is what chews on the run: both matter, and
+	# the constants are simply the observed midpoints of the shipped pools.
+	var score: float = (hp / float(n)) / 820.0 + (dmg / float(n)) / 11.8
+	return clampi(int(round(score * 2.5)) - 2, 1, 5)
+
+## HOW a road hits, not just how hard. After the intents were flattened every biome scored the same
+## threat -- honest, and useless. What actually differs is the SHAPE: the Burnt Field rests a turn
+## and then swings for 24, the Orchard taps steadily for 11. That is the decision the player is
+## making, so it is the thing to print. Returns [average, peak, has_rest_turn].
+func rhythm() -> Array:
+	var total: float = 0.0
+	var peak: int = 0
+	var rest: bool = false
+	var n: int = 0
+	for pool in [fight_pool_1, fight_pool_2]:
+		for e in pool:
+			if e == null or e.intents.is_empty():
+				continue
+			n += 1
+			var sum_i: float = 0.0
+			for i in e.intents:
+				sum_i += float(i)
+				peak = maxi(peak, int(i))
+				if int(i) == 0:
+					rest = true
+			total += sum_i / float(e.intents.size())
+	if n == 0:
+		return [0, 0, false]
+	return [int(round(total / float(n))), peak, rest]

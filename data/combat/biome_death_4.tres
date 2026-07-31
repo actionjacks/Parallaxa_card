@@ -8,7 +8,7 @@
 script = ExtResource("3_j3aa4")
 name_key = "BIOME_DEATH_4"
 max_hp = 982
-intents = PackedInt32Array(15, 14, 13)
+intents = PackedInt32Array(14, 13, 12)
 enrage_step = 3
 rule = 9
 rule_key = "RULE_JUDGEMENT"

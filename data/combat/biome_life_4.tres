@@ -8,7 +8,7 @@
 script = ExtResource("3_pfx13")
 name_key = "BIOME_LIFE_4"
 max_hp = 1007
-intents = PackedInt32Array(12, 12, 6)
+intents = PackedInt32Array(13, 13, 7)
 enrage_step = 3
 rule = 10
 rule_key = "RULE_STAR"
