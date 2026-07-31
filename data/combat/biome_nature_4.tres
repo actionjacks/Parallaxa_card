@@ -7,10 +7,10 @@
 [resource]
 script = ExtResource("3_rs0np")
 name_key = "BIOME_NATURE_4"
-max_hp = 974
+max_hp = 1700
 intents = PackedInt32Array(10, 13, 16)
 enrage_step = 3
-rule = 6
-rule_key = "RULE_STRENGTH"
+rule = 25
+rule_key = "RULE_ROTBOUND"
 art = ExtResource("1_4w8oe")
 figure = ExtResource("2_sa8kc")

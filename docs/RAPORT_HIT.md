@@ -157,10 +157,41 @@ wczesniej byl 5:0.
 tej sesji ten sam biom dawal 0, 1 i 4 wygrane walki, wiec pojedynczy run NIE JEST dowodem
 balansowym — jest sygnalem, ze nic sie nie zablokowalo.
 
-## Co zostaje otwarte
+## Domkniete po tym raporcie
 
-1. **Druga os istnieje w 3 walkach na ~44 osiagalne.** Wzorzec jest tani do powielenia i to
-   najtansza dalsza poprawa.
-2. **Pula 6 odrzutow na pojedynek to duza zmiana, ktorej nie tykal czlowiek.** Pierwsza rzecz do
-   przetestowania rekami.
-3. **Warstwa wydawnicza poza eksportem**: Steamworks, muzyka (80 s), lokalizacje (2), capsule.
+**DRUGA OS JEST NA KAZDEJ DRODZE.** Byla w 3 walkach na ~44, wiec kazda z pieciu drog dalo sie
+przejsc maksymalizujac obrazenia. Kazdy biom oddal JEDNA zdublowana regule (szczeble 3 i 4 niosly
+w kazdym biomie te sama technike) na walke, w ktorej obrazenia nie sa odpowiedzia — a kazde
+parowanie idzie WBREW instynktowi biomu, wiec uczy, zamiast zasadzac sie:
+
+| biom | walka | co wymusza |
+|---|---|---|
+| Sad (blok) | szczebel 4 | **Wal** — zagranie bez bloku nie robi nic |
+| Biblioteka (miara) | szczebel 4 | **Straznica** — pulap 120, nadmiar wraca |
+| Katakumby | szczebel 3 | **Zwiazany Zgnilizna** — bez Gnicia zasklepia sie do pelna |
+| Pogorzelisko (burst) | szczebel 4 | **Straznica** — dokladnie odwrotnosc tego, co nagradza jego prawo |
+| Przerost (wzrost) | szczebel 4 | **Zwiazany Zgnilizna** — zgnilizna jest cieniem wzrostu |
+| + elity | Pogorzelisko, Przerost | Wal, Straznica |
+
+**PROBA WIELOKROTNA zamiast jednego przekliku.** Wczesniej pisalem, ze jeden run na biom nie jest
+dowodem. Dwa przebiegi na kazda droge, slaby bot:
+
+| biom | proba 1 | proba 2 |
+|---|---|---|
+| Sad | 4 | 5 |
+| Biblioteka | 3 | 2 |
+| Katakumby | 2 | 2 |
+| Pogorzelisko | 2 | 2 |
+| Przerost | 2 | 2 |
+| z realna talia | **ZWYCIESTWO, 6 walk** | |
+
+Rozrzut jest teraz **stabilny i waski**: cztery drogi trzymaja sie 2-3 walk, Sad odstaje na 4-5.
+Wczesniej ta sama droga dawala 0, 1 i 4 — czyli pomiar wreszcie cos znaczy. Sad zostaje
+najlatwiejszy, co jest zgodne z jego prawem (blok + glebszy zapas leczenia), ale roznica spadla z
+nieskonczonej (5 kontra 0) do jednej walki.
+
+## Zostaje otwarte
+
+1. **Pula 6 odrzutow na pojedynek to duza zmiana, ktorej nie tykal czlowiek.** Bot ja przeszedl;
+   to nie to samo. Pierwsza rzecz do przetestowania rekami.
+2. **Warstwa wydawnicza poza eksportem**: Steamworks, muzyka (80 s), lokalizacje (2), capsule.
