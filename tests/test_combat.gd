@@ -15,7 +15,7 @@ func _initialize() -> void:
 	fails += _expect("Fool mirrors the blow (dmg/14, floor 8, cap 34)", _fool_answers())
 	# The secret hands (docs/todo.md T2)
 	fails += _expect("Pentagram: one card of every Aspect", _pentagram_reads() == Poker.Hand.PENTAGRAM)
-	fails += _expect("Pentagram's refund SURVIVES the turn reset", _pentagram_refund())
+	fails += _expect("Pentagram refunds a discard from the duel-long pool", _pentagram_refund())
 	fails += _expect("Pentagram breaks armour (Strength cannot dull it)", _pentagram_breaks_armour())
 	fails += _expect("...but a Flush is still dulled by the same boss", _flush_is_dulled())
 	fails += _expect("Full Court from FOUR cards", _full_court_four() == Poker.Hand.FULL_COURT)
@@ -70,7 +70,8 @@ func _initialize() -> void:
 	fails += _expect("...and no mirrored hand is a free one-shot", _mirror_is_compressed())
 	fails += _expect("WIDE_HAND: three more cards, zero discards", _wide_hand())
 	fails += _expect("ASPECT_BAN: the forbidden colour brings no chips", _aspect_ban())
-	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
+	fails += _expect("priestess adds to the duel's discard pool",
+		_priestess_discards() == CombatController.START_DISCARDS + 1)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
 	fails += _expect("devil tax scales with the clock (2,2 then 3)", _blood_tax_scaling())
@@ -493,7 +494,9 @@ func _pentagram_refund() -> bool:
 	# reset used to overwrite it, so the circle's only unique payoff could never be spent. It has
 	# to survive into the turn the player actually gets to act in.
 	ctrl.resolve_enemy_turn()
-	return spent < before and ctrl.discards_left == before + 1
+	# Discards are a duel-long pool now, so the bank is the ONLY thing that gives one back: one
+	# spent, one refunded, and the player is exactly where they started.
+	return spent < before and ctrl.discards_left == before
 
 ## The scar must add chips AND survive the run save -- reusing `growth` would have failed the
 ## second half silently, because growth is deliberately never written.

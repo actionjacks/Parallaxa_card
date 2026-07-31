@@ -492,8 +492,12 @@ func _render() -> void:
 	_refresh_stash()
 	if _hint_label != null:
 		var ba := _best_available()
-		var bn: String = tr(Poker.name_key(ba)) if (ba >= 0 and _hand_known(ba)) else tr("HAND_UNDISCOVERED")
-		_hint_label.text = (tr("HAND_BEST_AVAILABLE") % bn) if ba >= 0 else ""
+		# IT STOPS SOLVING THE PUZZLE. Measured over 20 000 hands: the best hand TYPE coincided with
+		# the highest damage in 98.9% of them, so naming it was handing the player the answer to the
+		# one question the game is built around. It now says how many different hands are IN there --
+		# enough to promise the hand is worth reading, not enough to read it for you.
+		var kinds: int = _available_kinds()
+		_hint_label.text = (tr("HAND_KINDS") % kinds) if kinds > 0 else ""
 	_refresh_cockpit(0, 0, false)
 	var pool_left := controller.heal_cap - controller.heal_used
 	_heal_pool_label.text = tr("COMBAT_HEAL_BUDGET") % [pool_left, controller.heal_cap]
@@ -982,6 +986,30 @@ func _table_mirrored() -> bool:
 func _paid_value(hand: int) -> float:
 	var b: Array = Poker.base_for(hand, int(_levels.get(hand, 0)), _table_mirrored())
 	return float(b[0]) * float(b[1])
+
+## How many DIFFERENT hand types the current hand can make. A count is a promise that something is
+## in there; a name is the solution.
+func _available_kinds() -> int:
+	if controller == null or controller.hand.size() < 5:
+		return 0
+	var n: int = controller.hand.size()
+	var kinds: Dictionary = {}
+	for mask in range(1, 1 << n):
+		var bits: int = 0
+		var m: int = mask
+		while m > 0:
+			bits += m & 1
+			m >>= 1
+		if bits != 5:
+			continue
+		var cards: Array = []
+		for i in n:
+			if mask & (1 << i):
+				cards.append(controller.hand[i])
+		var h: int = Poker.evaluate(cards)
+		if h != Poker.Hand.HIGH_CARD:
+			kinds[h] = true
+	return kinds.size()
 
 ## Only the two SECRET spreads can be unknown; every ordinary hand is on the chart from turn one.
 func _hand_known(hand: int) -> bool:

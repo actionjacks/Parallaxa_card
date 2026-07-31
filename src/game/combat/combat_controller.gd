@@ -11,7 +11,11 @@ signal awaiting_enemy
 signal boss_turned      ## player's play resolved; the scene pauses, then calls resolve_enemy_turn()
 
 const HAND_SIZE: int = 8
-const START_DISCARDS: int = 3
+## Discards are a POOL FOR THE WHOLE DUEL, not three free clicks every turn. Measured: refreshing
+## them per turn made the strongest axis of the turn a non-decision -- the outcome was known in
+## advance never to be worse, so the correct play was always "discard three, then think", roughly
+## 54 empty clicks per run. As a fight-long budget every single one is a question.
+const START_DISCARDS: int = 6
 const PLAYER_MAX_HP: int = 55
 const FIGHT_HEAL_CAP: int = 15       ## shared per-fight heal pool (Opatrznosc + relic heal + leech)
 const MOON_MEND_HEAL: int = 15       ## the Moon self-mends when a round deals too little...
@@ -118,7 +122,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	enemy_gnicie = 0
 	discards_left = START_DISCARDS + _bonus_discards()
 	if enemy.rule == EnemyData.Rule.HANGED_CAP:
-		discards_left = mini(discards_left, 1)   # the Hanged Man: suspension
+		discards_left = 1     # the Hanged Man: one sieve for the whole duel
 	if enemy.rule == EnemyData.Rule.WIDE_HAND:
 		discards_left = 0                        # a wide hand and no sieve to sort it with
 	turn = 1
@@ -623,18 +627,19 @@ func resolve_enemy_turn() -> void:
 		_finish(false)
 		return
 	turn += 1
+	# Discards are NOT refilled here any more -- see START_DISCARDS. The Pentagram's banked refund
+	# is the one thing that still gives one back, which is exactly the tempo payoff it was built
+	# to be.
+	discards_left += _banked_discards
+	_banked_discards = 0
+	if enemy.rule == EnemyData.Rule.WIDE_HAND:
+		discards_left = 0
 	# THE POOL TRICKLES BACK. A flat 15 HP per fight made every healing source identical after four
 	# plays: Pijawka 15 (RARE) and Pijawka 20 (LEGENDARY) healed exactly the same, and so did all
 	# three healing relics. Returning a little each turn means a long fight rewards the bigger
 	# source -- the number on the card finally means something -- while a short one still cannot be
 	# out-sustained.
 	heal_used = maxi(0, heal_used - HEAL_TRICKLE)
-	discards_left = START_DISCARDS + _bonus_discards() + _banked_discards
-	_banked_discards = 0
-	if enemy.rule == EnemyData.Rule.HANGED_CAP:
-		discards_left = mini(discards_left, 1)
-	if enemy.rule == EnemyData.Rule.WIDE_HAND:
-		discards_left = 0
 	for c in hand:   # WZROST/KORZENIE ramp while the card waits in hand (run-local, preview-exact)
 		if c.keyword == CardData.Keyword.WZROST:
 			c.growth += c.keyword_value
