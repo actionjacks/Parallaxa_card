@@ -26,6 +26,7 @@ func _initialize() -> void:
 	fails += _expect("Spread: the PAST deals no damage and banks its Mult", _spread_past())
 	fails += _expect("Spread: the FUTURE lands exactly two turns later", _spread_future())
 	fails += _expect("Spread: the cockpit and play() agree on what lands now", _spread_preview_honest())
+	fails += _expect("Spread: a Past play NEVER foretells a kill", _spread_no_false_lethal())
 	fails += _expect("Celtic Cross: freezing parks a card and refills the hand", _celtic_freeze())
 	fails += _expect("Celtic Cross: a recall is refused when the hand is full", _celtic_recall_guard())
 	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
@@ -938,6 +939,18 @@ func _spread_preview_honest() -> bool:
 	ctrl.play([0])
 	ctrl.resolve_enemy_turn()
 	return ctrl.spread_now(raw) == raw   # PRESENT seat
+
+## THE ONE LIE THE GAME MAY NOT TELL. A play seated in the Past or the Future strikes nothing this
+## turn, so a prophecy computed from its raw damage would announce a kill the engine will not make.
+func _spread_no_false_lethal() -> bool:
+	var ctrl := _spread_ctrl()
+	ctrl.enemy_hp = 1                        # any real play would be lethal on raw damage
+	if ctrl.spread_seat() != 0:
+		return false
+	if ctrl.spread_now(9999) != 0:
+		return false                         # Past: nothing lands, so nothing may be foretold
+	ctrl.play([0])
+	return ctrl.enemy_hp == 1                # and the enemy is in fact untouched
 
 func _celtic_ctrl() -> CombatController:
 	var ctrl := CombatController.new()

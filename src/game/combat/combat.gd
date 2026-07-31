@@ -1181,9 +1181,13 @@ func _update_selection_ui() -> void:
 		parts.append(tr("COMBAT_TAG_GNICIE") % int(r["gnicie"]))
 	# The covenant's showpiece: the preview ANNOUNCES the kill and its overkill payout --
 	# rendered as the PROPHECY STAMP, not a text tag (this is the game's clip).
-	var lethal_now := eff >= controller.enemy_hp
+	# THE SPREAD DECIDES WHETHER THE BLOW LANDS AT ALL. A play seated in the Past or the Future
+	# strikes nothing THIS turn, so announcing a kill from its raw damage would be the preview
+	# lying about the only thing it is not allowed to lie about. Same funnel play() uses.
+	var land: int = controller.spread_now(eff) if controller.spread_seat() >= 0 else eff
+	var lethal_now := land >= controller.enemy_hp and land > 0
 	@warning_ignore("integer_division")
-	var bonus: int = clampi((eff - controller.enemy_hp) / 50, 0, 5) if lethal_now else 0
+	var bonus: int = clampi((land - controller.enemy_hp) / 50, 0, 5) if lethal_now else 0
 	if lethal_now:
 		var lethal := tr("PREVIEW_LETHAL")
 		if bonus > 0:
@@ -1196,7 +1200,7 @@ func _update_selection_ui() -> void:
 		var frail := controller.frail_tax(_selected)
 		if frail > 0:
 			parts.append(tr("PREVIEW_FRAIL") % frail)
-	_set_prophecy(lethal_now, eff, int(r["hand"]), bonus)
+	_set_prophecy(lethal_now, land, int(r["hand"]), bonus)
 	# Glass warning: a selected Overload card at durability 1 will SHATTER with this play.
 	for card in _selected:
 		if card.keyword == CardData.Keyword.PRZECIAZENIE and card.keyword_value - card.wear <= 1:
@@ -1271,7 +1275,9 @@ func _on_play() -> void:
 	# be the ceremony (counter rolling to the exact promised number), not a surprise.
 	var pre := controller.preview(idx)
 	var promised := controller.effective_damage(int(pre["damage"]), _selected.size(), int(pre["hand"]))
-	var foretold_kill := promised >= controller.enemy_hp
+	if controller.spread_seat() >= 0:
+		promised = controller.spread_now(promised)
+	var foretold_kill := promised > 0 and promised >= controller.enemy_hp
 	var pre_destroyed := controller.destroyed_cards.size()
 	# A secret found is a secret announced -- and from here the chart names it instead of "? ? ?".
 	var landed := int(pre["hand"])
