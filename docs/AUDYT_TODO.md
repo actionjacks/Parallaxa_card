@@ -275,3 +275,47 @@ Pelna lista 19 napraw: `git show 7a98a92`.
   wywolanie nie rzucilo bledu.
 - Wzorzec "wartosc ustawiona tu, skasowana tam" wystapil w tym repo juz cztery razy. Przy kazdej
   nowej mechanice pierwszym pytaniem musi byc: *co jeszcze pisze do tego pola?*
+
+---
+
+# LEKSYKON + TEST PETLI + BALANS (2026-07-31)
+
+## Leksykon: gra tlumaczy sie tam, gdzie mowi
+`src/game/ui/lexicon.gd`. Kazdy z 13 terminow slowniczka jest w tekstach PODSWIETLONY i klikalny;
+klikniecie otwiera definicje nad walka. Wpiete w baner prawa/reguly, dziennik, pasek pomocy, prawo
+biomu na ekranie drog i opisy omenow. Pokrycie: 181/861 polskich stringow niesie co najmniej jeden
+link. Dopasowanie form to DANE (`LEX_<TERM>` w ui.csv), dobrane pomiarem kolumny pl, nie zgadywane.
+
+**Pulapka:** statyczny cache wzorcow budowal sie ZANIM autoload ustawil jezyk, wiec angielskie
+formy zamrazaly sie na caly proces. Cache jest kluczowany lokalizacja.
+
+## Test petli: jeden softlock, moj wlasny
+Przeklik wszystkich pieciu biomow wylapal, ze **ekran wyboru drogi zapetlal sie w nieskonczonosc**
+(12 wyborow w jednym logu, zero walk, TIMEOUT). Przyczyna: zamiana wszystkich 33 wywolan `_hint()`
+na RichTextLabel z wymuszona szerokoscia 720 px rozsadzila trzykolumnowy layout. Inkowanie jest
+teraz OPT-IN per miejsce (`_hint_ink`). Zmiana "kosmetyczna", ktora zabila petle gry — i ktorej
+zadna suita nie zobaczyla, bo testy nie laduja scen runu.
+
+## Balans: rozrzut 3x splaszczony
+| biom | walk (slaby bot) PRZED | srednia intencja PRZED | PO |
+|---|---|---|---|
+| Sad (LIFE) | 5 | 9.8 | 10.8 |
+| Biblioteka (MIND) | 2 | 13.1 | 12.3 |
+| Katakumby (DEATH) | **0** | 12.9 | 12.1 |
+| Pogorzelisko (CHAOS) | 2 | 12.9 | 12.2 |
+| Przerost (NATURE) | 1 | 11.9 | 12.1 |
+
+Katakumby po zmianie: **0 -> 4 walki**. Ksztalt kazdego biomu nietkniety — Pogorzelisko dalej
+odpoczywa ture i wali za 24. Trudnosc ma wynikac z tego, CO trzeba zaplanowac.
+
+## UX: wybor drogi przestal byc slepy
+Kazda droga pokazuje ZAGROZENIE (1-5) i RYTM ("sr. 12 / szczyt 24 · z tura oddechu"), oba
+**liczone z pul wrogow** (`RegionData.threat` / `rhythm`), nigdy wpisane recznie. Po splaszczeniu
+samo zagrozenie wyszlo 3/5 wszedzie — prawdziwe i bezuzyteczne — wiec rytm jest tym, co naprawde
+rozni drogi.
+
+## Zostaje dla czlowieka
+- Czy tura bez obrazen w PRZESZLOSCI (Pustelnik) nie jest zbyt bolesna.
+- Czy Krzyz Celtycki nie jest za silny teraz, gdy naprawde dziala.
+- Czy odsetki Zaslony IV nie zabijaja mono-buildow za twardo.
+- HP obu nowych bossow (1180 / 1520) to pierwsze przyblizenie, nie pomiar.
