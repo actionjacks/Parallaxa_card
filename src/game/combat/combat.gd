@@ -307,10 +307,12 @@ func _build_ui() -> void:
 	_play_btn = Button.new()
 	_play_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_play_btn.pressed.connect(_on_play)
+	Chrome.button(_play_btn, Color(0.92, 0.62, 0.30))
 	crow.add_child(_play_btn)
 	_discard_btn = Button.new()
 	_discard_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_discard_btn.pressed.connect(_on_discard)
+	Chrome.button(_discard_btn, Color(0.50, 0.56, 0.72))
 	crow.add_child(_discard_btn)
 	# THE CELTIC CROSS (docs/todo.md par.2). Only ever visible in the duel that has the rule --
 	# an always-present button for a mechanic that exists in one fight would be noise.
@@ -318,6 +320,7 @@ func _build_ui() -> void:
 	_freeze_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_freeze_btn.pressed.connect(_on_freeze)
 	_freeze_btn.visible = false
+	Chrome.button(_freeze_btn, Color(0.46, 0.70, 0.78))
 	crow.add_child(_freeze_btn)
 	var st0 := get_node_or_null("/root/Settings")
 	if st0 != null and st0.has_method("get_value"):
@@ -327,17 +330,20 @@ func _build_ui() -> void:
 	_sort_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_sort_btn.tooltip_text = tr("SORT_TIP")
 	_sort_btn.pressed.connect(_cycle_hand_sort)
+	Chrome.button(_sort_btn, Color(0.42, 0.40, 0.50))
 	crow.add_child(_sort_btn)
 	var log_btn := Button.new()
 	log_btn.text = tr("LOG_TOGGLE")
 	log_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	log_btn.tooltip_text = tr("LOG_TOGGLE_TIP")
 	log_btn.pressed.connect(_toggle_log)
+	Chrome.button(log_btn, Color(0.42, 0.40, 0.50))
 	crow.add_child(log_btn)
 	var pt_btn := Button.new()
 	pt_btn.text = tr("PAYTABLE_TOGGLE")
 	pt_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pt_btn.pressed.connect(_toggle_paytable)
+	Chrome.button(pt_btn, Color(0.42, 0.40, 0.50))
 	crow.add_child(pt_btn)
 	_hint_label = _label("", 14, Color(0.72, 0.68, 0.46))
 	crow.add_child(_hint_label)
@@ -1792,16 +1798,11 @@ func _panel(bg: Color, border: Color) -> PanelContainer:
 	p.add_theme_stylebox_override("panel", sb)
 	return p
 
+## A health bar is the most-looked-at object on the screen, and it was two flat rectangles. Through
+## Chrome it becomes a liquid in a socket: dark inset well, gradient fill that brightens toward its
+## leading edge, so a draining bar reads as draining even in a still frame.
 func _bar(fill: Color) -> ProgressBar:
 	var pb := ProgressBar.new()
-	pb.show_percentage = false
-	pb.custom_minimum_size = Vector2(240, 22)
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.06, 0.06, 0.09)
-	bg.set_corner_radius_all(3)
-	var fg := StyleBoxFlat.new()
-	fg.bg_color = fill
-	fg.set_corner_radius_all(3)
-	pb.add_theme_stylebox_override("background", bg)
-	pb.add_theme_stylebox_override("fill", fg)
+	pb.custom_minimum_size = Vector2(240, 26)
+	Chrome.bar(pb, fill.darkened(0.55), fill)
 	return pb

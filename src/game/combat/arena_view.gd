@@ -27,6 +27,7 @@ const CAM_Z := 5.6
 var _world: SubViewport
 var _cam: Camera3D
 var _key: OmniLight3D
+var _back_glow: OmniLight3D     ## the wash behind the opponent, tinted by its colour
 var _accent := Color(0.55, 0.2, 0.24)
 var _t := 0.0
 ## THE OPPONENT IN THREE PLANES. One cut-out, however good, reads as a picture lifted off a card;
@@ -35,6 +36,7 @@ var _t := 0.0
 ## in front) and they hang at different Z, each with its own sway. The camera already breathes, so
 ## the depth is real geometry rather than a shader -- which also means it survives software GL.
 var _layers: Array = []        ## [Sprite3D] back -> fore
+var _base_px: Array = []       ## each plane's resting pixel_size, so the breath has a baseline
 var _atlases: Array = []       ## matching AtlasTexture per layer, stepped together
 var _fig: Sprite3D             ## the mid plane, kept as the framing reference
 var _blob: MeshInstance3D       ## contact shadow under the figure
@@ -137,10 +139,18 @@ func _build() -> void:
 	glow.position = Vector3(0.0, 1.4, -7.2)
 	_world.add_child(glow)
 	var rim := DirectionalLight3D.new()
-	rim.light_color = Color(0.5, 0.58, 0.92)
-	rim.light_energy = 0.30
+	rim.light_color = Color(0.62, 0.70, 1.0)
+	rim.light_energy = 0.85
 	rim.rotation_degrees = Vector3(-24, 158, 0)
 	_world.add_child(rim)
+	# The stage light: a broad wash on the back wall, in the enemy's colour. A figure with nothing
+	# lit behind it reads as a cut-out; one standing against a glow reads as standing THERE.
+	_back_glow = OmniLight3D.new()
+	_back_glow.light_color = Color(0.55, 0.28, 0.62)
+	_back_glow.light_energy = 3.2
+	_back_glow.omni_range = 11.0
+	_back_glow.position = Vector3(0.0, 1.6, -6.4)
+	_world.add_child(_back_glow)
 
 ## THE OPPONENT, STANDING IN THE ROOM. Until now the figure was a 2D layer floating ABOVE the
 ## 3D room, so the floor and the character were two unrelated worlds. As a Sprite3D it stands on
@@ -151,6 +161,7 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 		if is_instance_valid(l):
 			l.queue_free()
 	_layers.clear()
+	_base_px.clear()
 	_atlases.clear()
 	_fig = null
 	if _blob != null:
@@ -196,6 +207,7 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 		sp.position = Vector3(0.0, FLOOR_Y + FIG_LIFT + _cell.y * sp.pixel_size * 0.5, FIG_Z + float(spec[1]))
 		_world.add_child(sp)
 		_layers.append(sp)
+		_base_px.append(sp.pixel_size)
 		_atlases.append(at)
 		if String(spec[0]) == "_mid":
 			_fig = sp
@@ -218,6 +230,8 @@ func set_accent(accent: Color) -> void:
 	_accent = accent
 	if _key != null:
 		_key.light_color = Color(1.0, 0.76, 0.48).lerp(accent, 0.35)
+	if _back_glow != null:
+		_back_glow.light_color = accent.lerp(Color(0.30, 0.16, 0.38), 0.45)
 
 ## A landed blow pushes the camera IN: the room leans toward the enemy, so the hit has weight.
 func punch(strength: float = 1.0) -> void:
@@ -271,3 +285,5 @@ func _process(delta: float) -> void:
 		sp.position.y = FLOOR_Y + FIG_LIFT + _cell.y * sp.pixel_size * 0.5 \
 			+ sin(_t * 0.47 + k * 1.4) * 0.055 * absf(k)
 		sp.rotation.z = sin(_t * 0.31 + k * 0.7) * 0.022 * k
+		var breath: float = 1.0 + sin(_t * 0.9 + k * 0.5) * 0.022
+		sp.pixel_size = _base_px[i] * breath
