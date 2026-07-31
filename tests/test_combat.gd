@@ -64,6 +64,7 @@ func _initialize() -> void:
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
 	fails += _expect("the Glutton's blow is what the cockpit promised", _glutton_preview_honest())
+	fails += _expect("MAGNUM OPUS is buildable from pool-legal cards", _magnum_reachable())
 	fails += _expect("Bulwark: a play with no block does nothing", _bulwark_needs_block())
 	fails += _expect("...but the same play WITH block lands in full", _bulwark_pays_defence())
 	fails += _expect("Rot-bound seals itself unless it is rotting", _rotbound_seals())
@@ -822,6 +823,25 @@ func _glutton_preview_honest() -> bool:
 	ctrl.play([0, 1, 2])                            # three more cards into the grave
 	ctrl.resolve_enemy_turn()
 	return hp_before - ctrl.player_hp == promised
+
+## THE APEX IS NO LONGER A LIE. Magnum Opus (five of one rank AND one Aspect) was called impossible
+## by definition of the card pool -- and it WAS, until reversal started letting the player choose
+## which hostile colour a card turns into. Now the route exists and is exactly what the top of the
+## chart should be: four ranks carry five or more cards, up to three share a (rank, Aspect), and
+## reversal plus a carved splash brings the stragglers home. This asserts the hand is constructible
+## and, negatively, that five of a rank in MIXED colours is only a FIVE, not the apex.
+func _magnum_reachable() -> bool:
+	var five: Array = []
+	for i in 5:
+		var c := _card(6, Aspects.Id.LIFE)
+		five.append(c)
+	if Poker.evaluate(five) != Poker.Hand.MAGNUM_OPUS:
+		return false
+	# the same five ranks in different colours must NOT be the apex
+	var mixed: Array = []
+	for i in 5:
+		mixed.append(_card(6, i))
+	return Poker.evaluate(mixed) == Poker.Hand.FIVE
 
 func _second_axis_foe(rule: int) -> CombatController:
 	var ctrl := CombatController.new()

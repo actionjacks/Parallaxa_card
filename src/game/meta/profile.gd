@@ -144,9 +144,10 @@ func check_run_achievements(victory: bool) -> Array:
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
 	# Wave C: the prestige ledger (no unlocks -- proof, not power).
-	# MAGNUM OPUS jest niemozliwy Z DEFINICJI puli kart (piec kart tej samej rangi I koloru, a pula
-	# nie zawiera tylu duplikatow) -- osiagniecie za niego bylo martwe od premiery. Cel przeniesiony
-	# na najwyzszy uklad, ktory NAPRAWDE pada: Piec Jednakowych (0,07% rak, ~raz na 1400 rozdan).
+	# Prog na Piec Jednakowych, ktore Magnum Opus i tak przebija. Magnum bylo niezdobywalne, dopoki
+	# inwersja nie zaczela pozwalac WYBRAC wrogiego koloru -- teraz droga istnieje (cztery rangi
+	# maja >=5 kart w puli, do trzech dzieli te sama pare ranga-Aspekt, a odwrocenie i wyrzezbiony
+	# splash sciagaja reszte), wiec osiagniecie honoruje oba szczyty zamiast wisiec na martwym.
 	if Poker.value_of(RunState.stat_best_hand) >= Poker.value_of(Poker.Hand.FIVE) \
 			and grant_achievement("ACH_MAGNUM"):
 		fresh.append("ACH_MAGNUM")

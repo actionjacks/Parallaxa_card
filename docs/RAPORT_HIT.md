@@ -113,3 +113,54 @@ najwyzszej dzwigni, w kolejnosci:
 **Android: NIE bez osobnego przebiegu UI.** To nie jest port, to przeprojektowanie warstwy
 wejscia: kazdy przycisk ponizej normy, zero obslugi dotyku, informacja schowana pod hoverem.
 Sesja (6 walk) pasuje do mobilnej, wiec praca jest oplacalna — ale to praca, nie eksport.
+
+---
+
+# ANEKS: stan po wdrozeniu planu Steam (2026-07-31)
+
+## Co zostalo zmienione
+
+| punkt | zmiana | dowod |
+|---|---|---|
+| A1 | **Druga os punktacji** — trzej przeciwnicy, przy ktorych obrazenia nie sa odpowiedzia | Straznica (pulap 120 + kolce), Zwiazany Zgnilizna (zasklepia sie bez Gnicia), Wal (bez bloku zero) |
+| A2 | Martwe osiagniecie ozywione; **MAGNUM OPUS przestal byc niemozliwy** | 4 rangi maja >=5 kart w puli, do 3 dziela pare ranga-Aspekt, a inwersja z WYBOREM koloru sciaga reszte |
+| A3 | Fork elity placi za zdrowie, ktore kosztuje (+8 Rteci) | elita ma 130-230 HP wiecej niz szczebel, ktory zastepuje |
+| A4 | Reroll przestal byc tanim wyszukiwaniem (3, +3) | podwajal widziane sloty za 1 Rtec |
+| A5 | **Eksport dziala**: Windows + Linux, 254 MB | `export_presets.cfg`, build bez bledow |
+| A6 | Telemetria tempa (czas runu do Ksiegi) | jedyny zegar byl botem z boostem |
+| — | Odrzut = pula na pojedynek (6), nie 3 co ture | ~54 puste klikniecia na run |
+| — | Podpowiedz mowi ILE ukladow, nie KTORY | pokrywala sie z najlepszym w 98,9% rak |
+
+**MAGNUM OPUS — korekta wlasnego raportu.** W glownej czesci napisalem, ze jest niemozliwy
+Z DEFINICJI puli. To bylo prawda w chwili pomiaru i przestalo byc prawda przez MOJA WLASNA
+wczesniejsza zmiane: odkad inwersja pozwala wybrac wrogi kolor, piec kart jednej rangi da sie
+sprowadzic do wspolnego Aspektu. Test `_magnum_reachable` dowodzi konstruowalnosci ORAZ, negatywnie,
+ze piec tej samej rangi w roznych kolorach to nadal tylko FIVE.
+
+## Petla po zmianach — przeklik wszystkich pieciu drog
+
+| biom | walk | koniec |
+|---|---|---|
+| Sad (LIFE) | 5 | porazka w regionie 2 |
+| Biblioteka (MIND) | 2 | porazka |
+| Katakumby (DEATH) | 2 | porazka |
+| Pogorzelisko (CHAOS) | 3 | porazka |
+| Przerost (NATURE) | 2 | porazka |
+| z boostem | 6 | **ZWYCIESTWO**, 45/45 HP |
+
+**Wniosek:** slaby bot ginie teraz na kazdej drodze (wczesniej Sad przechodzil 5 walk i szedl
+dalej), a run z realna talia konczy sie zwycięstwem. To jest wlasciwy ksztalt: podloga umiejetnosci
+poszla w gore, sufit zostal. Rozrzut miedzy droga najlatwiejsza a najtrudniejsza to teraz 5:2,
+wczesniej byl 5:0.
+
+**Uwaga metodologiczna, ktorej sam sobie nie odpuszczam:** to jeden przebieg na biom. Wczesniej w
+tej sesji ten sam biom dawal 0, 1 i 4 wygrane walki, wiec pojedynczy run NIE JEST dowodem
+balansowym — jest sygnalem, ze nic sie nie zablokowalo.
+
+## Co zostaje otwarte
+
+1. **Druga os istnieje w 3 walkach na ~44 osiagalne.** Wzorzec jest tani do powielenia i to
+   najtansza dalsza poprawa.
+2. **Pula 6 odrzutow na pojedynek to duza zmiana, ktorej nie tykal czlowiek.** Pierwsza rzecz do
+   przetestowania rekami.
+3. **Warstwa wydawnicza poza eksportem**: Steamworks, muzyka (80 s), lokalizacje (2), capsule.
