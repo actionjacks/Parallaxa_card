@@ -104,7 +104,10 @@ func _ready() -> void:
 	controller.message.connect(_on_message)
 	controller.ended.connect(_on_ended)
 	controller.awaiting_enemy.connect(_on_awaiting_enemy)
+	controller.boss_turned.connect(_on_boss_turned)
 	controller.start(_deck, _enemy, _relics, _start_hp, _max_hp, _levels, _veil, _depth, _debt, _law)
+	if _enemy.is_boss:
+		_boss_entrance()
 
 # ---------------------------------------------------------------- UI construction
 
@@ -429,6 +432,9 @@ func _render() -> void:
 	if not standalone and RunState.region != null and RunState.region.law_key != "":
 		var law_txt: String = tr(RunState.region.law_key)
 		rule_txt = law_txt if rule_txt == "" else law_txt + "   |   " + rule_txt
+	var ban: int = controller.banned_aspect()
+	if ban >= 0:
+		rule_txt += "   |   " + tr("COMBAT_BANNED") % tr(Aspects.name_key(ban))
 	_rule_label.text = rule_txt
 	_rule_label.visible = _rule_label.text != ""
 	_player_hp_bar.max_value = controller.player_max_hp
@@ -1107,6 +1113,49 @@ func _on_play() -> void:
 		_magnum_reveal()
 	if foretold_kill and controller.enemy_hp <= 0:
 		_fulfill_prophecy(promised)
+
+## The boss crosses half health: the plate flares, the screen shakes and the line is spoken.
+## The clock is now a step hotter and the enrage label already says so.
+func _on_boss_turned() -> void:
+	if _portrait != null:
+		_portrait.play_state("enrage")
+	Juice.flash(_fx, Color(0.9, 0.2, 0.2, 0.34), 0.5)
+	_shake(7.0)
+	_covenant_line(tr("BOSS_TURNS_LINE"))
+
+## THE ENTRANCE. A boss that rewrites the rules has to state them before the first card is
+## played, or the fight is an ambush rather than a puzzle. Name, rule, and a beat of silence.
+func _boss_entrance() -> void:
+	var card := Control.new()
+	card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(card)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.01, 0.03, 0.86)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(dim)
+	var col := VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 10)
+	card.add_child(col)
+	var name_l := _inked(_label(tr(_enemy.name_key), 46, Color(0.98, 0.9, 0.62)))
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(name_l)
+	if _enemy.rule_key != "":
+		var rule_l := _inked(_label(tr(_enemy.rule_key), 17, Color(1.0, 0.72, 0.45)))
+		rule_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		rule_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		rule_l.custom_minimum_size = Vector2(720, 0)
+		col.add_child(rule_l)
+	Sfx.play(&"lose", -8.0)
+	var hold: float = 0.7 if Juice.fast_pace() else 1.9
+	var tw := create_tween()
+	tw.tween_property(card, "modulate:a", 1.0, 0.25).from(0.0)
+	tw.tween_interval(hold)
+	tw.tween_property(card, "modulate:a", 0.0, 0.45)
+	tw.tween_callback(card.queue_free)
 
 ## Card-by-card scoring ceremony (Balatro's "each card fires" beat, tarot-flavoured).
 ## PURELY presentational: the numbers shown are read off the same Scoring.score result the

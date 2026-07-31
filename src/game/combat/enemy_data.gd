@@ -23,7 +23,14 @@ extends Resource
 ##  GRAVE_GLUTTON its blow grows by one for every card in your grave -- the long fight is its plan
 ##  THIRD_BURST   every third turn its blow lands twice, announced from turn one
 ##  BARK_HIDE     takes 40% less from plays of fewer than five cards -- demands a full hand
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE }
+##
+## Wave F -- bosses that rewrite the RULES rather than the numbers. Each one takes something the
+## player has spent the whole run learning and turns it over, and each is announced before the
+## first turn so the fight is a puzzle rather than an ambush:
+##  INVERTED_TABLE the hand chart is READ UPSIDE DOWN -- a pair outscores a flush
+##  WIDE_HAND      no discards at all, but three more cards in hand
+##  ASPECT_BAN     one colour is forbidden each cycle; its cards bring no chips
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

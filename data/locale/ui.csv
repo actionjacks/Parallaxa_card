@@ -809,3 +809,9 @@ RULE_THIEF,"Technique: every second turn it also lifts a card from your hand.","
 RULE_GLUTTON,"Technique: its blow grows by 1 for every card in your grave.","Technika: jego cios rośnie o 1 za każdą kartę w twoim grobie."
 RULE_BURST,"Technique: every third turn its blow lands TWICE.","Technika: co trzecią turę jego cios pada DWA razy."
 RULE_BARK,"Technique: plays of fewer than five cards do 40% less to it.","Technika: zagrania poniżej pięciu kart robią mu 40% mniej."
+RULE_INVERTED,"Field rule: the chart is read UPSIDE DOWN — a pair outscores a flush.","Reguła pola: tabela czytana DO GÓRY NOGAMI — para bije kolor."
+RULE_WIDE,"Field rule: three more cards in hand, and NO discards at all.","Reguła pola: trzy karty więcej w ręce i ZERO odrzutów."
+RULE_BAN,"Field rule: one colour is forbidden each cycle — its cards bring no chips.","Reguła pola: co cykl jeden kolor jest zakazany — jego karty nie dają chipsów."
+COMBAT_BANNED,FORBIDDEN: %s,ZAKAZANY: %s
+LOG_BOSS_TURNS,It turns — the holding back is over.,Odwraca się — koniec powściągliwości.
+BOSS_TURNS_LINE,"Half its life is gone, and it stops pretending. Every turn from here bites harder.","Połowa jego życia przepadła i przestaje udawać. Każda tura od teraz gryzie mocniej."

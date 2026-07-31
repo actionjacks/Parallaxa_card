@@ -21,7 +21,10 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	var history: Array = ctx.get("hand_history", [])
 
 	var hand: int = Poker.evaluate(cards)
-	var base: Array = Poker.leveled_base(hand, int(levels.get(hand, 0)))
+	# The boss who reads the chart upside down: the hand you MADE is still the hand you made (the
+	# paytable, the hint and the statistics all keep saying so), but it is PAID as its mirror.
+	var paid: int = Poker.mirrored(hand) if bool(ctx.get("inverted_table", false)) else hand
+	var base: Array = Poker.leveled_base(paid, int(levels.get(paid, 0)))
 	var chips: int = int(base[0])
 	var mult: float = float(base[1])
 	var block: int = 0
@@ -71,6 +74,10 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		var key: int = 2 if ci == keystone else 1
 		if ci == devoured:
 			continue          # eaten by the Ofiara to its right: it scores nothing itself
+		# A banned colour is dead weight this cycle: it still fills the hand and still counts
+		# toward the poker shape, but it brings nothing. Announced a turn ahead by the HUD.
+		if int(ctx.get("banned_aspect", -1)) >= 0 and c.has_aspect(int(ctx.get("banned_aspect", -1))):
+			continue
 		chips += c.chip_value() * key
 		retrig_total += c.chip_value() * key
 		if foretold > 0 and ci > 0:

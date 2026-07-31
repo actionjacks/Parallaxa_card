@@ -86,6 +86,18 @@ static func leveled_base(hand: int, level: int) -> Array:
 	var up: Array = LEVEL_UP[hand]
 	return [int(base[0]) + level * int(up[0]), float(base[1]) + level * float(up[1])]
 
+## THE CHART READ UPSIDE DOWN (INVERTED_TABLE boss). Hands swap places with their mirror in the
+## payout order: the cheapest pays what the dearest used to, and a pair outscores a flush. The
+## whole run's instinct becomes the wrong instinct, which is the point -- and it stays exact,
+## because it is a permutation of the same table the paytable prints.
+static func mirrored(hand: int) -> int:
+	var order: Array = BASE.keys()
+	order.sort_custom(func(a, b): return value_of(a) < value_of(b))
+	var i: int = order.find(hand)
+	if i < 0:
+		return hand
+	return int(order[order.size() - 1 - i])
+
 static func name_key(hand: int) -> String:
 	return NAME_KEYS.get(hand, "")
 

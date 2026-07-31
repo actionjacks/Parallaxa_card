@@ -47,6 +47,11 @@ func _initialize() -> void:
 	fails += _expect("GRAVE_GLUTTON: blow grows with your grave", _glutton())
 	fails += _expect("THIRD_BURST: every third turn lands twice", _burst() == [10, 10, 20])
 	fails += _expect("VAMPIRE_MEND: mends only after a weak round", _vampire())
+	# BOSSES THAT REWRITE THE RULES (N4.3)
+	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
+	fails += _expect("Poker.mirrored is its own inverse", _mirror_is_involution())
+	fails += _expect("WIDE_HAND: three more cards, zero discards", _wide_hand())
+	fails += _expect("ASPECT_BAN: the forbidden colour brings no chips", _aspect_ban())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -751,6 +756,33 @@ func _vampire() -> bool:
 	var weak_before := ctrl.enemy_hp
 	ctrl.resolve_enemy_turn()
 	return ctrl.enemy_hp == weak_before + 25
+
+## The chart read upside down: the hand is unchanged, the PAYMENT is its mirror.
+func _inverted_table() -> bool:
+	var pair: Array = [_card(5, 0), _card(5, 1)]
+	var plain: Dictionary = Scoring.score(pair, [], {})
+	var flipped: Dictionary = Scoring.score(pair, [], {"inverted_table": true})
+	return int(flipped["hand"]) == Poker.evaluate(pair) and int(flipped["chips"]) > int(plain["chips"])
+
+## Mirroring twice must return the original, or the rule would drift as hands are added.
+func _mirror_is_involution() -> bool:
+	for h in Poker.BASE.keys():
+		if Poker.mirrored(Poker.mirrored(int(h))) != int(h):
+			return false
+	return true
+
+## She hands you the cards and takes the sieve away.
+func _wide_hand() -> bool:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(40), _foe(EnemyData.Rule.WIDE_HAND), [], 500, 500)
+	return ctrl.hand.size() == CombatController.HAND_SIZE + 3 and ctrl.discards_left == 0
+
+## A banned colour still fills the hand and still counts toward the shape -- it just pays nothing.
+func _aspect_ban() -> bool:
+	var play: Array = [_card(9, 0), _card(9, 1)]
+	var free: int = int(Scoring.score(play, [], {})["chips"])
+	var banned: int = int(Scoring.score(play, [], {"banned_aspect": 0})["chips"])
+	return free - banned == 9
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

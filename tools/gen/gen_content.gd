@@ -228,7 +228,7 @@ func _region() -> void:
 	devil.arcanum = load(ARCANA_DIR + "arcanum_devil_boss.tres")
 	ResourceSaver.save(devil, ENEMY_DIR + "boss_devil.tres")
 	_save_boss("boss_hanged", "ENEMY_WISIELEC", 760, [17, 21, 14], 14,
-		EnemyData.Rule.HANGED_CAP, "RULE_HANGED", 4, "12_hanged_man", "arcanum_hanged")
+		EnemyData.Rule.WIDE_HAND, "RULE_WIDE", 4, "12_hanged_man", "arcanum_hanged")
 	_save_boss("boss_justice", "ENEMY_SPRAWIEDLIWOSC", 740, [15, 19, 12], 14,
 		EnemyData.Rule.JUSTICE_RIPOSTE, "RULE_JUSTICE", 4, "11_justice", "arcanum_justice")
 	_save_elite("enemy_elite_r2", "ENEMY_ELITE_R2", 870, [18, 18, 18], 14, 5, "wands_13")
@@ -241,13 +241,13 @@ func _region() -> void:
 	_save_enemy("enemy_r3a2", "ENEMY_WIDMO", 990, [27, 10, 27], 9, 4, "swords_13")
 	_save_enemy("enemy_r3b", "ENEMY_TYTAN", 1150, [22, 22, 22], 9, 4, "pents_14")
 	_save_enemy("enemy_r3b2", "ENEMY_HERALD", 1090, [30, 0, 25], 9, 5, "wands_14")
-	var moon := _enemy("ENEMY_KSIEZYC", 980, [20, 25, 17], 16, true, EnemyData.Rule.MOON_CLEANSE, "RULE_MOON", 5)
+	var moon := _enemy("ENEMY_KSIEZYC", 980, [20, 25, 17], 16, true, EnemyData.Rule.INVERTED_TABLE, "RULE_INVERTED", 5)
 	moon.art = load(MAJOR + "18_moon.jpg")
 	moon.figure = _figure_for(MAJOR + "18_moon.jpg")
 	moon.arcanum = load(ARCANA_DIR + "arcanum_moon.tres")
 	ResourceSaver.save(moon, ENEMY_DIR + "boss_moon.tres")
 	_save_boss("boss_judgement", "ENEMY_SAD", 950, [21, 26, 17], 16,
-		EnemyData.Rule.JUDGEMENT_FRAIL, "RULE_JUDGEMENT", 5, "20_judgement", "arcanum_judgement")
+		EnemyData.Rule.ASPECT_BAN, "RULE_BAN", 5, "20_judgement", "arcanum_judgement")
 	_save_boss("boss_star", "ENEMY_GWIAZDA", 1000, [19, 24, 16], 16,
 		EnemyData.Rule.STAR_REGEN, "RULE_STAR", 5, "17_star", "arcanum_star")
 	_save_elite("enemy_elite_r3", "ENEMY_ELITE_R3", 1200, [25, 25, 25], 18, 6, "swords_14")

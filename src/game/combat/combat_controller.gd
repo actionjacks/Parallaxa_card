@@ -6,7 +6,9 @@ extends RefCounted
 signal state_changed
 signal message(text_key: String, args: Array)
 signal ended(won: bool)
-signal awaiting_enemy      ## player's play resolved; the scene pauses, then calls resolve_enemy_turn()
+signal awaiting_enemy
+## Emitted the moment a boss falls below half health -- the scene turns this into a ceremony.
+signal boss_turned      ## player's play resolved; the scene pauses, then calls resolve_enemy_turn()
 
 const HAND_SIZE: int = 8
 const START_DISCARDS: int = 3
@@ -58,6 +60,8 @@ var _last_play_damage: int = 0    ## damage of that play (the Fool answers with 
 var killing_cards: Array = []
 ## The Judgement answers ONCE per duel; a grave that refills forever is not a resource.
 var _raised: bool = false
+## A boss crosses half health once, and from there its enrage runs a step hotter.
+var _turned: bool = false
 
 var _draw: Array = []
 var _used: Array = []
@@ -93,6 +97,8 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	discards_left = START_DISCARDS + _bonus_discards()
 	if enemy.rule == EnemyData.Rule.HANGED_CAP:
 		discards_left = mini(discards_left, 1)   # the Hanged Man: suspension
+	if enemy.rule == EnemyData.Rule.WIDE_HAND:
+		discards_left = 0                        # a wide hand and no sieve to sort it with
 	turn = 1
 	_intent_index = 0
 	_plays = 0
@@ -118,6 +124,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	_last_play_damage = 0
 	killing_cards = []
 	_raised = false
+	_turned = false
 	# WZROST/KORZENIE ramps are RUN-LOCAL and per-fight: nothing ever cleared them, so a card that
 	# waited in hand during fight one carried that bonus into every later fight, compounding for
 	# the whole run. (scar and cracked are PERMANENT and deliberately survive -- they are saved.)
@@ -136,7 +143,7 @@ func _intent_at(idx: int) -> int:
 	if enemy == null or enemy.intents.is_empty():
 		return 0
 	var n := enemy.intents.size()
-	var step := enemy.enrage_step + (1 if veil >= 3 else 0) + depth
+	var step := enemy.enrage_step + (1 if veil >= 3 else 0) + depth + (1 if _turned else 0)
 	var over := maxi(0, idx - n + 1)
 	var base := int(floor(enemy.intents[idx % n] * (1.0 + 0.35 * depth)))
 	if base > 0:
@@ -244,7 +251,16 @@ func play(selected: Array) -> void:
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
 	var dmg := effective_damage(int(result["damage"]), cards.size())
+	var hp_before: int = enemy_hp
 	enemy_hp -= dmg
+	# THE TURN AT HALF HEALTH. A boss that has been holding back stops: from here its clock runs
+	# one step hotter for the rest of the duel. Deterministic, one-way, and announced the instant
+	# it happens so the player can re-plan rather than be surprised by a number.
+	if enemy != null and enemy.is_boss and not _turned \
+			and hp_before * 2 > enemy_max_hp and enemy_hp * 2 <= enemy_max_hp and enemy_hp > 0:
+		_turned = true
+		message.emit("LOG_BOSS_TURNS", [])
+		boss_turned.emit()
 	fight_damage += dmg
 	_dmg_this_round += dmg
 	# By PAYOUT, not by enum position: the enum is append-only, so a hand added at the end would
@@ -433,6 +449,8 @@ func resolve_enemy_turn() -> void:
 	discards_left = START_DISCARDS + _bonus_discards()
 	if enemy.rule == EnemyData.Rule.HANGED_CAP:
 		discards_left = mini(discards_left, 1)
+	if enemy.rule == EnemyData.Rule.WIDE_HAND:
+		discards_left = 0
 	for c in hand:   # WZROST/KORZENIE ramp while the card waits in hand (run-local, preview-exact)
 		if c.keyword == CardData.Keyword.WZROST:
 			c.growth += c.keyword_value
@@ -494,6 +512,8 @@ func _ctx() -> Dictionary:
 		# Veil IV -- the Cracked Mirror: the Keystone stops working, so the ordering game the
 		# player has learned is taken away and they have to score on the hand alone.
 		"keystone": veil < 4,
+		"inverted_table": enemy != null and enemy.rule == EnemyData.Rule.INVERTED_TABLE,
+		"banned_aspect": banned_aspect(),
 		"grave": _used.size(),
 		"plays": _plays,
 		"hand_levels": hand_levels,
@@ -551,7 +571,7 @@ func predicted_self_damage(staged_damage: int, cards: Array) -> int:
 func enrage_step_effective() -> int:
 	if enemy == null:
 		return 0
-	return enemy.enrage_step + (1 if veil >= 3 else 0) + depth
+	return enemy.enrage_step + (1 if veil >= 3 else 0) + depth + (1 if _turned else 0)
 
 func draw_count() -> int:
 	return _draw.size()
@@ -580,7 +600,19 @@ func _move_to_used(selected: Array) -> void:
 
 ## The Library (MIND law) deals one card more -- the biome where a straight finally assembles.
 func hand_size() -> int:
-	return HAND_SIZE + (1 if law == 2 else 0)
+	var n: int = HAND_SIZE + (1 if law == 2 else 0)
+	if enemy != null and enemy.rule == EnemyData.Rule.WIDE_HAND:
+		n += 3        # she gives you the cards and takes the sieve away
+	return n
+
+## The colour forbidden this cycle (-1 = none). It rotates with the intent clock, so it is
+## knowable a turn ahead and printed above the enemy -- a ban you cannot see would be a trap.
+func banned_aspect() -> int:
+	if enemy == null or enemy.rule != EnemyData.Rule.ASPECT_BAN or enemy.intents.is_empty():
+		return -1
+	@warning_ignore("integer_division")
+	var cycle: int = _intent_index / enemy.intents.size()
+	return cycle % 5
 
 ## THE JUDGEMENT (docs/todo.md): once per fight, the Arcanum of Judgement calls the grave back
 ## the moment the deck runs dry -- announced, and on a KNOWN condition rather than a roll, so the
