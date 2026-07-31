@@ -19,6 +19,13 @@ var _cam: Camera3D
 var _key: OmniLight3D
 var _accent := Color(0.55, 0.2, 0.24)
 var _t := 0.0
+var _fig: Sprite3D              ## the opponent, standing on the floor rather than floating over it
+var _blob: MeshInstance3D       ## contact shadow under the figure
+var _atlas: AtlasTexture
+var _frames := 0
+var _cell := Vector2.ZERO
+var _ft := 0.0
+var _fi := 0
 var _push := 0.0        ## momentary camera dolly: + leans in on your blow, - flinches back on theirs
 
 func _init() -> void:
@@ -99,6 +106,47 @@ func _build() -> void:
 	rim.rotation_degrees = Vector3(-24, 158, 0)
 	_world.add_child(rim)
 
+## THE OPPONENT, STANDING IN THE ROOM. Until now the figure was a 2D layer floating ABOVE the
+## 3D room, so the floor and the character were two unrelated worlds. As a Sprite3D it stands on
+## that floor, catches the same candle, and drops a shadow -- which is the whole reason to have
+## built a room at all.
+func set_figure(tex: Texture2D, frames: int) -> void:
+	if _fig != null:
+		_fig.queue_free()
+		_fig = null
+	if _blob != null:
+		_blob.queue_free()
+		_blob = null
+	if tex == null or _world == null:
+		return
+	_frames = maxi(1, frames)
+	_cell = Vector2(float(tex.get_width()) / float(_frames), float(tex.get_height()))
+	_atlas = AtlasTexture.new()
+	_atlas.atlas = tex
+	_atlas.region = Rect2(0, 0, _cell.x, _cell.y)
+	_fig = Sprite3D.new()
+	_fig.texture = _atlas
+	_fig.billboard = BaseMaterial3D.BILLBOARD_ENABLED     # always faces the reader
+	_fig.shaded = true                                    # the candle actually falls on it
+	_fig.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD       # cut-out edges, no sorting halo
+	_fig.pixel_size = 0.0125
+	# feet on the floor: half the sprite's world height above FLOOR_Y
+	_fig.position = Vector3(0.0, FLOOR_Y + _cell.y * 0.0125 * 0.5, -1.4)
+	_world.add_child(_fig)
+	# a soft blob under it -- a real shadow would need a shadow-casting light, which software GL
+	# cannot afford; a dark ellipse on the floor sells the contact just as well.
+	_blob = MeshInstance3D.new()
+	var bm := PlaneMesh.new()
+	bm.size = Vector2(2.1, 1.15)
+	_blob.mesh = bm
+	_blob.position = Vector3(0.0, FLOOR_Y + 0.012, -1.35)
+	var bmat := StandardMaterial3D.new()
+	bmat.albedo_color = Color(0.0, 0.0, 0.0, 0.55)
+	bmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_blob.material_override = bmat
+	_world.add_child(_blob)
+
 ## The room takes the enemy's colour, so a biome reads before a single word is on screen.
 func set_accent(accent: Color) -> void:
 	_accent = accent
@@ -130,3 +178,10 @@ func _process(delta: float) -> void:
 		return
 	# a breath of drift, so the room is never a still photograph
 	_cam.position = Vector3(sin(_t * 0.21) * 0.10, 0.55 + sin(_t * 0.17) * 0.05, 5.2 - _push)
+	# the engraving steps between carved poses, same 10 fps as the plate it replaces
+	if _frames > 1 and _atlas != null:
+		_ft += delta * 10.0
+		if _ft >= 1.0:
+			_ft -= 1.0
+			_fi = (_fi + 1) % _frames
+			_atlas.region = Rect2(float(_fi) * _cell.x, 0.0, _cell.x, _cell.y)

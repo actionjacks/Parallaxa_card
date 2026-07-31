@@ -183,7 +183,9 @@ func _build_ui() -> void:
 
 	# --- middle: relics + enemy emblem + score readout ---
 	var mid := VBoxContainer.new()
-	mid.add_theme_constant_override("separation", 6)
+	# Breathing room: seven readouts at separation 6 read as one block of noise. The 3D room
+	# behind them gives the space back, so spend it.
+	mid.add_theme_constant_override("separation", 11)
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(mid)
 	_relic_row = HBoxContainer.new()
@@ -211,6 +213,11 @@ func _build_ui() -> void:
 	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_breakdown_label)
 	_log_label = _inked(_label("", 13, Color(0.6, 0.6, 0.66)))
+	# The log is history, and history is the first thing to fold away when the table gets crowded.
+	# Remembered in Settings, like the paytable toggle, so a player who wants a bare arena keeps it.
+	var st_log := get_node_or_null("/root/Settings")
+	if st_log != null and st_log.has_method("get_value"):
+		_log_label.visible = bool(st_log.call("get_value", "gameplay", "combat_log", true))
 	_log_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_log_label)
 
@@ -282,6 +289,12 @@ func _build_ui() -> void:
 	_sort_btn.tooltip_text = tr("SORT_TIP")
 	_sort_btn.pressed.connect(_cycle_hand_sort)
 	crow.add_child(_sort_btn)
+	var log_btn := Button.new()
+	log_btn.text = tr("LOG_TOGGLE")
+	log_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	log_btn.tooltip_text = tr("LOG_TOGGLE_TIP")
+	log_btn.pressed.connect(_toggle_log)
+	crow.add_child(log_btn)
 	var pt_btn := Button.new()
 	pt_btn.text = tr("PAYTABLE_TOGGLE")
 	pt_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -444,10 +457,15 @@ func _render() -> void:
 	var etint := Color(0.92, 0.5, 0.28) if _enemy.is_boss else Color(0.55, 0.7, 0.42)
 	if _enemy.is_elite:
 		etint = Color("b23a48")
+	if _arena != null and _portrait_of != _enemy:
+		# The opponent stands IN the room now. The 2D plate remains only for a foe that ships no
+		# cut-out figure, so nothing ever renders as an empty frame.
+		_arena.set_figure(_enemy.figure, _enemy.figure_frames)
 	if _portrait != null and _portrait_of != _enemy:
 		# A real tarot card LOOMS behind the arena (bosses are Major Arcana, regulars the Minor
 		# courts -- the Fool's Journey). Elites hang REVERSED: the profaned card is the brand.
 		_portrait.set_enemy(_enemy, etint)
+		_portrait.visible = _enemy.figure == null
 		_portrait_of = _enemy
 	# THE LAW OF THE PLACE, stated where it is being applied. It changes chips, mult, block, hand
 	# size and the heal pool in every duel of a biome, and until now it was named once, on the
@@ -657,6 +675,14 @@ func _highlight_paytable(hand: int) -> void:
 	for h in _paytable_rows:
 		(_paytable_rows[h] as Label).add_theme_color_override("font_color",
 			Color(0.98, 0.85, 0.4) if h == hand else Color(0.66, 0.68, 0.76))
+
+func _toggle_log() -> void:
+	if _log_label == null:
+		return
+	_log_label.visible = not _log_label.visible
+	var st := get_node_or_null("/root/Settings")
+	if st != null and st.has_method("set_value"):
+		st.call("set_value", "gameplay", "combat_log", _log_label.visible)
 
 func _toggle_paytable() -> void:
 	if _paytable == null:

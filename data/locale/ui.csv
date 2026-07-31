@@ -825,3 +825,5 @@ FIRST_INVERTED,"The chart is upside down here. A pair pays like the greatest han
 FIRST_WIDE,"Three more cards, and no discards at all. You cannot dig here — you play what you are given.","Trzy karty więcej i zero odrzutów. Tu nie da się kopać — grasz tym, co dostałeś."
 FIRST_TECHNIQUE,"Ordinary foes have techniques too, not just bosses. Its rule is written above its name.","Zwykli wrogowie też mają techniki, nie tylko bossowie. Jego reguła jest wypisana nad nazwą."
 FIRST_SEAL,"That colour is yours for good — it survives death. Five seals open a door that is otherwise closed.","Ten kolor jest twój na zawsze — przetrwa śmierć. Pięć pieczęci otwiera drzwi, które inaczej są zamknięte."
+LOG_TOGGLE,Log,Dziennik
+LOG_TOGGLE_TIP,"Hide or show the running log of what just happened.","Chowa lub pokazuje bieżący dziennik tego, co się właśnie stało."
