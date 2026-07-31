@@ -39,6 +39,7 @@ var _heal_pool_label: Label
 var _gnicie_label: Label
 var _klatwa_label: Label
 var _relic_row: HBoxContainer
+var _arena: ArenaView              ## the 3D room the duel is fought in, under everything
 var _portrait: EnemyPortrait       ## the opponent as a full-height plate BEHIND the arena
 var _portrait_of: EnemyData        ## which enemy the plate currently shows (rebuild guard)
 var _portrait_enraged := false     ## enrage ceremony fires once per fight, not once per render
@@ -116,6 +117,12 @@ func _build_ui() -> void:
 	if not standalone and RunState.region != null:
 		accent = RunState.region.accent
 	add_child(Backdrop.build(accent))
+	# THE ROOM, in 3D, underneath everything: a floor to stand on, a wall lost in fog and one
+	# warm light at the table's edge. Same SubViewport pattern as the tower, so it costs the
+	# 720p budget nothing and the whole 2D HUD keeps working on top of it.
+	_arena = ArenaView.new()
+	_arena.set_accent(accent if accent.a > 0.0 else Color(0.55, 0.2, 0.24))
+	add_child(_arena)
 	# The opponent goes in BEHIND the arena, not inside its column: a portrait big enough to be
 	# felt would otherwise push the hand past 720p (it has happened three times in this project).
 	_portrait = EnemyPortrait.new()
@@ -1452,6 +1459,8 @@ func _relic_chip(a: ArcanumData) -> Control:
 func _emblem_hit() -> void:
 	if _portrait != null:
 		_portrait.play_state("hurt")
+	if _arena != null:
+		_arena.punch(1.0)
 
 func _pulse(node: Control) -> void:
 	if node == null:
