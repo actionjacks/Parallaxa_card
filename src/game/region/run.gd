@@ -232,11 +232,8 @@ func _show_map() -> void:
 	# middle of the image -- the title landed on the tower's third storey and the caption floated
 	# at its waist. The interface reads in three bands instead: title along the TOP, the climb
 	# owning the middle untouched, everything else pinned along the BOTTOM.
-	var head := MarginContainer.new()
-	head.add_theme_constant_override("margin_top", 6)
-	head.add_child(_label_center(tr(RunState.region.name_key), 30,
-		RunState.region.accent.lerp(Color(0.96, 0.92, 0.82), 0.35)))
-	root.add_child(head)
+	# No header: the caption below already names the climb, and two copies of the same words over
+	# one picture is noise, not emphasis.
 	# the middle belongs to the tower: nothing is allowed to sit on it
 	var sky := Control.new()
 	sky.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -257,7 +254,8 @@ func _show_map() -> void:
 	_tower_bg = TowerView.new(Vector2(1280, 720))
 	var climb: Array = RunState.fights.duplicate()
 	climb.append(RunState.boss if RunState.boss != null else RunState.region.boss)
-	_tower_bg.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb)
+	_tower_bg.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb,
+		RunState.region.seal_aspect)
 	_tower_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_tower_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_tower_bg)
@@ -282,22 +280,33 @@ func _show_map() -> void:
 	rule_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rule_line.custom_minimum_size = Vector2(560, 0)
 	cap.add_child(rule_line)
-	var scrim := PanelContainer.new()
+	# THE BOTTOM BAND: one bar, edge to edge, holding everything that is not the picture. Caption
+	# on the left, relics on the right, the action buttons beneath. Nothing floats over the tower.
+	var band := PanelContainer.new()
 	var ss := StyleBoxFlat.new()
-	ss.bg_color = Color(0.03, 0.02, 0.04, 0.72)
+	ss.bg_color = Color(0.03, 0.02, 0.04, 0.80)
 	ss.set_content_margin_all(10)
 	ss.content_margin_left = 42
-	scrim.add_theme_stylebox_override("panel", ss)
-	scrim.add_child(cap)
-	root.add_child(scrim)
-
+	ss.content_margin_right = 42
+	ss.content_margin_bottom = 14
+	band.add_theme_stylebox_override("panel", ss)
+	var band_row := HBoxContainer.new()
+	band_row.add_theme_constant_override("separation", 24)
+	band.add_child(band_row)
+	band_row.add_child(cap)
+	var band_gap := Control.new()
+	band_gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	band_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band_row.add_child(band_gap)
 	if RunState.relics.size() > 0:
-		var rr := HBoxContainer.new()
-		rr.alignment = BoxContainer.ALIGNMENT_CENTER
-		rr.add_theme_constant_override("separation", 8)
-		for a in RunState.relics:
-			rr.add_child(_relic_chip(a))
-		root.add_child(rr)
+		var rr2 := HBoxContainer.new()
+		rr2.alignment = BoxContainer.ALIGNMENT_END
+		rr2.add_theme_constant_override("separation", 6)
+		for a2: ArcanumData in RunState.relics:
+			rr2.add_child(_relic_chip(a2))
+		band_row.add_child(rr2)
+	root.add_child(band)
+
 
 	if _pending_omen != null:
 		var ow := CenterContainer.new()

@@ -23,6 +23,8 @@ const DARK := Color(0.055, 0.05, 0.07)
 var _world: SubViewport
 var _pivot: Node3D             ## everything rotates around this, so the tower turns slowly
 var _cam: Camera3D
+var _clouds: Array = []        ## drifting weather behind the tower
+var _weather: Node3D           ## the biome's own element: embers, ash, rain, spores
 var _rungs: Array = []         ## Node3D per rung, bottom-first
 var _t := 0.0
 var _accent := Color(0.8, 0.7, 0.5)
@@ -55,11 +57,21 @@ func _ready() -> void:
 	set_process(true)
 	if not _pending.is_empty():
 		build(int(_pending[0]), int(_pending[1]), _pending[2],
-			_pending[3] if _pending.size() > 3 else [])
+			_pending[3] if _pending.size() > 3 else [],
+			int(_pending[4]) if _pending.size() > 4 else -1)
 
 ## The dark: a black void with fog, lit by ONE warm source low on the tower, like a brazier at
 ## its foot. Everything above fades into the murk, which is what makes a climb feel tall.
 func _build_environment() -> void:
+	# Called again when build() learns the biome's colour, so anything it ADDS must be cleared
+	# first -- otherwise every rebuild stacks another set of lights and cloud walls on the last.
+	for c in _clouds:
+		if is_instance_valid(c):
+			c.queue_free()
+	_clouds.clear()
+	for ch in _pivot.get_children():
+		if ch is Light3D:
+			ch.queue_free()
 	var env := Environment.new()
 	# A STORM, NOT A VOID. Flat black gave the tower nothing to stand against: the silhouette had
 	# no horizon, so it read as an object on a table rather than a building in weather. A sky
@@ -70,10 +82,10 @@ func _build_environment() -> void:
 	var sky := Sky.new()
 	var pan := ProceduralSkyMaterial.new()
 	pan.sky_top_color = Color(0.045, 0.040, 0.062)
-	pan.sky_horizon_color = Color(0.30, 0.17, 0.13)
+	pan.sky_horizon_color = _accent.lerp(Color(0.22, 0.12, 0.10), 0.55) if _accent.a > 0.0 else Color(0.30, 0.17, 0.13)
 	pan.sky_curve = 0.16
 	pan.ground_bottom_color = Color(0.055, 0.035, 0.035)
-	pan.ground_horizon_color = Color(0.34, 0.18, 0.12)
+	pan.ground_horizon_color = _accent.lerp(Color(0.26, 0.14, 0.10), 0.5) if _accent.a > 0.0 else Color(0.34, 0.18, 0.12)
 	pan.ground_curve = 0.10
 	pan.sun_angle_max = 30.0
 	sky.sky_material = pan
@@ -93,6 +105,38 @@ func _build_environment() -> void:
 	var ce := CameraAttributesPractical.new()
 	_cam.attributes = ce
 	_cam.environment = env
+
+	# STORM, PAINTED. ProceduralSkyMaterial gives a gradient and nothing else, and a gradient has
+	# no weather in it. Two huge quads of drifting noise behind the tower do: one dense and low,
+	# one thin and high, crossing at different rates. Cheap enough for software GL because they
+	# are two quads, and they give the silhouette something to be cut out AGAINST.
+	var wx: Color = _accent if _accent.a > 0.0 else Color(0.42, 0.26, 0.20)
+	for layer in 2:
+		var wall := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(62.0, 34.0) if layer == 0 else Vector2(80.0, 44.0)
+		wall.mesh = qm
+		wall.position = Vector3(0, 7.0 + layer * 3.0, -16.0 - layer * 7.0)
+		var cm := StandardMaterial3D.new()
+		var nt := NoiseTexture2D.new()
+		var fn := FastNoiseLite.new()
+		fn.noise_type = FastNoiseLite.TYPE_SIMPLEX
+		fn.frequency = 0.004 if layer == 0 else 0.0022
+		fn.fractal_octaves = 4
+		nt.noise = fn
+		nt.width = 256
+		nt.height = 160
+		nt.seamless = true
+		cm.albedo_texture = nt
+		var base: Color = wx.lerp(Color(0.30, 0.20, 0.18), 0.45) if layer == 0 \
+			else wx.lerp(Color(0.12, 0.10, 0.18), 0.70)
+		cm.albedo_color = Color(base.r, base.g, base.b, 0.85 if layer == 0 else 0.60)
+		cm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		cm.uv1_scale = Vector3(1.6, 0.9, 1.0)
+		wall.material_override = cm
+		_clouds.append(wall)
+		_world.add_child(wall)
 
 	# the fire at the foot: warm, close, low, and the reason the lower stones read as stone
 	var key := OmniLight3D.new()
@@ -155,9 +199,9 @@ func _stone_material(lit: float, accent: Color) -> StandardMaterial3D:
 ## and nothing about WHO was up there. Every rung now shows the opponent standing in its lit
 ## opening -- the ladder you can read at a glance, which is the whole point of a tower screen.
 ## `foes` is the rolled ladder (Array[EnemyData]); the last entry is the boss on the summit.
-func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
+func build(total: int, step: int, accent: Color, foes: Array = [], aspect: int = -1) -> void:
 	_accent = accent
-	_pending = [total, step, accent, foes]
+	_pending = [total, step, accent, foes, aspect]
 	if _pivot == null:
 		return          # not in the tree yet; _ready() will replay this
 	for r in _rungs:
@@ -197,6 +241,33 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 		eave.position = Vector3(0, RUNG_H * 0.50, 0)
 		eave.material_override = _stone_material(0.0, accent.lerp(Color(0.35, 0.22, 0.18), 0.5))
 		drum.add_child(eave)
+		# UPTURNED CORNERS. A flat slab is a shelf; a pagoda eave lifts at its four corners, and
+		# that lift is most of what makes the silhouette read as a tower rather than a stack.
+		for c in 4:
+			var tip := MeshInstance3D.new()
+			var tm := BoxMesh.new()
+			tm.size = Vector3(half * 0.46, RUNG_H * 0.09, half * 0.46)
+			tip.mesh = tm
+			var ca: float = TAU * float(c) / 4.0 + TAU * 0.125
+			tip.position = Vector3(sin(ca) * half * 1.24, RUNG_H * 0.50, cos(ca) * half * 1.24)
+			tip.rotation = Vector3(0.30 * cos(ca), ca, -0.30 * sin(ca))
+			tip.material_override = _stone_material(0.0, accent.lerp(Color(0.42, 0.24, 0.18), 0.55))
+			drum.add_child(tip)
+		# CORNER COLUMNS: four posts carrying the eave. They are what turns an open alcove into a
+		# storey you could walk into.
+		for c2 in 4:
+			var post := MeshInstance3D.new()
+			var pm := CylinderMesh.new()
+			pm.top_radius = half * 0.10
+			pm.bottom_radius = half * 0.115
+			pm.height = RUNG_H * 0.94
+			pm.radial_segments = 8
+			post.mesh = pm
+			var pa: float = TAU * float(c2) / 4.0 + TAU * 0.125
+			post.position = Vector3(sin(pa) * half * 1.02, 0.0, cos(pa) * half * 1.02)
+			post.material_override = _stone_material(0.18 if current else 0.0,
+				accent.lerp(Color(0.68, 0.42, 0.34), 0.5))
+			drum.add_child(post)
 		# THE ALCOVE: a dark recess in the front face, so the occupant stands INSIDE the building
 		# rather than glued to its wall. Unshaded black -- it is a hole, and a hole is not lit.
 		var nook := MeshInstance3D.new()
@@ -306,10 +377,98 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 				fg.modulate = Color(0.92, 0.90, 0.96)
 			drum.add_child(fg)
 		_rungs.append(drum)
+	_accent = accent
+	_build_environment()
+	_build_weather(aspect, accent)
 	_frame_camera(total)
 
 ## Put the whole climb in frame, tilted slightly up: the summit should sit high in the shot so
 ## the tower reads as something still to be climbed.
+## EVERY TOWER BELONGS TO ITS COLOUR. Five identical buildings in five tints is a palette swap,
+## not five places -- so each Aspect brings its own element falling through the frame. CPUParticles
+## rather than GPU: the hidden test screen is software GL, and a few hundred sprites on the CPU
+## cost less there than a compute pass.
+func _build_weather(aspect: int, accent: Color) -> void:
+	if _weather != null and is_instance_valid(_weather):
+		_weather.queue_free()
+	_weather = Node3D.new()
+	_world.add_child(_weather)
+	var p := CPUParticles3D.new()
+	p.amount = 120
+	p.lifetime = 5.0
+	p.preprocess = 3.0
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(9.0, 0.5, 5.0)
+	p.position = Vector3(0, 11.0, -2.0)
+	p.direction = Vector3(0, -1, 0)
+	p.gravity = Vector3(0, -1.2, 0)
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.4
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.vertex_color_use_as_albedo = true
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	# A ONE-UNIT quad this close to a 62-degree lens is the size of a storey. Untextured and opaque
+	# it becomes a cream slab -- the first pass buried the tower under a hundred of them. Small,
+	# and ADDITIVE, so an ember reads as light rather than as a hole punched in the picture.
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.055, 0.055)
+	p.mesh = qm
+	match aspect:
+		0:  # LIFE -- the Orchard: slow motes of pollen drifting UP toward the light
+			p.gravity = Vector3(0.15, 0.55, 0)
+			p.position = Vector3(0, -1.0, -2.0)
+			p.color = Color(1.0, 0.90, 0.55, 0.75)
+			p.amount = 90
+			p.scale_amount_max = 1.8
+		1:  # MIND -- the Library: cold sleet, fast and straight
+			p.gravity = Vector3(-0.6, -9.0, 0)
+			p.color = Color(0.66, 0.82, 1.0, 0.55)
+			p.amount = 220
+			p.scale_amount_min = 0.5
+			p.scale_amount_max = 0.9
+			p.lifetime = 2.2
+		2:  # DEATH -- the Catacombs: ash, heavy and slow, never quite settling
+			p.gravity = Vector3(0.25, -0.7, 0)
+			p.color = Color(0.72, 0.66, 0.78, 0.60)
+			p.amount = 160
+			p.lifetime = 7.0
+		3:  # CHAOS -- the Burnt Field: embers RISING and meteors falling through them
+			p.gravity = Vector3(0.1, 1.6, 0)
+			p.position = Vector3(0, -1.4, -2.0)
+			p.color = Color(1.0, 0.45, 0.16, 0.95)
+			p.amount = 200
+			p.lifetime = 4.0
+			var meteor := CPUParticles3D.new()
+			meteor.amount = 7
+			meteor.lifetime = 2.6
+			meteor.preprocess = 1.0
+			meteor.mesh = qm
+			meteor.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+			meteor.emission_box_extents = Vector3(11.0, 0.5, 4.0)
+			meteor.position = Vector3(0, 13.0, -4.0)
+			meteor.gravity = Vector3(-5.0, -16.0, 0)
+			meteor.scale_amount_min = 2.2
+			meteor.scale_amount_max = 4.0
+			meteor.color = Color(1.0, 0.72, 0.32, 1.0)
+			var mm := mat.duplicate()
+			mm.emission_enabled = true
+			mm.emission = Color(1.0, 0.60, 0.22)
+			mm.emission_energy_multiplier = 4.0
+			meteor.material_override = mm
+			_weather.add_child(meteor)
+		4:  # NATURE -- the Overgrowth: spores, wandering sideways more than down
+			p.gravity = Vector3(0.7, -0.5, 0)
+			p.color = Color(0.62, 0.95, 0.58, 0.62)
+			p.amount = 140
+			p.lifetime = 8.0
+		_:
+			p.color = Color(accent, 0.5)
+	p.material_override = mat
+	_weather.add_child(p)
+
 func _frame_camera(total: int) -> void:
 	var h: float = RUNG_H * total
 	# A WORM'S EYE, BECAUSE THE PLAYER IS CLIMBING. Framed from half its own height the tower was a
@@ -328,4 +487,9 @@ func _process(delta: float) -> void:
 	# A slow turn, under two degrees a second: enough for the stonework to catch the brazier and
 	# read as round, slow enough that nobody has to watch it move.
 	_t += delta
+	for ci in _clouds.size():
+		var w: MeshInstance3D = _clouds[ci]
+		if is_instance_valid(w):
+			var m: StandardMaterial3D = w.material_override
+			m.uv1_offset.x = fmod(_t * (0.010 + 0.006 * float(ci)), 1.0)
 	_pivot.rotation.y = sin(_t * 0.16) * 0.28
