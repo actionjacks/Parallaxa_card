@@ -279,11 +279,7 @@ func _dim_layer() -> Control:
 	return c
 
 func _panel_box() -> PanelContainer:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.085, 0.12)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.45, 0.4, 0.55)
-	sb.set_corner_radius_all(4)
+	var sb := Chrome.panel(Color(0.55, 0.48, 0.68), 0.7)
 	for side in ["left", "top", "right", "bottom"]:
 		sb.set("content_margin_" + side, 18)
 	var p := PanelContainer.new()

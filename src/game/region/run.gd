@@ -313,7 +313,9 @@ func _show_map() -> void:
 		ow.add_child(_omen_block())
 		root.add_child(ow)
 
-	root.add_child(_hint(tr("MAP_HINT")))
+	# MAP_HINT used to hang below the bottom band and clip off the frame. It belongs with the
+	# caption, which is where the player is already reading.
+	cap.add_child(_hint_ink(tr("MAP_HINT"), 560))
 	var ctrls := HBoxContainer.new()
 	ctrls.alignment = BoxContainer.ALIGNMENT_CENTER
 	ctrls.add_theme_constant_override("separation", 12)
@@ -1641,19 +1643,24 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	return l
 
+## One factory, one material. Every button on the map, in the shop, on a reward or a claim screen
+## comes from here -- so skinning it once skins the whole run layer, and it wears the BIOME's
+## accent, which is why the shop of the Burnt Field cannot be mistaken for the shop of the Library.
 func _button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	Chrome.button(b, RunState.region.accent if RunState.region != null else Color(0.62, 0.56, 0.72))
 	b.pressed.connect(cb)
 	return b
 
 func _panel(bg: Color, border: Color) -> PanelContainer:
-	var sb := StyleBoxFlat.new()
+	# Chrome's bevelled plate, keeping the caller's colours: the shape and the depth become shared,
+	# the identity stays local. A flat one-pixel outline was the single biggest reason the run
+	# screens read as a prototype next to the 3D behind them.
+	var sb := Chrome.panel(border, 0.35)
 	sb.bg_color = bg
-	sb.set_border_width_all(1)
+	sb.bg_color.a = maxf(bg.a, 0.90)
 	sb.border_color = border
-	sb.set_corner_radius_all(3)
 	sb.content_margin_left = 12
 	sb.content_margin_top = 8
 	sb.content_margin_right = 12

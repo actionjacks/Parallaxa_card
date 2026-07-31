@@ -579,9 +579,9 @@ func _spacer(h: int) -> Control:
 func _menu_btn(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(280, 40)
+	b.custom_minimum_size = Vector2(280, 42)
 	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	Chrome.button(b, Color(0.78, 0.62, 0.42))
 	b.pressed.connect(cb)
 	return b
 
