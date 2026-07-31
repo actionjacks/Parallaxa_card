@@ -96,27 +96,7 @@ pasek akcji jest zakotwiczony do dolu.
 
 ## 5. POZOSTAJE
 
-Potwierdzone, jeszcze nienaprawione — kolejnosc wg wagi:
-
-1. **Swiat nieosiagalny na Glebi >= 1**: `_go_beyond` zeruje `region_index`, ale `fights_won > 0`
-   sprawia, ze `_show_biome_choice` liczy `idx = 1` i wchodzi od razu w Swiat... a potem petla
-   pomija go w kolejnych Glebiach. `boss_world` staje sie trescia nieosiagalna.
-2. **Biom Zapieczetowany nie jest terminusem**, wbrew wlasnemu opisowi ("Podroz konczy sie tam").
-3. **Pieczec zdobyta na Glebi przyznawana po cichu** — efekt policzony, nigdy niepokazany.
-4. **Mapa z omenem przekracza 720p** i chowa przycisk "Rusz" — czwarty softlock tej rodziny.
-5. **Osiagniecia przyznawane w ciszy** — `check_run_achievements` zwraca liste swiezo zdobytych,
-   a wynik jest wyrzucany; gracz nie widzi popu.
-6. **`_show_map` dereferencuje `RunState.region` bez straznika**, choc reszta kodu zaklada, ze
-   moze byc null.
-7. **`describe()` nie ma galezi dla `RAISE_DEAD`** — Arkanum Sadu ma pusty opis.
-8. **Podglad ostrzega przed rozpadem szkla, ale nie przed OFIARA**, ktora niszczy karte trwale.
-9. **Zwrot odrzutu za Pentagram lamie limit Wisielca** (`HANGED_CAP`).
-10. **`next_intent()` klamie przy Kole i Glupcu** (Kolo przeskakuje cykl o 2, Glupiec nie uzywa
-    tabeli intencji).
-11. **`_mult_breakdown` pomija co najmniej piec zrodel mnoznika** (m.in. `inverted`, prawa biomow).
-12. **Prawo pola nie jest pokazane W WALCE** — gracz zapomina, w czym walczy.
-
----
+Punkty 1-12 tej sekcji zostaly ZAMKNIETE w partii N1c (sekcja 4). Otwarte sa juz tylko ponizsze.
 
 ### Znane, jeszcze nietkniete
 - **RAISE_DEAD jest funkcjonalnie no-opem**: silnik i tak recyklinguje grob bezwarunkowo, wiec
