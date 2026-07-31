@@ -10,5 +10,7 @@ name_key = "BIOME_CHAOS_3"
 max_hp = 817
 intents = PackedInt32Array(24, 0, 16)
 enrage_step = 3
+rule = 5
+rule_key = "RULE_CHARIOT"
 art = ExtResource("1_stc6u")
 figure = ExtResource("2_3yn66")

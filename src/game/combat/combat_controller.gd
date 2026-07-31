@@ -15,6 +15,8 @@ const FIGHT_HEAL_CAP: int = 15       ## shared per-fight heal pool (Opatrznosc +
 const MOON_MEND_HEAL: int = 15       ## the Moon self-mends when a round deals too little...
 const MOON_MEND_THRESHOLD: int = 60  ## ...i.e. under this much damage between its turns
 const EMPRESS_BLOOM_HEAL: int = 40   ## the Empress feeds on any play shorter than five cards
+const VAMPIRE_HEAL: int = 25         ## the mender's self-repair when a round barely scratched it
+const VAMPIRE_THRESHOLD: int = 90    ## ...i.e. under this much damage between its turns
 
 var relics: Array = []          ## Array[ArcanumData] applied to every play
 var hand_levels: Dictionary = {}   ## Poker.Hand -> level (Star consumables)
@@ -139,6 +141,12 @@ func _intent_at(idx: int) -> int:
 	var base := int(floor(enemy.intents[idx % n] * (1.0 + 0.35 * depth)))
 	if base > 0:
 		base += intent_debt   # the Wheel's price rides every real hit, preview-visible
+		# The glutton feeds on what you have spent: +1 for every card in your grave.
+		if enemy.rule == EnemyData.Rule.GRAVE_GLUTTON:
+			base += _used.size()
+		# Every third turn the blow lands twice -- announced from turn one, never a surprise.
+		if enemy.rule == EnemyData.Rule.THIRD_BURST and (idx + 1) % 3 == 0:
+			base *= 2
 	return base + over * step
 
 func current_intent() -> int:
@@ -187,9 +195,15 @@ func preview(selected: Array) -> Dictionary:
 
 ## Boss-side damage modifier -- the ONLY place a rule may touch scored damage. The combat scene
 ## displays effective_damage() everywhere (preview, lethal, prophecy), so the covenant holds.
-func effective_damage(raw: int) -> int:
-	if enemy != null and enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
+func effective_damage(raw: int, cards_played: int = 5) -> int:
+	if enemy == null:
+		return raw
+	if enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
 		return ceili(raw * 0.8)
+	# The bark only splits under a WHOLE hand. Routed through effective_damage so the preview,
+	# the prophecy stamp and the cockpit all price it without another call site to forget.
+	if enemy.rule == EnemyData.Rule.BARK_HIDE and cards_played < 5:
+		return ceili(raw * 0.6)
 	return raw
 
 ## Justice's exact riposte for a play of the given EFFECTIVE damage (0 = none). Preview-visible.
@@ -229,7 +243,7 @@ func play(selected: Array) -> void:
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
-	var dmg := effective_damage(int(result["damage"]))
+	var dmg := effective_damage(int(result["damage"]), cards.size())
 	enemy_hp -= dmg
 	fight_damage += dmg
 	_dmg_this_round += dmg
@@ -380,6 +394,15 @@ func resolve_enemy_turn() -> void:
 		message.emit("LOG_STAR_REGEN", [12])
 	# The Empress blooms on a half-hearted hand: anything short of five cards feeds her.
 	# Deterministic and stated up front -- the player knows the price of nibbling before paying it.
+	# The vampire mends when the round barely scratched it: chipping away is not a plan here.
+	if enemy.rule == EnemyData.Rule.HAND_THIEF and turn % 2 == 0 and not hand.is_empty():
+		var taken: CardData = hand[hand.size() - 1]
+		hand.remove_at(hand.size() - 1)
+		_used.append(taken)
+		message.emit("LOG_THIEF", [taken.rank_glyph()])
+	if enemy.rule == EnemyData.Rule.VAMPIRE_MEND and _dmg_this_round < VAMPIRE_THRESHOLD:
+		enemy_hp = mini(enemy_max_hp, enemy_hp + VAMPIRE_HEAL)
+		message.emit("LOG_VAMPIRE", [VAMPIRE_HEAL])
 	if enemy.rule == EnemyData.Rule.EMPRESS_BLOOM and _last_play_size in range(1, 5):
 		enemy_hp = mini(enemy_max_hp, enemy_hp + EMPRESS_BLOOM_HEAL)
 		message.emit("LOG_EMPRESS_BLOOM", [EMPRESS_BLOOM_HEAL])

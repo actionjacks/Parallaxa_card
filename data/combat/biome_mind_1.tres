@@ -11,5 +11,7 @@ max_hp = 594
 intents = PackedInt32Array(17, 3, 17)
 enrage_step = 2
 reward_rtec = 5
+rule = 15
+rule_key = "RULE_THIEF"
 art = ExtResource("1_5fk6m")
 figure = ExtResource("2_eyt4f")

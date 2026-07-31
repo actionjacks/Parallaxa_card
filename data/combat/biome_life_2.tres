@@ -11,5 +11,7 @@ max_hp = 809
 intents = PackedInt32Array(11, 8, 11)
 enrage_step = 2
 reward_rtec = 5
+rule = 14
+rule_key = "RULE_VAMPIRE"
 art = ExtResource("1_8lxvl")
 figure = ExtResource("2_m045x")

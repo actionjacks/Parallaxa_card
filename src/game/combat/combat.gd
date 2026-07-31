@@ -976,7 +976,7 @@ func _update_selection_ui() -> void:
 		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
 	# Boss rules may bend the scored damage (Strength's resist): the preview shows the number
 	# that will actually LAND -- the covenant never lies through a rule.
-	var eff := controller.effective_damage(int(r["damage"]))
+	var eff := controller.effective_damage(int(r["damage"]), _selected.size())
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
 		hand_name, int(r["chips"]), float(r["mult"]), eff,
 	]
@@ -1080,7 +1080,7 @@ func _on_play() -> void:
 	# Read the fate BEFORE committing: if the preview foretells the kill, the resolution must
 	# be the ceremony (counter rolling to the exact promised number), not a surprise.
 	var pre := controller.preview(idx)
-	var promised := controller.effective_damage(int(pre["damage"]))
+	var promised := controller.effective_damage(int(pre["damage"]), _selected.size())
 	var foretold_kill := promised >= controller.enemy_hp
 	var pre_destroyed := controller.destroyed_cards.size()
 	_hide_card_preview()

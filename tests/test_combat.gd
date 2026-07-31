@@ -41,6 +41,12 @@ func _initialize() -> void:
 	fails += _expect("NATURE_OVERGROWTH: cards left in hand fatten", _law_nature())
 	fails += _expect("SEAL_FIVE: +1 Mult per distinct Aspect", _law_seal())
 	fails += _expect("a reversed card never ends up hybridised with an ENEMY colour", _splash_stays_allied())
+	# ORDINARY-ENEMY TECHNIQUES (N4). Every one must be priced by the preview, or it breaks the
+	# covenant the game is named after.
+	fails += _expect("BARK_HIDE: under five cards deals 40% less", _bark_hide())
+	fails += _expect("GRAVE_GLUTTON: blow grows with your grave", _glutton())
+	fails += _expect("THIRD_BURST: every third turn lands twice", _burst() == [10, 10, 20])
+	fails += _expect("VAMPIRE_MEND: mends only after a weak round", _vampire())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
 	fails += _expect("devil pact surcharge (50-(20+2)=28)", _devil_hp() == 28)
 	fails += _expect("devil rule: play costs 2 HP (50-2=48 before enemy turn)", _blood_tax_hp() == 48)
@@ -700,6 +706,51 @@ func _splash_stays_allied() -> bool:
 		if not Aspects.allies(c.aspect).has(c.splash):
 			return false
 	return true
+
+func _foe(rule: int, intents: Array = [10]) -> EnemyData:
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array(intents)
+	e.rule = rule as EnemyData.Rule
+	return e
+
+## The hide splits only under a WHOLE hand -- and effective_damage is what the preview shows.
+func _bark_hide() -> bool:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _foe(EnemyData.Rule.BARK_HIDE), [], 50, 50)
+	return ctrl.effective_damage(100, 5) == 100 and ctrl.effective_damage(100, 3) == 60
+
+## +1 per card in the grave: the long fight is its plan.
+func _glutton() -> bool:
+	var ctrl := CombatController.new()
+	# A deck big enough that refilling never has to recycle the grave -- with a small one the
+	# discard is drawn straight back out and the grave empties, which is a property of the test,
+	# not of the glutton.
+	ctrl.start(_flat_deck(40), _foe(EnemyData.Rule.GRAVE_GLUTTON), [], 500, 500)
+	var before := ctrl.current_intent()
+	ctrl.discard([0, 1, 2])            # three cards into the grave
+	return ctrl.current_intent() == before + 3
+
+## Announced from turn one: the third blow is doubled.
+func _burst() -> Array:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _foe(EnemyData.Rule.THIRD_BURST, [10, 10, 10]), [], 500, 500)
+	var out: Array = []
+	for t in 3:
+		out.append(ctrl.current_intent())
+		ctrl.play([0])
+		ctrl.resolve_enemy_turn()
+	return out
+
+## It mends when the round barely scratched it, and not when it hurt.
+func _vampire() -> bool:
+	var ctrl := CombatController.new()
+	ctrl.start(_flat_deck(9), _foe(EnemyData.Rule.VAMPIRE_MEND, [0]), [], 500, 500)
+	ctrl.enemy_hp = 1000
+	ctrl.play([0])                      # a small play: under the threshold
+	var weak_before := ctrl.enemy_hp
+	ctrl.resolve_enemy_turn()
+	return ctrl.enemy_hp == weak_before + 25
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

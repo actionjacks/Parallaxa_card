@@ -802,3 +802,10 @@ TIP_ENRAGE,"Once the enemy's written cycle ends, every further turn adds this mu
 TIP_COCKPIT,"The whole turn in one line: what you will do to the enemy, and what it will then do to you.","Cała tura w jednej linii: co zrobisz wrogowi i co on potem zrobi tobie."
 TIP_KEYSTONE_BADGE,"KEYSTONE — this card scores double because it is last. Click the cards in a different order to move it.","KLUCZ — ta karta liczy podwójnie, bo jest ostatnia. Klikaj karty w innej kolejności, by go przesunąć."
 VEIL_LOST,(no %s),(bez %s)
+LOG_VAMPIRE,It mends: +%d HP,Regeneruje się: +%d HP
+LOG_THIEF,It lifts a card from your hand: %s,Podkrada kartę z ręki: %s
+RULE_VAMPIRE,"Technique: it mends 25 HP whenever the round dealt it under 90.","Technika: regeneruje 25 HP, gdy runda zadała mu mniej niż 90."
+RULE_THIEF,"Technique: every second turn it also lifts a card from your hand.","Technika: co drugą turę dodatkowo podkrada kartę z twojej ręki."
+RULE_GLUTTON,"Technique: its blow grows by 1 for every card in your grave.","Technika: jego cios rośnie o 1 za każdą kartę w twoim grobie."
+RULE_BURST,"Technique: every third turn its blow lands TWICE.","Technika: co trzecią turę jego cios pada DWA razy."
+RULE_BARK,"Technique: plays of fewer than five cards do 40% less to it.","Technika: zagrania poniżej pięciu kart robią mu 40% mniej."

@@ -351,16 +351,30 @@ func _biomes() -> void:
 		var ranks := [11, 12, 13, 14] if suit != "nature" else [10, 10, 10, 10]
 		var arts := ["cups", "swords", "wands", "pents"] if suit == "nature" else [suit, suit, suit, suit]
 		var files: Array = []
+		# TECHNIQUES (docs/PLAN_NASTEPNY.md N4.1/N4.2). Rungs 1-2 field the SIMPLE technique of the
+		# colour -- the one that teaches its law. Rungs 3-4 field the ADVANCED one, which turns
+		# that law against you. Every rule here is priced by predicted_taken/effective_damage, so
+		# the cockpit still cannot lie about any of them.
+		var R := EnemyData.Rule
+		var techs: Dictionary = {
+			A.LIFE:   [R.VAMPIRE_MEND, "RULE_VAMPIRE", R.STAR_REGEN, "RULE_STAR"],
+			A.MIND:   [R.HAND_THIEF, "RULE_THIEF", R.HANGED_CAP, "RULE_HANGED"],
+			A.DEATH:  [R.GRAVE_GLUTTON, "RULE_GLUTTON", R.JUDGEMENT_FRAIL, "RULE_JUDGEMENT"],
+			A.CHAOS:  [R.THIRD_BURST, "RULE_BURST", R.CHARIOT_DOUBLE, "RULE_CHARIOT"],
+			A.NATURE: [R.BARK_HIDE, "RULE_BARK", R.STRENGTH_RESIST, "RULE_STRENGTH"],
+		}
+		var tech: Array = techs[aspect]
 		for i in 4:
+			var simple := i < 2
 			var e := _enemy("%s_%d" % [spec[2], i + 1], hp + i * 60, intents[i], 5 + i / 2,
-				false, EnemyData.Rule.NONE, "", 2 + i / 2)
+				false, tech[0] if simple else tech[2], tech[1] if simple else tech[3], 2 + i / 2)
 			e.art = load("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
 			e.figure = _figure_for("%s%s_%02d.jpg" % [MINOR, arts[i], ranks[i]])
 			var f: String = "%s_%d" % [id, i + 1]
 			ResourceSaver.save(e, ENEMY_DIR + f + ".tres")
 			files.append(f)
 		# the elite: the colour's reversed Nine (is_elite already renders it upside down)
-		var el := _enemy("%s_E" % spec[2], hp + 140, intents[3], 12, false, EnemyData.Rule.NONE, "", 4)
+		var el := _enemy("%s_E" % spec[2], hp + 140, intents[3], 12, false, tech[2], tech[3], 4)
 		el.art = load("%s%s_09.jpg" % [MINOR, suit if suit != "nature" else "nature"])
 		el.figure = _figure_for("%s%s_09.jpg" % [MINOR, suit if suit != "nature" else "nature"])
 		el.is_elite = true

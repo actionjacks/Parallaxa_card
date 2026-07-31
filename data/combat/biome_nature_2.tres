@@ -11,5 +11,7 @@ max_hp = 776
 intents = PackedInt32Array(7, 12, 15)
 enrage_step = 2
 reward_rtec = 5
+rule = 18
+rule_key = "RULE_BARK"
 art = ExtResource("1_viq1s")
 figure = ExtResource("2_in7q7")

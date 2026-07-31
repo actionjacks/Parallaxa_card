@@ -11,5 +11,7 @@ max_hp = 685
 intents = PackedInt32Array(12, 13, 11)
 enrage_step = 2
 reward_rtec = 5
+rule = 16
+rule_key = "RULE_GLUTTON"
 art = ExtResource("1_cfpa0")
 figure = ExtResource("2_g236t")

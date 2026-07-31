@@ -10,5 +10,7 @@ name_key = "BIOME_LIFE_3"
 max_hp = 908
 intents = PackedInt32Array(10, 10, 10)
 enrage_step = 3
+rule = 10
+rule_key = "RULE_STAR"
 art = ExtResource("1_e6c0c")
 figure = ExtResource("2_35d8b")

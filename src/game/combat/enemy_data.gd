@@ -14,7 +14,16 @@ extends Resource
 ##  EMPRESS_BLOOM  - abundance: she heals 40 whenever you play FEWER than five cards
 ##  WHEEL_TURN      - the wheel turns: her intent cycle advances TWO steps a turn, not one
 ##  FOOL_MIRROR     - the Fool answers with your own blow: his intent IS your last play, scaled
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR }
+## Wave E -- techniques for ORDINARY enemies. Until now all fourteen rules belonged to bosses and
+## every regular fight was the same fight with different numbers: a health bar and an intent
+## cycle. Each of these is deterministic AND computable by predicted_taken(), because a technique
+## the cockpit cannot price would break the covenant the game is named after.
+##  VAMPIRE_MEND  heals when your play was weak -- punishes chipping away
+##  HAND_THIEF    every second turn it does not strike; it takes a card from your hand instead
+##  GRAVE_GLUTTON its blow grows by one for every card in your grave -- the long fight is its plan
+##  THIRD_BURST   every third turn its blow lands twice, announced from turn one
+##  BARK_HIDE     takes 40% less from plays of fewer than five cards -- demands a full hand
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150
