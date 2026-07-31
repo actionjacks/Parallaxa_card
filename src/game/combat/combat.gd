@@ -401,6 +401,23 @@ func _render() -> void:
 			_covenant_line(tr("TIP_DISCARDS"))
 		elif controller.turn == 4 and Profile.claim_once("tip_deckorder"):
 			_covenant_line(tr("TIP_DECK_ORDER"))
+		# FIRST ENCOUNTER, ONE LINE. Every concept added since the rebuild explains itself the
+		# first time the player actually meets it, rather than waiting in a glossary they have to
+		# know to open. One line per concept, once per profile, forever.
+		elif not standalone and RunState.region != null and RunState.region.law_key != "" \
+				and Profile.claim_once("first_law"):
+			_covenant_line(tr("FIRST_LAW"))
+		elif _selected.size() > 1 and _veil < 4 and Profile.claim_once("first_keystone"):
+			_covenant_line(tr("FIRST_KEYSTONE"))
+		elif controller.banned_aspect() >= 0 and Profile.claim_once("first_ban"):
+			_covenant_line(tr("FIRST_BAN"))
+		elif _enemy.rule == EnemyData.Rule.INVERTED_TABLE and Profile.claim_once("first_inverted"):
+			_covenant_line(tr("FIRST_INVERTED"))
+		elif _enemy.rule == EnemyData.Rule.WIDE_HAND and Profile.claim_once("first_wide"):
+			_covenant_line(tr("FIRST_WIDE"))
+		elif not _enemy.is_boss and _enemy.rule != EnemyData.Rule.NONE \
+				and Profile.claim_once("first_technique"):
+			_covenant_line(tr("FIRST_TECHNIQUE"))
 	_refresh_next_draws()
 	if _hint_label != null:
 		var ba := _best_available()
@@ -1284,6 +1301,8 @@ func _on_message(text_key: String, args: Array) -> void:
 			if int(args[0]) > 0:
 				_popup("-" + str(int(args[0])), Color(1.0, 0.5, 0.4), _player_fx_pos())
 				_hit_flash()
+				if _arena != null:
+					_arena.recoil(1.0)   # the room flinches away when the blow lands on YOU
 				Sfx.play(&"player_hit", -4.0)
 			else:
 				_popup(tr("COMBAT_BLOCKED"), Color(0.6, 0.8, 1.0), _player_fx_pos(), 20)
@@ -1358,6 +1377,11 @@ func _on_ended(won: bool) -> void:
 	await get_tree().create_timer(0.35 if Juice.fast_pace() else (1.0 if won and _enemy.is_boss else 0.6)).timeout   # death beat (bosses earn a longer one)
 	if not standalone:
 		# Feed the run: statistics, the overkill payout and the permanently shattered glass.
+		if won and _enemy.is_boss:
+			# The price of the Arcanum, kept so the claim screen can name it.
+			RunState.boss_toll_hp = controller.damage_taken
+			RunState.boss_toll_cards = controller.destroyed_cards.size()
+			RunState.boss_toll_turns = controller.turn
 		RunState.record_fight(won, _enemy.name_key, controller)
 		# THE SCAR (PLAN_TODO T5): the card that struck the killing blow on a MAJOR ARCANA carries
 		# it for the rest of the run. The trigger is deterministic -- the last card of the last

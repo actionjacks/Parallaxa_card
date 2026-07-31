@@ -19,7 +19,7 @@ var _cam: Camera3D
 var _key: OmniLight3D
 var _accent := Color(0.55, 0.2, 0.24)
 var _t := 0.0
-var _push := 0.0        ## momentary camera push-in on a landed blow
+var _push := 0.0        ## momentary camera dolly: + leans in on your blow, - flinches back on theirs
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -105,17 +105,26 @@ func set_accent(accent: Color) -> void:
 	if _key != null:
 		_key.light_color = Color(1.0, 0.76, 0.48).lerp(accent, 0.35)
 
-## A landed blow pushes the camera in a touch: the room reacts, so the hit has weight.
+## A landed blow pushes the camera IN: the room leans toward the enemy, so the hit has weight.
 func punch(strength: float = 1.0) -> void:
 	if Juice.reduce_motion():
 		return
 	_push = 0.30 * strength
 
+## The enemy's blow pushes the camera BACK -- the room flinches away from you. Opposite sign to
+## punch(), so the two beats of a turn read as two different things instead of one wobble.
+func recoil(strength: float = 1.0) -> void:
+	if Juice.reduce_motion():
+		return
+	_push = -0.42 * strength
+
 func _process(delta: float) -> void:
 	if _cam == null:
 		return
 	_t += delta
-	_push = maxf(0.0, _push - delta * 1.6)
+	# move_toward, not maxf: the recoil is NEGATIVE, and clamping at zero would have swallowed it
+	# whole -- the pull-back would never have appeared on screen.
+	_push = move_toward(_push, 0.0, delta * 1.6)
 	if Juice.reduce_motion():
 		_cam.position = Vector3(0, 0.55, 5.2)
 		return

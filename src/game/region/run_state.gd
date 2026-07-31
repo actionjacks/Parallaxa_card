@@ -48,6 +48,11 @@ var run_won: bool = false         ## The World has fallen at least once (endless
 var sealed_entered: bool = false
 ## Veil V removes one Aspect from the run entirely; -1 when no colour was taken.
 var lost_aspect: int = -1
+## What the last boss cost: HP taken, cards destroyed, turns endured. Read by the epilogue, which
+## tells the player what that Arcanum took from them and what it left behind.
+var boss_toll_hp: int = 0
+var boss_toll_cards: int = 0
+var boss_toll_turns: int = 0
 ## Which biome roads this journey has already walked (paths). Drives the choice screen so a
 ## journey is a ROUTE through the pentagram, never the same colour twice.
 var biomes_walked: Array = []

@@ -44,6 +44,7 @@ const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THRE
 var _shop_offers: Array = []
 var _shop_reroll_cost: int = 1
 var _shop_star: int = -1          ## Poker.Hand this visit's Star levels; -1 = sold/none
+var _pending_first_line: String = ""   ## one-shot explanation queued for the next screen
 var _star_sold: bool = false      ## a Star was already bought this VISIT (rerolls must not restock)
 
 var _stage: Control
@@ -312,6 +313,22 @@ func _show_map() -> void:
 	bar.offset_bottom = -10
 	bar.add_child(ctrls)
 	_stage.add_child(bar)
+
+## The toll, in the player's own terms.
+func _epilogue_block() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	var took := _hint(tr("BOSS_TOOK") % [RunState.boss_toll_hp, RunState.boss_toll_turns])
+	took.add_theme_color_override("font_color", Color(0.92, 0.6, 0.55))
+	box.add_child(took)
+	if RunState.boss_toll_cards > 0:
+		var burned := _hint(tr("BOSS_BURNED") % RunState.boss_toll_cards)
+		burned.add_theme_color_override("font_color", Color(0.85, 0.7, 0.5))
+		box.add_child(burned)
+	var left := _hint(tr("BOSS_LEFT"))
+	left.add_theme_color_override("font_color", Color(0.7, 0.88, 0.68))
+	box.add_child(left)
+	return box
 
 func _relic_chip(a: ArcanumData) -> Control:
 	var p := _panel(Color(0.11, 0.09, 0.14), Color("b23a48") if a.is_reversed else Aspects.color(a.effect_aspect))
@@ -926,6 +943,8 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 	# this whole audit started from.
 	if sealed_now:
 		Sfx.play(&"coin", -3.0)
+		if Profile.claim_once("first_seal"):
+			_pending_first_line = tr("FIRST_SEAL")
 	var final: bool = RunState.region_index + 1 >= JOURNEY_BIOMES + 1
 	if final:
 		# The World has fallen: the run is WON (recorded once, endless deaths stay wins) and the
@@ -942,6 +961,13 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 		seal_l.add_theme_color_override("font_color", Aspects.color(RunState.region.seal_aspect))
 		root.add_child(seal_l)
 		root.add_child(_hint(tr("SEAL_PROGRESS") % [Profile.seals.size(), 5]))
+		if _pending_first_line != "":
+			var fl := _hint(_pending_first_line)
+			fl.add_theme_color_override("font_color", Color(0.92, 0.88, 0.72))
+			fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			fl.custom_minimum_size = Vector2(700, 0)
+			root.add_child(fl)
+			_pending_first_line = ""
 	var relic := claimed if claimed != null else RunState.region.boss_arcanum
 	if relic != null:
 		if relic.art != null:
@@ -960,6 +986,10 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 			wrap_art.add_child(t)
 			root.add_child(wrap_art)
 		root.add_child(_label_center(tr("COMPLETE_RELIC") % tr(relic.name_key), 20, Color(0.75, 0.65, 0.9)))
+	# THE EPILOGUE (PLAN_NASTEPNY N4.4): what that Arcanum TOOK and what it LEFT. A boss that
+	# rewrote the rules for six turns deserves more than a card sliding into your relic row --
+	# the player should be able to say afterwards what the fight actually cost them.
+	root.add_child(_epilogue_block())
 	root.add_child(_hint(tr("RUN_SUMMARY") % RunState.fights_won))
 	root.add_child(_hint(tr("COMPLETE_HINT")))
 	var wrap_c := CenterContainer.new()

@@ -815,3 +815,13 @@ RULE_BAN,"Field rule: one colour is forbidden each cycle — its cards bring no 
 COMBAT_BANNED,FORBIDDEN: %s,ZAKAZANY: %s
 LOG_BOSS_TURNS,It turns — the holding back is over.,Odwraca się — koniec powściągliwości.
 BOSS_TURNS_LINE,"Half its life is gone, and it stops pretending. Every turn from here bites harder.","Połowa jego życia przepadła i przestaje udawać. Każda tura od teraz gryzie mocniej."
+BOSS_TOOK,It took %d life from you across %d turns.,Zabrał ci %d życia w ciągu %d tur.
+BOSS_BURNED,And %d cards never came back.,I %d kart już nie wróciło.
+BOSS_LEFT,"What it leaves you is the card itself — its rule is yours now.","Zostawia ci samą kartę — jego reguła jest teraz twoja."
+FIRST_LAW,"This place has a LAW — read it above the enemy. It changes how every play here scores, and it holds for the whole tower.","To miejsce ma PRAWO — przeczytaj je nad wrogiem. Zmienia punktację każdego zagrania i obowiązuje w całej wieży."
+FIRST_KEYSTONE,"The card you pick LAST scores double. Click them in a different order and the doubling moves with you.","Karta wybrana OSTATNIA liczy podwójnie. Klikaj w innej kolejności, a podwojenie przesunie się razem z tobą."
+FIRST_BAN,"One colour is forbidden this cycle. Those cards still fill your hand and still count toward the shape — they simply bring no chips.","Jeden kolor jest w tym cyklu zakazany. Te karty nadal wypełniają rękę i liczą się do układu — po prostu nie dają chipsów."
+FIRST_INVERTED,"The chart is upside down here. A pair pays like the greatest hand, a flush like the least. Everything you learned is backwards.","Tabela jest tu do góry nogami. Para płaci jak najlepszy układ, kolor jak najgorszy. Wszystko, czego się nauczyłeś, jest odwrotnie."
+FIRST_WIDE,"Three more cards, and no discards at all. You cannot dig here — you play what you are given.","Trzy karty więcej i zero odrzutów. Tu nie da się kopać — grasz tym, co dostałeś."
+FIRST_TECHNIQUE,"Ordinary foes have techniques too, not just bosses. Its rule is written above its name.","Zwykli wrogowie też mają techniki, nie tylko bossowie. Jego reguła jest wypisana nad nazwą."
+FIRST_SEAL,"That colour is yours for good — it survives death. Five seals open a door that is otherwise closed.","Ten kolor jest twój na zawsze — przetrwa śmierć. Pięć pieczęci otwiera drzwi, które inaczej są zamknięte."
