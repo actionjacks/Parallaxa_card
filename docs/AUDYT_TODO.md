@@ -246,3 +246,32 @@ Trzy odstepstwa od LITERY todo.md, kazde swiadome i uzasadnione pomiarem:
 - Czy Krzyz Celtycki nie jest za silny — cztery sloty to potencjalnie idealna reka co trzecia ture.
 - Czy odsetki Zaslony IV (tylko od kolorow wrogich) nie zabijaja mono-buildow zbyt twardo.
 - Balans dwoch nowych bossow: HP 1180 / 1520 to pierwsze przyblizenie, nie pomiar.
+
+---
+
+# DRUGI AUDYT — weryfikacja WLASNEGO wdrozenia (2026-07-31, commit 7a98a92)
+
+Na pytanie "czy wszystko zaimplementowane?" nie odpowiedziano z pamieci. 5 grup weryfikatorow +
+adwersarz na kazde "potwierdzone", z zadaniem znalezienia TRZECIEGO precedensu wzorca
+"infrastruktura bez dzialania". Wynik: **12 potwierdzonych, 18 czesciowych, 1 obalone** — czyli
+19 realnych usterek we wdrozeniu, ktore godzine wczesniej ogloszono jako kompletne.
+
+**TRZECI PRECEDENS ZNALEZIONY.** Krzyz Celtycki byl parkingiem jednokierunkowym: `freeze()` sam
+wola `_refill()`, wiec reka jest zawsze pelna, wiec straz w `recall()` zwracala ZAWSZE. Karty
+wchodzily i nie wychodzily, a gracz placil za to odrzut. Mechanika miala stan, UI, przycisk, log,
+tekst reguly i test — i zero dzialania w kierunku, po ktory powstala.
+
+**Dlaczego testy tego nie zlapaly** (najwazniejsza lekcja): asercja sprawdzala WYLACZNIE odmowe
+(`_celtic_recall_guard`), a przebieg w prawdziwej scenie raportowal nieudany recall jako sukces.
+Sciezki POZYTYWNEJ — "zamrozona karta wraca i da sie ja zagrac" — nie testowal nikt. **Test na
+odmowe bez testu na sukces dowodzi tylko, ze cos nie dziala.**
+
+Pelna lista 19 napraw: `git show 7a98a92`.
+
+## Wnioski
+
+- Kazda mechanika z bramka potrzebuje asercji na OBIE strony bramki.
+- Przebieg w scenie liczy sie jako dowod tylko wtedy, gdy sprawdzamy WYNIK, a nie sam fakt, ze
+  wywolanie nie rzucilo bledu.
+- Wzorzec "wartosc ustawiona tu, skasowana tam" wystapil w tym repo juz cztery razy. Przy kazdej
+  nowej mechanice pierwszym pytaniem musi byc: *co jeszcze pisze do tego pola?*
