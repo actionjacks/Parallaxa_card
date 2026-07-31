@@ -17,10 +17,13 @@ const FLOOR_Y := -1.15
 ## Framing is a budget, not a preference: the top bar owns 0..100 px and the hand owns 500..720, so
 ## the opponent has to live inside the band between them. At this size and this camera the figure
 ## spans roughly 205..570 px -- its feet pass behind the fan, which is what the depth is for.
-const PIXEL_SIZE := 0.0132
+const PIXEL_SIZE := 0.0072
 const FIG_Z := -1.5
-const CAM_Y := 1.32
-const CAM_Z := 6.6
+## The opponent does not stand on the table -- it looms over it. Lifting the figure is what buys
+## the band under it back for the score readout; dropping the camera instead only tips the room.
+const FIG_LIFT := 1.50
+const CAM_Y := 0.55
+const CAM_Z := 5.6
 var _world: SubViewport
 var _cam: Camera3D
 var _key: OmniLight3D
@@ -163,10 +166,10 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 	# soft mask (the dilated mass, the contrast relief) shreds it into speckle instead of reading
 	# as depth -- which is exactly what it did on the first pass.
 	var specs: Array = [
-		["_back", -0.34, Color(0.55, 0.54, 0.66, 0.85), 1.04, false],
+		["_back", -0.70, Color(0.55, 0.54, 0.66, 0.85), 1.04, false],
 		# the engravings are ink-heavy; the plate needs lifting or the demon reads as a silhouette
 		["_mid", 0.0, Color(1.35, 1.30, 1.22), 1.0, true],
-		["_fore", 0.26, Color(1.0, 0.98, 0.94, 0.55), 0.99, false],
+		["_fore", 0.55, Color(1.0, 0.98, 0.94, 0.55), 0.99, false],
 	]
 	var base_path: String = tex.resource_path
 	for spec in specs:
@@ -190,7 +193,7 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 		sp.no_depth_test = not bool(spec[4])   # soft planes never fight the plate for depth
 		sp.pixel_size = PIXEL_SIZE * float(spec[3])
 		sp.modulate = spec[2]
-		sp.position = Vector3(0.0, FLOOR_Y + _cell.y * sp.pixel_size * 0.5, FIG_Z + float(spec[1]))
+		sp.position = Vector3(0.0, FLOOR_Y + FIG_LIFT + _cell.y * sp.pixel_size * 0.5, FIG_Z + float(spec[1]))
 		_world.add_child(sp)
 		_layers.append(sp)
 		_atlases.append(at)
@@ -200,11 +203,11 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 	# cannot afford; a dark ellipse on the floor sells the contact just as well.
 	_blob = MeshInstance3D.new()
 	var bm := PlaneMesh.new()
-	bm.size = Vector2(2.3, 1.2)
+	bm.size = Vector2(1.5, 0.8)
 	_blob.mesh = bm
 	_blob.position = Vector3(0.0, FLOOR_Y + 0.012, FIG_Z + 0.05)
 	var bmat := StandardMaterial3D.new()
-	bmat.albedo_color = Color(0.0, 0.0, 0.0, 0.55)
+	bmat.albedo_color = Color(0.0, 0.0, 0.0, 0.38)
 	bmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_blob.material_override = bmat
@@ -241,7 +244,7 @@ func _process(delta: float) -> void:
 		for sp: Sprite3D in _layers:
 			if is_instance_valid(sp):
 				sp.position.x = 0.0
-				sp.position.y = FLOOR_Y + _cell.y * sp.pixel_size * 0.5
+				sp.position.y = FLOOR_Y + FIG_LIFT + _cell.y * sp.pixel_size * 0.5
 		return
 	# a breath of drift, so the room is never a still photograph
 	_cam.position = Vector3(sin(_t * 0.21) * 0.10, CAM_Y + sin(_t * 0.17) * 0.05, CAM_Z - _push)
@@ -261,6 +264,10 @@ func _process(delta: float) -> void:
 		if not is_instance_valid(sp):
 			continue
 		var k: float = float(i) - 1.0            # -1 back, 0 mid, +1 fore
-		sp.position.x = sin(_t * 0.63 + k * 0.9) * 0.030 * k
-		sp.position.y = FLOOR_Y + _cell.y * sp.pixel_size * 0.5 \
-			+ sin(_t * 0.47 + k * 1.4) * 0.018 * absf(k)
+		# Amplitudes an order up from the first pass: "felt, never noticed" turned out to be
+		# neither. The planes now visibly slide across each other, which is the whole effect --
+		# and because they sit at different Z, the camera's own drift multiplies it.
+		sp.position.x = sin(_t * 0.63 + k * 0.9) * 0.105 * k
+		sp.position.y = FLOOR_Y + FIG_LIFT + _cell.y * sp.pixel_size * 0.5 \
+			+ sin(_t * 0.47 + k * 1.4) * 0.055 * absf(k)
+		sp.rotation.z = sin(_t * 0.31 + k * 0.7) * 0.022 * k
