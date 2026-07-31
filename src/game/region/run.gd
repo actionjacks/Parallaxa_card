@@ -1176,9 +1176,8 @@ func _biome_card(biome: RegionData, path: String, idx: int) -> Control:
 	var sig_wrap := CenterContainer.new()
 	sig_wrap.add_child(sig)
 	col.add_child(sig_wrap)
-	var law_l := _hint(tr(biome.law_key))
-	law_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	law_l.custom_minimum_size = Vector2(190, 0)
+	# The law of the place is the densest jargon on this screen and the reason a road is chosen.
+	var law_l := _hint_ink(tr(biome.law_key), 190)
 	col.add_child(law_l)
 	if biome.seal_aspect >= 0:
 		var owned := Profile.has_seal(biome.seal_aspect)
@@ -1366,7 +1365,11 @@ func _omen_block() -> Control:
 	vb.add_theme_constant_override("separation", 6)
 	row.add_child(vb)
 	vb.add_child(_label(tr("OMEN_TITLE") + ": " + tr(_pending_omen.name_key), 17, Color(0.9, 0.85, 0.95)))
-	vb.add_child(_label(tr(_pending_omen.desc_key), 14, Color(0.72, 0.74, 0.82)))
+	# An omen is a TRADE, and a trade the player cannot read the terms of is a coin flip.
+	var od := Lexicon.ink(tr(_pending_omen.desc_key), 14, Color(0.72, 0.74, 0.82), self)
+	od.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	od.custom_minimum_size = Vector2(620, 0)
+	vb.add_child(od)
 	var btns := HBoxContainer.new()
 	btns.add_theme_constant_override("separation", 10)
 	# Pure gifts drop the fake Accept/Leave grammar -- a choice with no difference trains the
@@ -1567,13 +1570,19 @@ func _title(text: String) -> Label:
 func _big(text: String, color: Color) -> Label:
 	return _label_center(text, 48, color)
 
-## Every explanatory line on the run screens -- omens, shop copy, road choices, epilogues -- goes
-## through here, so inking it once teaches the whole map layer to explain its own vocabulary.
-func _hint(text: String) -> Control:
+func _hint(text: String) -> Label:
+	return _label_center(text, 15, Color(0.6, 0.6, 0.68))
+
+## An inked hint: same look, but every glossary term in it is a button. Deliberately a SEPARATE
+## function rather than a blanket change to _hint(). Making all 33 hint sites RichTextLabel at once
+## broke the three-column road-choice screen -- a forced minimum width turned one card into 720px,
+## the columns overflowed 1280, and the run softlocked on a screen whose buttons no longer sat
+## where they belonged. Ink is opt-in, per site, where the layout is known.
+func _hint_ink(text: String, width: int = 0) -> RichTextLabel:
 	var rt := Lexicon.ink(text, 15, Color(0.6, 0.6, 0.68), self)
 	rt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rt.custom_minimum_size = Vector2(720, 0)
+	if width > 0:
+		rt.custom_minimum_size = Vector2(width, 0)
 	return rt
 
 func _label_center(text: String, font_size: int, color: Color) -> Label:
