@@ -89,6 +89,8 @@ var _intent_index: int = 0
 var _plays: int = 0
 var _hand_history: Array = []     ## Poker.Hand per play this fight (Kombinat streaks)
 var _dmg_this_round: int = 0      ## damage dealt since the enemy last acted (Moon mend check)
+## Grave size as the glutton will read it this turn -- frozen when the player's turn opens.
+var _glutton_grave: int = 0
 
 func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1, max_hp: int = -1, p_levels: Dictionary = {}, p_veil: int = 0, p_depth: int = 0, p_debt: int = 0, p_law: int = 0) -> void:
 	law = p_law
@@ -160,6 +162,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	phase = "player"
 	last_score = {}
 	_refill()
+	_glutton_grave = _used.size()
 	state_changed.emit()
 
 ## The enrage clock: the first authored cycle is exact, then EVERY further turn adds +step,
@@ -176,7 +179,13 @@ func _intent_at(idx: int) -> int:
 		base += intent_debt   # the Wheel's price rides every real hit, preview-visible
 		# The glutton feeds on what you have spent: +1 for every card in your grave.
 		if enemy.rule == EnemyData.Rule.GRAVE_GLUTTON:
-			base += _used.size()
+			# THE GRAVE AS IT WAS WHEN YOUR TURN BEGAN. A live read made this the fifth
+			# "the preview cannot be right" bug here: play() moves the played cards into the
+			# grave -- and may recycle the whole pile back into the deck -- BEFORE the scene
+			# calls resolve_enemy_turn(). The cockpit therefore promised a blow short by the
+			# cards you had just played, or, after a recycle, one larger by the entire grave.
+			# A snapshot is the only number the preview and the outcome can share.
+			base += _glutton_grave
 		# Every third turn the blow lands twice -- announced from turn one, never a surprise.
 		if enemy.rule == EnemyData.Rule.THIRD_BURST and (idx + 1) % 3 == 0:
 			base *= 2
@@ -636,6 +645,7 @@ func resolve_enemy_turn() -> void:
 		# so the preview shows the fattened number the moment it happens.
 		if law == 5:
 			c.growth += 3
+	_glutton_grave = _used.size()
 	phase = "player"
 	state_changed.emit()
 

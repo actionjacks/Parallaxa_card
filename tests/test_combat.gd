@@ -58,11 +58,12 @@ func _initialize() -> void:
 	# ORDINARY-ENEMY TECHNIQUES (N4). Every one must be priced by the preview, or it breaks the
 	# covenant the game is named after.
 	fails += _expect("BARK_HIDE: under five cards deals 40% less", _bark_hide())
-	fails += _expect("GRAVE_GLUTTON: blow grows with your grave", _glutton())
+	fails += _expect("GRAVE_GLUTTON: grave frozen in-turn, grown by the next", _glutton())
 	fails += _expect("THIRD_BURST: every third turn lands twice", _burst() == [10, 10, 20])
 	fails += _expect("VAMPIRE_MEND: mends only after a weak round", _vampire())
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
+	fails += _expect("the Glutton's blow is what the cockpit promised", _glutton_preview_honest())
 	fails += _expect("every field rule is carried by a real enemy", _no_orphan_rules())
 	fails += _expect("no enemy describes a rule it does not have", _rule_keys_match())
 	fails += _expect("the mirror keeps its promise: a PAIR outscores a FLUSH", _mirror_inverts_instinct())
@@ -753,9 +754,16 @@ func _glutton() -> bool:
 	# discard is drawn straight back out and the grave empties, which is a property of the test,
 	# not of the glutton.
 	ctrl.start(_flat_deck(40), _foe(EnemyData.Rule.GRAVE_GLUTTON), [], 500, 500)
-	var before := ctrl.current_intent()
+	var before: int = ctrl.current_intent()
 	ctrl.discard([0, 1, 2])            # three cards into the grave
-	return ctrl.current_intent() == before + 3
+	# WITHIN a turn the number must NOT move: the glutton reads the grave as it stood when the
+	# turn opened, which is the only reading the cockpit can promise and the engine can keep.
+	if ctrl.current_intent() != before:
+		return false
+	# ...and it must have grown by the next turn, or the rule does nothing at all.
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()
+	return ctrl.current_intent() > before
 
 ## Announced from turn one: the third blow is doubled.
 func _burst() -> Array:
@@ -784,6 +792,27 @@ func _inverted_table() -> bool:
 	var plain: Dictionary = Scoring.score(pair, [], {})
 	var flipped: Dictionary = Scoring.score(pair, [], {"inverted_table": true})
 	return int(flipped["hand"]) == Poker.evaluate(pair) and int(flipped["chips"]) > int(plain["chips"])
+
+## THE COVENANT, FOR THE ONE RULE THAT READS A MOVING NUMBER. The Glutton's blow grows with the
+## grave, and play() fills the grave before the enemy acts -- so a live read made the cockpit lie
+## by exactly the cards you had just played. What the preview says must be what lands.
+func _glutton_preview_honest() -> bool:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 14:
+		deck.append(_card(4, i % 5))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([10])
+	e.rule = EnemyData.Rule.GRAVE_GLUTTON
+	ctrl.start(deck, e, [], 60, 60)
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()
+	var promised: int = ctrl.predicted_taken()      # read DURING the player's turn
+	var hp_before: int = ctrl.player_hp
+	ctrl.play([0, 1, 2])                            # three more cards into the grave
+	ctrl.resolve_enemy_turn()
+	return hp_before - ctrl.player_hp == promised
 
 ## NO ORPHAN RULES. MOON_CLEANSE shipped for months with ZERO carriers in data/combat -- and because
 ## _rule_moon_mends() is an alias of _rule_cleanses_rot(), the Moon's own self-mend (two named

@@ -124,6 +124,7 @@ func _refresh_backdrop() -> void:
 
 var _backdrop: Control
 var _tower_bg: Control     ## the full-bleed climb behind the map screen
+var _spread_done: bool = false   ## the end-of-run payout happens once, whatever path reaches it
 
 func _build_shell() -> void:
 	_backdrop = Backdrop.build(RunState.region.accent if RunState.region != null else Color(0, 0, 0, 0))
@@ -450,10 +451,12 @@ func _start_encounter(elite: bool = false) -> void:
 func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> void:
 	var was_elite := _fight_elite
 	_fight_elite = false
+	# Banked BEFORE the loss branch. It used to sit after the early return, so a save that came
+	# back to life (see _show_spread) carried the HP the player had BEFORE the duel they lost.
+	RunState.player_hp = remaining_hp
 	if not won:
 		_show_spread(false)
 		return
-	RunState.player_hp = remaining_hp
 	var reward := _current_enemy().reward_rtec if not was_elite else RunState.region.elite.reward_rtec
 	if RunState.veil >= 4:
 		reward = maxi(1, reward - 1)   # Veil IV: Greedy Market
@@ -492,6 +495,11 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 		_elite_boost = true   # the elite's prize: this rung's card offers roll with boosted rarity
 	if RunState.step >= RunState.fights.size():
 		RunState.stat_regions_cleared += 1
+		# THE BOSS RUNG CLOSES TOO. This branch returned before the increment below, so a save made
+		# on the claim screen carried step == fights.size() -- and _current_enemy() hands back the
+		# boss for that step. Win, quit, continue, and the same boss is waiting, paying its reward,
+		# its XP and another REVERSED copy of its Arcanum every time round.
+		RunState.step += 1
 		_show_boss_choice()
 		return
 	# THE RUNG IS CLIMBED THE MOMENT THE DUEL IS WON, not when the shop is left. It used to
@@ -1319,6 +1327,17 @@ func _go_beyond() -> void:
 ## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
 ## recording and the achievement sweep all happen HERE, exactly once per run.
 func _show_spread(victory: bool) -> void:
+	# THE RUN IS OVER, SO IT STOPS BEING A RUN. Three paths reach this screen and none of them
+	# cleared Overlays.run_active -- so ESC still opened the pause menu, and "Save & exit" wrote
+	# the run back to disk seconds after this function deleted it. The death was undone, the
+	# player resumed before the fight they lost, and every further death paid the end-of-run Salt,
+	# the XP and the lifetime statistics AGAIN (neither payout is idempotent).
+	if _spread_done:
+		return
+	_spread_done = true
+	var ov := get_node_or_null("/root/Overlays")
+	if ov != null:
+		ov.run_active = false
 	_statusbar.visible = false
 	RunState.delete_run_save()
 	# A death BEYOND the World is still a won reading (the victory was recorded at the gate).
