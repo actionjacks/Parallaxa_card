@@ -109,7 +109,7 @@ func _build() -> void:
 	# one warm source at the table's near edge -- the candle the reading is done by
 	_key = OmniLight3D.new()
 	_key.light_color = Color(1.0, 0.76, 0.48)
-	_key.light_energy = 3.0
+	_key.light_energy = 3.8
 	_key.omni_range = 11.0
 	_key.position = Vector3(-1.4, 1.2, 2.6)
 	_world.add_child(_key)
@@ -164,7 +164,8 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 	# as depth -- which is exactly what it did on the first pass.
 	var specs: Array = [
 		["_back", -0.34, Color(0.55, 0.54, 0.66, 0.85), 1.04, false],
-		["_mid", 0.0, Color(1.0, 1.0, 1.0), 1.0, true],
+		# the engravings are ink-heavy; the plate needs lifting or the demon reads as a silhouette
+		["_mid", 0.0, Color(1.35, 1.30, 1.22), 1.0, true],
 		["_fore", 0.26, Color(1.0, 0.98, 0.94, 0.55), 0.99, false],
 	]
 	var base_path: String = tex.resource_path

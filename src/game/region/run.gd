@@ -238,8 +238,11 @@ func _show_map() -> void:
 	tower_row.add_theme_constant_override("separation", 18)
 	# The tower shrinks when an omen is waiting: the omen block is ~150 px tall and the action bar
 	# is pinned to the bottom, so without this the two overlap.
-	var tower := TowerView.new(Vector2(320, 300) if _pending_omen != null else Vector2(360, 390))
-	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent)
+	var tower := TowerView.new(Vector2(340, 330) if _pending_omen != null else Vector2(390, 440))
+	# hand the tower its cast: every rung shows who waits on it, the summit shows the boss
+	var climb: Array = RunState.fights.duplicate()
+	climb.append(RunState.boss if RunState.boss != null else RunState.region.boss)
+	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb)
 	tower_row.add_child(tower)
 	var ladder := VBoxContainer.new()
 	ladder.alignment = BoxContainer.ALIGNMENT_CENTER

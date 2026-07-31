@@ -54,7 +54,8 @@ func _ready() -> void:
 	_build_environment()
 	set_process(true)
 	if not _pending.is_empty():
-		build(int(_pending[0]), int(_pending[1]), _pending[2])
+		build(int(_pending[0]), int(_pending[1]), _pending[2],
+			_pending[3] if _pending.size() > 3 else [])
 
 ## The dark: a black void with fog, lit by ONE warm source low on the tower, like a brazier at
 ## its foot. Everything above fades into the murk, which is what makes a climb feel tall.
@@ -127,9 +128,13 @@ func _stone_material(lit: float, accent: Color) -> StandardMaterial3D:
 
 ## Build (or rebuild) the tower for a climb of `total` rungs, with `step` already cleared and the
 ## top rung being the boss.
-func build(total: int, step: int, accent: Color) -> void:
+## THE CLIMB, WITH ITS OCCUPANTS. A tower of empty stone told the player how far they had to go
+## and nothing about WHO was up there. Every rung now shows the opponent standing in its lit
+## opening -- the ladder you can read at a glance, which is the whole point of a tower screen.
+## `foes` is the rolled ladder (Array[EnemyData]); the last entry is the boss on the summit.
+func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 	_accent = accent
-	_pending = [total, step, accent]
+	_pending = [total, step, accent, foes]
 	if _pivot == null:
 		return          # not in the tree yet; _ready() will replay this
 	for r in _rungs:
@@ -214,6 +219,38 @@ func build(total: int, step: int, accent: Color) -> void:
 			win.omni_range = 2.6
 			win.position = Vector3(0, 0, cyl.bottom_radius + 0.35)
 			drum.add_child(win)
+		# THE OCCUPANT. Billboarded so it faces the reader from every angle of the slow spin, and
+		# pushed clear of the drum's face so it never sinks into the stone. A rung already cleared
+		# shows its foe greyed and dim -- a trophy shelf, not a threat.
+		if i < foes.size() and foes[i] != null and foes[i].figure != null:
+			var fg := Sprite3D.new()
+			var at := AtlasTexture.new()
+			at.atlas = foes[i].figure
+			var fw: float = float(foes[i].figure.get_width()) / float(maxi(1, foes[i].figure_frames))
+			at.region = Rect2(0, 0, fw, foes[i].figure.get_height())
+			fg.texture = at
+			fg.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			fg.shaded = false
+			# NOT discard: shrunk to rung size the mipmapped alpha of an engraving falls under the
+			# 0.5 threshold almost everywhere, and the occupant vanishes entirely -- the same trap
+			# the arena's soft parallax planes fell into.
+			fg.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+			fg.transparent = true
+			fg.no_depth_test = true
+			fg.pixel_size = (RUNG_H * 0.86) / float(foes[i].figure.get_height())
+			# OUTSIDE the drum's face, not just inside it: at 0.98r the near wall of the cylinder
+			# stood in front of the figure and hid it completely -- the first build drew all five
+			# occupants and showed none of them.
+			fg.position = Vector3(0, RUNG_H * 0.04, cyl.bottom_radius * 1.12)
+			if cleared:
+				fg.modulate = Color(0.46, 0.46, 0.52)
+			elif current:
+				fg.modulate = Color(1.0, 0.94, 0.80)
+			elif is_summit:
+				fg.modulate = accent.lerp(Color(1, 1, 1), 0.45)
+			else:
+				fg.modulate = Color(0.92, 0.90, 0.96)
+			drum.add_child(fg)
 		_rungs.append(drum)
 	_frame_camera(total)
 

@@ -12,5 +12,7 @@ intents = PackedInt32Array(25, 25, 25)
 enrage_step = 6
 reward_rtec = 18
 art = ExtResource("1_552gn")
+rule = 17
+rule_key = "RULE_BURST"
 is_elite = true
 figure = ExtResource("2_sem2r")

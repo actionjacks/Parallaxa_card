@@ -822,6 +822,9 @@ const RULE_KEY_OF := {
 	EnemyData.Rule.FOOL_MIRROR: "RULE_FOOL", EnemyData.Rule.INVERTED_TABLE: "RULE_INVERTED",
 	EnemyData.Rule.WIDE_HAND: "RULE_WIDE", EnemyData.Rule.ASPECT_BAN: "RULE_BAN",
 	EnemyData.Rule.THREE_SPREAD: "RULE_SPREAD", EnemyData.Rule.CELTIC_CROSS: "RULE_CELTIC",
+	EnemyData.Rule.VAMPIRE_MEND: "RULE_VAMPIRE", EnemyData.Rule.HAND_THIEF: "RULE_THIEF",
+	EnemyData.Rule.GRAVE_GLUTTON: "RULE_GLUTTON", EnemyData.Rule.THIRD_BURST: "RULE_BURST",
+	EnemyData.Rule.BARK_HIDE: "RULE_BARK",
 }
 
 func _rule_keys_match() -> bool:
