@@ -200,9 +200,12 @@ func _build_ui() -> void:
 	_relic_row.add_theme_constant_override("separation", 8)
 	mid.add_child(_relic_row)
 	# The middle column no longer carries the enemy art (it is the backdrop now) -- this spacer
-	# keeps the score readout pinned low, over the portrait's chest rather than its face.
+	# keeps the score readout pinned low. The opponent now stands in a 3D room with real depth,
+	# and the whole point of that is lost if the numbers are printed across its chest: the readout
+	# sits BELOW the figure, in the band between its feet and the hand, so both can be read.
 	var gap := Control.new()
 	gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gap.size_flags_stretch_ratio = 4.5
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mid.add_child(gap)
 	_preview_label = _inked(_label("", 26, Color(0.98, 0.95, 0.8)))

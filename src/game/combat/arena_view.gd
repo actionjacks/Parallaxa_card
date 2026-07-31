@@ -14,14 +14,27 @@ extends SubViewportContainer
 ## between a scene that renders and one that crawls.
 
 const FLOOR_Y := -1.15
+## Framing is a budget, not a preference: the top bar owns 0..100 px and the hand owns 500..720, so
+## the opponent has to live inside the band between them. At this size and this camera the figure
+## spans roughly 205..570 px -- its feet pass behind the fan, which is what the depth is for.
+const PIXEL_SIZE := 0.0132
+const FIG_Z := -1.5
+const CAM_Y := 1.32
+const CAM_Z := 6.6
 var _world: SubViewport
 var _cam: Camera3D
 var _key: OmniLight3D
 var _accent := Color(0.55, 0.2, 0.24)
 var _t := 0.0
-var _fig: Sprite3D              ## the opponent, standing on the floor rather than floating over it
+## THE OPPONENT IN THREE PLANES. One cut-out, however good, reads as a picture lifted off a card;
+## what sells volume is PARALLAX -- material at different distances sliding past each other as the
+## view drifts. tools/gen/gen_foe_layers.py derives the three (mass behind, plate, engraved relief
+## in front) and they hang at different Z, each with its own sway. The camera already breathes, so
+## the depth is real geometry rather than a shader -- which also means it survives software GL.
+var _layers: Array = []        ## [Sprite3D] back -> fore
+var _atlases: Array = []       ## matching AtlasTexture per layer, stepped together
+var _fig: Sprite3D             ## the mid plane, kept as the framing reference
 var _blob: MeshInstance3D       ## contact shadow under the figure
-var _atlas: AtlasTexture
 var _frames := 0
 var _cell := Vector2.ZERO
 var _ft := 0.0
@@ -43,7 +56,7 @@ func _ready() -> void:
 	_cam = Camera3D.new()
 	_cam.current = true
 	_cam.fov = 52.0
-	_cam.position = Vector3(0, 0.55, 5.2)
+	_cam.position = Vector3(0, CAM_Y, CAM_Z)
 	_world.add_child(_cam)
 	_build()
 	set_process(true)
@@ -100,6 +113,26 @@ func _build() -> void:
 	_key.omni_range = 11.0
 	_key.position = Vector3(-1.4, 1.2, 2.6)
 	_world.add_child(_key)
+	# DEPTH NEEDS SOMETHING TO BE DEEP INTO. Two pillars flanking the table and a far glow behind
+	# the figure: the fog then has objects to swallow at different distances instead of an empty
+	# gradient, and the camera drift has something to slide the opponent against.
+	for side in [-1.0, 1.0]:
+		var col := MeshInstance3D.new()
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.30
+		cm.bottom_radius = 0.38
+		cm.height = 6.0
+		cm.radial_segments = 12          # software GL: cheap round, not smooth round
+		col.mesh = cm
+		col.position = Vector3(side * 4.6, FLOOR_Y + 3.0, -6.0)
+		col.material_override = _mat(Color(0.17, 0.155, 0.20), 0.95)
+		_world.add_child(col)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.42, 0.36, 0.62)
+	glow.light_energy = 2.2
+	glow.omni_range = 9.0
+	glow.position = Vector3(0.0, 1.4, -7.2)
+	_world.add_child(glow)
 	var rim := DirectionalLight3D.new()
 	rim.light_color = Color(0.5, 0.58, 0.92)
 	rim.light_energy = 0.30
@@ -111,9 +144,12 @@ func _build() -> void:
 ## that floor, catches the same candle, and drops a shadow -- which is the whole reason to have
 ## built a room at all.
 func set_figure(tex: Texture2D, frames: int) -> void:
-	if _fig != null:
-		_fig.queue_free()
-		_fig = null
+	for l in _layers:
+		if is_instance_valid(l):
+			l.queue_free()
+	_layers.clear()
+	_atlases.clear()
+	_fig = null
 	if _blob != null:
 		_blob.queue_free()
 		_blob = null
@@ -121,25 +157,51 @@ func set_figure(tex: Texture2D, frames: int) -> void:
 		return
 	_frames = maxi(1, frames)
 	_cell = Vector2(float(tex.get_width()) / float(_frames), float(tex.get_height()))
-	_atlas = AtlasTexture.new()
-	_atlas.atlas = tex
-	_atlas.region = Rect2(0, 0, _cell.x, _cell.y)
-	_fig = Sprite3D.new()
-	_fig.texture = _atlas
-	_fig.billboard = BaseMaterial3D.BILLBOARD_ENABLED     # always faces the reader
-	_fig.shaded = true                                    # the candle actually falls on it
-	_fig.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD       # cut-out edges, no sorting halo
-	_fig.pixel_size = 0.0125
-	# feet on the floor: half the sprite's world height above FLOOR_Y
-	_fig.position = Vector3(0.0, FLOOR_Y + _cell.y * 0.0125 * 0.5, -1.4)
-	_world.add_child(_fig)
+	# name, z offset, tint, scale. The back plane is a touch larger so its edge shows past the
+	# shoulders; the fore plane a touch smaller so the relief sits INSIDE the body.
+	# name, z, tint, scale, hard_cut. Only the MID plane wants a hard silhouette: DISCARD on a
+	# soft mask (the dilated mass, the contrast relief) shreds it into speckle instead of reading
+	# as depth -- which is exactly what it did on the first pass.
+	var specs: Array = [
+		["_back", -0.34, Color(0.55, 0.54, 0.66, 0.85), 1.04, false],
+		["_mid", 0.0, Color(1.0, 1.0, 1.0), 1.0, true],
+		["_fore", 0.26, Color(1.0, 0.98, 0.94, 0.55), 0.99, false],
+	]
+	var base_path: String = tex.resource_path
+	for spec in specs:
+		var t: Texture2D = tex
+		if base_path != "":
+			var lp: String = base_path.get_base_dir() + "/layers/" \
+				+ base_path.get_file().get_basename() + String(spec[0]) + ".png"
+			if ResourceLoader.exists(lp):
+				t = load(lp)
+			elif String(spec[0]) != "_mid":
+				continue          # no derived layer on disk: fall back to the single plate
+		var at := AtlasTexture.new()
+		at.atlas = t
+		at.region = Rect2(0, 0, _cell.x, _cell.y)
+		var sp := Sprite3D.new()
+		sp.texture = at
+		sp.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		sp.shaded = true
+		sp.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD if bool(spec[4]) else SpriteBase3D.ALPHA_CUT_DISABLED
+		sp.transparent = true
+		sp.no_depth_test = not bool(spec[4])   # soft planes never fight the plate for depth
+		sp.pixel_size = PIXEL_SIZE * float(spec[3])
+		sp.modulate = spec[2]
+		sp.position = Vector3(0.0, FLOOR_Y + _cell.y * sp.pixel_size * 0.5, FIG_Z + float(spec[1]))
+		_world.add_child(sp)
+		_layers.append(sp)
+		_atlases.append(at)
+		if String(spec[0]) == "_mid":
+			_fig = sp
 	# a soft blob under it -- a real shadow would need a shadow-casting light, which software GL
 	# cannot afford; a dark ellipse on the floor sells the contact just as well.
 	_blob = MeshInstance3D.new()
 	var bm := PlaneMesh.new()
-	bm.size = Vector2(2.1, 1.15)
+	bm.size = Vector2(2.3, 1.2)
 	_blob.mesh = bm
-	_blob.position = Vector3(0.0, FLOOR_Y + 0.012, -1.35)
+	_blob.position = Vector3(0.0, FLOOR_Y + 0.012, FIG_Z + 0.05)
 	var bmat := StandardMaterial3D.new()
 	bmat.albedo_color = Color(0.0, 0.0, 0.0, 0.55)
 	bmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -174,14 +236,30 @@ func _process(delta: float) -> void:
 	# whole -- the pull-back would never have appeared on screen.
 	_push = move_toward(_push, 0.0, delta * 1.6)
 	if Juice.reduce_motion():
-		_cam.position = Vector3(0, 0.55, 5.2)
+		_cam.position = Vector3(0, CAM_Y, CAM_Z)
+		for sp: Sprite3D in _layers:
+			if is_instance_valid(sp):
+				sp.position.x = 0.0
+				sp.position.y = FLOOR_Y + _cell.y * sp.pixel_size * 0.5
 		return
 	# a breath of drift, so the room is never a still photograph
-	_cam.position = Vector3(sin(_t * 0.21) * 0.10, 0.55 + sin(_t * 0.17) * 0.05, 5.2 - _push)
+	_cam.position = Vector3(sin(_t * 0.21) * 0.10, CAM_Y + sin(_t * 0.17) * 0.05, CAM_Z - _push)
 	# the engraving steps between carved poses, same 10 fps as the plate it replaces
-	if _frames > 1 and _atlas != null:
+	if _frames > 1 and not _atlases.is_empty():
 		_ft += delta * 10.0
 		if _ft >= 1.0:
 			_ft -= 1.0
 			_fi = (_fi + 1) % _frames
-			_atlas.region = Rect2(float(_fi) * _cell.x, 0.0, _cell.x, _cell.y)
+			for at: AtlasTexture in _atlases:
+				at.region = Rect2(float(_fi) * _cell.x, 0.0, _cell.x, _cell.y)
+	# THE PARALLAX ITSELF. Each plane drifts a little more than the one behind it, so the relief
+	# leads and the mass trails. Tiny amplitudes on purpose: this must be felt as volume, never
+	# noticed as movement.
+	for i in _layers.size():
+		var sp: Sprite3D = _layers[i]
+		if not is_instance_valid(sp):
+			continue
+		var k: float = float(i) - 1.0            # -1 back, 0 mid, +1 fore
+		sp.position.x = sin(_t * 0.63 + k * 0.9) * 0.030 * k
+		sp.position.y = FLOOR_Y + _cell.y * sp.pixel_size * 0.5 \
+			+ sin(_t * 0.47 + k * 1.4) * 0.018 * absf(k)
