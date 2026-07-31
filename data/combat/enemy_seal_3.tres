@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/cards/minor/wands_01.jpg" id="1_qyg23"]
-[ext_resource type="Texture2D" path="res://assets/foes/wands_01.png" id="2_fsuof"]
+[ext_resource type="Texture2D" path="res://assets/foes/demon_abraxas_infernal_dictionary.png" id="2_fsuof"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_rsf1e"]
 
 [resource]

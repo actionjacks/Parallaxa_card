@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/cards/minor/cups_11.jpg" id="1_vj0an"]
-[ext_resource type="Texture2D" path="res://assets/foes/cups_11.png" id="2_dn85t"]
+[ext_resource type="Texture2D" path="res://assets/foes/demon_bifrons.png" id="2_dn85t"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_qp2or"]
 
 [resource]

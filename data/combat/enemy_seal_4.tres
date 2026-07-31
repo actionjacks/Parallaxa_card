@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/cards/minor/pents_01.jpg" id="1_f8sb1"]
-[ext_resource type="Texture2D" path="res://assets/foes/pents_01.png" id="2_wg56v"]
+[ext_resource type="Texture2D" path="res://assets/foes/demon_baalzephon.png" id="2_wg56v"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_x76qd"]
 
 [resource]

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/cards/minor/swords_11.jpg" id="1_5fk6m"]
-[ext_resource type="Texture2D" path="res://assets/foes/swords_11.png" id="2_eyt4f"]
+[ext_resource type="Texture2D" path="res://assets/foes/demon_andras_demon.png" id="2_eyt4f"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_y1puc"]
 
 [resource]

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/cards/minor/swords_09.jpg" id="1_wsp3m"]
-[ext_resource type="Texture2D" path="res://assets/foes/swords_09.png" id="2_o522g"]
+[ext_resource type="Texture2D" path="res://assets/foes/demon_buer_blog.png" id="2_o522g"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="3_2srjc"]
 
 [resource]
