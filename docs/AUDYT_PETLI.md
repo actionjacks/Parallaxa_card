@@ -65,7 +65,36 @@ Wszystkie z tej samej rodziny co precedens, ktory uruchomil audyt: **obietnica b
 
 ---
 
-## 4. POZOSTAJE (nastepna partia N1c)
+## 4. NAPRAWIONE w partii N1c (14)
+
+Synteza audytu przeczytala repo PO pierwszej partii i znalazla, ze **dwie moje naprawy zepsuly
+cos innego**. Te ida pierwsze — naprawa, ktora wprowadza blad, jest gorsza od bledu, ktory
+zastapila.
+
+**Moje regresje:**
+- Zerowanie `growth`/`bloom` sprawilo, ze `KWD_WZROST` zaczal klamac (obiecywal narost na CALY
+  run). Tekst przepisany na "do konca tego pojedynku".
+- Zapis przy "Zapisz i wyjdz" otworzyl FARME: `step` rosl dopiero w `_leave_shop`, wiec dalo sie
+  wygrac walke, zainkasowac nagrode/nadmiar/odsetki/XP, wyjsc z ekranu nagrody i wrocic na TEN
+  SAM szczebel. Szczebel rosnie teraz w momencie wygranej, a ekran nagrody jest punktem zapisu.
+
+**Ekonomia:** `_buy()` nie zdejmowal karty z lady (osiem kopii tego samego Krola za 40 Rteci);
+"jedna Gwiazda na wizyte" bylo cofane przez reroll.
+
+**Przymierze podgladu:** podglad nie ostrzegal przed OFIARA (niszczy karte trwale); zwrot odrzutu
+za Pentagram lamal limit Wisielca; `next_intent()` klamal przy Kole (pokazywal 22, uderzal 9) i
+Glupcu (czytal tabele, ktorej ten nie uzywa) — teraz zwraca -1 i HUD mowi, ze ciosu nie da sie
+przepowiedziec; Arkanum Sadu opisywalo sie pustym stringiem; prawo biomu bylo liczone i NIGDY
+niepokazane w walce.
+
+**Struktura:** Swiat byl nieosiagalny od Glebi 1 (etap podrozy WNIOSKOWANY z `fights_won`);
+Biom Zapieczetowany nie byl terminusem wbrew trzem wlasnym tekstom; pieczec z ostatniego szczebla
+przyznawana w ciszy; mapa z omenem wypychala "Rusz" poza 720p — ekrany runu przewijaja sie, a
+pasek akcji jest zakotwiczony do dolu.
+
+---
+
+## 5. POZOSTAJE
 
 Potwierdzone, jeszcze nienaprawione — kolejnosc wg wagi:
 
@@ -89,7 +118,17 @@ Potwierdzone, jeszcze nienaprawione — kolejnosc wg wagi:
 
 ---
 
-## 5. Co dalej
+### Znane, jeszcze nietkniete
+- **RAISE_DEAD jest funkcjonalnie no-opem**: silnik i tak recyklinguje grob bezwarunkowo, wiec
+  Arkanum Sadu nie daje nic poza wpisem w logu. Wymaga decyzji projektowej (albo silnik przestaje
+  recyklowac automatycznie, albo Sad robi cos innego).
+- `lost_aspect` jest juz poprawny, ale nikt go nie POKAZUJE — Zaslona V nie mowi, ktory kolor znikl.
+- `KEYSTONE_TAG` istnieje w ui.csv i nie jest nigdzie uzyty: mechanika Klucza nie jest w grze
+  wyjasniona ani razu.
+- `_mult_breakdown` pomija co najmniej piec zrodel mnoznika.
+- Blok omenu nachodzi wizualnie na zakotwiczony pasek akcji (kosmetyczne — przyciski dzialaja).
+
+## 6. Co dalej
 
 Etap N1c: naprawy z sekcji 4 (1-6 to blokujace). Potem N3 (zrozumialosc) — audyt zrozumialosci
 potwierdzil diagnoze liczbami: 20 tooltipow w calym `src/game/` i brak definicji dla
