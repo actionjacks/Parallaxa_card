@@ -227,6 +227,21 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 			win.omni_range = 2.6
 			win.position = Vector3(0, 0, half + 0.45)
 			drum.add_child(win)
+		# THE ACTIVE STOREY SAYS SO, ON THE TOWER. The rung list beside the tower answers "which
+		# floor", but only after the eye has left the building. A label riding the lit tier means
+		# the picture alone tells you where you stand.
+		if current or is_summit:
+			var tag := Label3D.new()
+			tag.text = tr("TOWER_SUMMIT") if is_summit else tr("TOWER_HERE")
+			tag.font_size = 96
+			tag.pixel_size = 0.0052
+			tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			tag.no_depth_test = true
+			tag.modulate = Color(1.0, 0.42, 0.32) if is_summit else Color(1.0, 0.88, 0.60)
+			tag.outline_size = 22
+			tag.outline_modulate = Color(0.02, 0.01, 0.03, 0.95)
+			tag.position = Vector3(half * 2.15, RUNG_H * 0.06, half * 0.5)
+			drum.add_child(tag)
 		# THE OCCUPANT. Billboarded so it faces the reader from every angle of the slow spin, and
 		# pushed clear of the drum's face so it never sinks into the stone. A rung already cleared
 		# shows its foe greyed and dim -- a trophy shelf, not a threat.
@@ -267,8 +282,13 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 ## the tower reads as something still to be climbed.
 func _frame_camera(total: int) -> void:
 	var h: float = RUNG_H * total
-	_cam.position = Vector3(0, h * 0.46, h * 0.92 + 3.4)
-	_cam.look_at(Vector3(0, h * 0.42, 0), Vector3.UP)
+	# A WORM'S EYE, BECAUSE THE PLAYER IS CLIMBING. Framed from half its own height the tower was a
+	# diagram of five boxes seen side-on -- true, and completely flat. Standing the camera at the
+	# FOOT of the tower and tilting it up does the one thing the picture has to do: it puts the
+	# summit far away and above you. The eaves now stack toward a vanishing point, each storey
+	# overhangs the one below, and the climb is legible before a single word is read.
+	_cam.position = Vector3(0, RUNG_H * 0.22, h * 0.95 + 3.6)
+	_cam.look_at(Vector3(0, h * 0.52, 0), Vector3.UP)
 
 func _process(delta: float) -> void:
 	if _pivot == null:
