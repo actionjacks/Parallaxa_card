@@ -34,11 +34,13 @@ static func minor_art(card: CardData) -> Texture2D:
 
 static func build(card: CardData) -> PanelContainer:
 	var col := Aspects.color(card.aspect)
-	var sb := StyleBoxFlat.new()
+	# THE CARD IS FURNITURE TOO. Every other plate in the game gained a bevel and a cast shadow;
+	# the cards kept a flat two-pixel outline, which made the one object the player touches most
+	# the only one that still looked like a prototype. Same material, the card's own colour.
+	var sb := Chrome.panel(col, 0.85)
 	sb.bg_color = BG
 	sb.set_border_width_all(2)
 	sb.border_color = col
-	sb.set_corner_radius_all(3)
 	sb.content_margin_left = 6
 	sb.content_margin_top = 6
 	sb.content_margin_right = 6

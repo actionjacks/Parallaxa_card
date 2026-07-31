@@ -31,6 +31,11 @@ func _ready() -> void:
 	var fan := Control.new()
 	fan.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fan.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# BEHIND the title and the buttons, and dimmed. It was added at the same depth as the menu
+	# column and drawn after it, so the top two buttons -- "New Journey" among them -- sat UNDER
+	# the cards: the first thing a player sees was the least readable thing on the screen.
+	fan.z_index = -1
+	fan.modulate = Color(1, 1, 1, 0.55)
 	add_child(fan)
 	for i in TITLE_CARDS.size():
 		var t := TextureRect.new()

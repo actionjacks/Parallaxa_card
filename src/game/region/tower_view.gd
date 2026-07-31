@@ -114,7 +114,7 @@ func _build_environment() -> void:
 	for layer in 2:
 		var wall := MeshInstance3D.new()
 		var qm := QuadMesh.new()
-		qm.size = Vector2(62.0, 34.0) if layer == 0 else Vector2(80.0, 44.0)
+		qm.size = Vector2(110.0, 56.0) if layer == 0 else Vector2(150.0, 72.0)
 		wall.mesh = qm
 		wall.position = Vector3(0, 7.0 + layer * 3.0, -16.0 - layer * 7.0)
 		var cm := StandardMaterial3D.new()
@@ -134,6 +134,11 @@ func _build_environment() -> void:
 		cm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		cm.uv1_scale = Vector3(1.6, 0.9, 1.0)
+		# The quads are finite, and a finite sky shows its corners: two hard verticals cutting the
+		# frame. Distance fade dissolves the edges into the fog instead of ending them.
+		cm.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+		cm.distance_fade_min_distance = 46.0 + layer * 8.0
+		cm.distance_fade_max_distance = 20.0 + layer * 6.0
 		wall.material_override = cm
 		_clouds.append(wall)
 		_world.add_child(wall)
