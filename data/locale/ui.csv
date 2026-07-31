@@ -883,3 +883,4 @@ BIOME_RHYTHM_TIP,"How this colour hits: the average blow per turn and the hardes
 RULE_CLEANSE,"Its glow dissolves rot: Gnicie ticks once and washes away — and it mends 15 whenever a round dealt it under 60. Chipping away is not a plan here.","Jej poświata rozpuszcza zgniliznę: Gnicie tyka raz i znika — a przy rundzie poniżej 60 obrażeń leczy się o 15. Skubanie po kawałku nie jest tu planem."
 TOWER_HERE,YOU ARE HERE,TU STOISZ
 TOWER_SUMMIT,SUMMIT,SZCZYT
+TOWER_OPPONENTS,%d OPPONENTS,%d PRZECIWNIKÓW

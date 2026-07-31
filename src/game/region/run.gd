@@ -238,7 +238,7 @@ func _show_map() -> void:
 	tower_row.add_theme_constant_override("separation", 18)
 	# The tower shrinks when an omen is waiting: the omen block is ~150 px tall and the action bar
 	# is pinned to the bottom, so without this the two overlap.
-	var tower := TowerView.new(Vector2(340, 330) if _pending_omen != null else Vector2(390, 440))
+	var tower := TowerView.new(Vector2(330, 300) if _pending_omen != null else Vector2(380, 396))
 	# hand the tower its cast: every rung shows who waits on it, the summit shows the boss
 	var climb: Array = RunState.fights.duplicate()
 	climb.append(RunState.boss if RunState.boss != null else RunState.region.boss)
@@ -275,6 +275,29 @@ func _show_map() -> void:
 		ladder.add_child(rung)
 	tower_row.add_child(ladder)
 	root.add_child(tower_row)
+
+	# THE CAPTION, UNDER THE PICTURE. The tower now says everything visually -- which storey burns,
+	# who waits on each -- so the words stop competing with it and take the place captions belong:
+	# a block beneath, left-aligned, naming the climb, its length and what the place does to you.
+	var cap := VBoxContainer.new()
+	cap.add_theme_constant_override("separation", 2)
+	cap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	cap.custom_minimum_size = Vector2(680, 0)
+	var cap_head := HBoxContainer.new()
+	cap_head.add_theme_constant_override("separation", 10)
+	var cap_name := _label(tr(RunState.region.name_key).to_upper(), 22, RunState.region.accent)
+	cap_head.add_child(cap_name)
+	cap_head.add_child(_label("\u00b7", 22, Color(0.5, 0.48, 0.55)))
+	cap_head.add_child(_label(tr("TOWER_OPPONENTS") % (RunState.fights.size() + 1), 15,
+		Color(0.72, 0.70, 0.78)))
+	cap.add_child(cap_head)
+	var rule_line := Lexicon.ink(tr(RunState.region.law_key), 14, Color(0.78, 0.76, 0.84), self)
+	rule_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rule_line.custom_minimum_size = Vector2(680, 0)
+	cap.add_child(rule_line)
+	var cap_wrap := CenterContainer.new()
+	cap_wrap.add_child(cap)
+	root.add_child(cap_wrap)
 
 	if RunState.relics.size() > 0:
 		var rr := HBoxContainer.new()

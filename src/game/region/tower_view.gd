@@ -61,33 +61,56 @@ func _ready() -> void:
 ## its foot. Everything above fades into the murk, which is what makes a climb feel tall.
 func _build_environment() -> void:
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = DARK
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.20, 0.19, 0.28)
-	env.ambient_light_energy = 0.10
+	# A STORM, NOT A VOID. Flat black gave the tower nothing to stand against: the silhouette had
+	# no horizon, so it read as an object on a table rather than a building in weather. A sky
+	# gradient plus a bank of haze does three things at once -- it separates the tower, it puts a
+	# distance behind it, and it makes the warm light at the foot read as fire rather than as a
+	# lamp in a studio.
+	env.background_mode = Environment.BG_SKY
+	var sky := Sky.new()
+	var pan := ProceduralSkyMaterial.new()
+	pan.sky_top_color = Color(0.045, 0.040, 0.062)
+	pan.sky_horizon_color = Color(0.30, 0.17, 0.13)
+	pan.sky_curve = 0.16
+	pan.ground_bottom_color = Color(0.055, 0.035, 0.035)
+	pan.ground_horizon_color = Color(0.34, 0.18, 0.12)
+	pan.ground_curve = 0.10
+	pan.sun_angle_max = 30.0
+	sky.sky_material = pan
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.42
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_light_color = Color(0.04, 0.035, 0.06)
-	env.fog_density = 0.10
-	env.fog_depth_begin = 3.0
-	env.fog_depth_end = 26.0
+	env.fog_light_color = Color(0.26, 0.15, 0.13)
+	env.fog_density = 0.055
+	env.fog_depth_begin = 5.0
+	env.fog_depth_end = 34.0
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.55
+	env.glow_bloom = 0.18
 	var ce := CameraAttributesPractical.new()
 	_cam.attributes = ce
 	_cam.environment = env
 
-	# the brazier at the foot: warm, close, and the reason the lower stones read as stone
+	# the fire at the foot: warm, close, low, and the reason the lower stones read as stone
 	var key := OmniLight3D.new()
-	key.light_color = Color(1.0, 0.72, 0.42)
-	key.light_energy = 1.5
-	key.omni_range = 6.5
-	key.position = Vector3(2.9, 0.35, 3.1)
+	key.light_color = Color(1.0, 0.62, 0.30)
+	key.light_energy = 2.6
+	key.omni_range = 8.0
+	key.position = Vector3(2.6, -0.4, 3.4)
 	_pivot.add_child(key)
-	# a cold rim from behind, so the silhouette separates from the void
+	# a second, colder source opposite it -- one light makes a diagram, two make a place
+	var fill := OmniLight3D.new()
+	fill.light_color = Color(0.42, 0.50, 0.86)
+	fill.light_energy = 1.1
+	fill.omni_range = 9.0
+	fill.position = Vector3(-3.4, 2.2, 2.0)
+	_pivot.add_child(fill)
 	var rim := DirectionalLight3D.new()
-	rim.light_color = Color(0.55, 0.62, 0.95)
-	rim.light_energy = 0.35
+	rim.light_color = Color(0.72, 0.66, 0.92)
+	rim.light_energy = 0.55
 	rim.rotation_degrees = Vector3(-18, 152, 0)
 	_pivot.add_child(rim)
 
@@ -182,8 +205,12 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 		nook.mesh = nb
 		nook.position = Vector3(0, -RUNG_H * 0.02, half * 0.99)
 		var nm := StandardMaterial3D.new()
-		nm.albedo_color = Color(0.015, 0.012, 0.02)
+		nm.albedo_color = Color(0.20, 0.09, 0.04) if current else Color(0.015, 0.012, 0.02)
 		nm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		if current:
+			nm.emission_enabled = true
+			nm.emission = Color(1.0, 0.52, 0.22)
+			nm.emission_energy_multiplier = 1.6
 		nook.material_override = nm
 		drum.add_child(nook)
 		# two slot windows flanking the alcove, on the side walls
@@ -227,21 +254,24 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 			win.omni_range = 2.6
 			win.position = Vector3(0, 0, half + 0.45)
 			drum.add_child(win)
-		# THE ACTIVE STOREY SAYS SO, ON THE TOWER. The rung list beside the tower answers "which
-		# floor", but only after the eye has left the building. A label riding the lit tier means
-		# the picture alone tells you where you stand.
-		if current or is_summit:
-			var tag := Label3D.new()
-			tag.text = tr("TOWER_SUMMIT") if is_summit else tr("TOWER_HERE")
-			tag.font_size = 96
-			tag.pixel_size = 0.0052
-			tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			tag.no_depth_test = true
-			tag.modulate = Color(1.0, 0.42, 0.32) if is_summit else Color(1.0, 0.88, 0.60)
-			tag.outline_size = 22
-			tag.outline_modulate = Color(0.02, 0.01, 0.03, 0.95)
-			tag.position = Vector3(half * 2.15, RUNG_H * 0.06, half * 0.5)
-			drum.add_child(tag)
+		# THE ACTIVE STOREY IS THE ONE THAT IS LIT. A floating "you are here" label was a caption
+		# stuck on a picture that should not need one -- and it competed with the tower for the
+		# eye. The storey you stand on now BURNS: a warm lamp inside its alcove, its stone lifted,
+		# its occupant at full brightness. Everything else sits in the murk. That is the whole
+		# read, and it needs no words.
+		if current:
+			var lamp := OmniLight3D.new()
+			lamp.light_color = Color(1.0, 0.80, 0.46)
+			lamp.light_energy = 5.5
+			lamp.omni_range = 3.2
+			lamp.position = Vector3(0, RUNG_H * 0.05, half * 0.55)
+			drum.add_child(lamp)
+			var halo := OmniLight3D.new()
+			halo.light_color = Color(1.0, 0.66, 0.34)
+			halo.light_energy = 2.4
+			halo.omni_range = 5.0
+			halo.position = Vector3(0, RUNG_H * 0.2, half * 1.9)
+			drum.add_child(halo)
 		# THE OCCUPANT. Billboarded so it faces the reader from every angle of the slow spin, and
 		# pushed clear of the drum's face so it never sinks into the stone. A rung already cleared
 		# shows its foe greyed and dim -- a trophy shelf, not a threat.
@@ -287,8 +317,8 @@ func _frame_camera(total: int) -> void:
 	# FOOT of the tower and tilting it up does the one thing the picture has to do: it puts the
 	# summit far away and above you. The eaves now stack toward a vanishing point, each storey
 	# overhangs the one below, and the climb is legible before a single word is read.
-	_cam.position = Vector3(0, RUNG_H * 0.22, h * 0.95 + 3.6)
-	_cam.look_at(Vector3(0, h * 0.52, 0), Vector3.UP)
+	_cam.position = Vector3(0, RUNG_H * 0.05, h * 1.02 + 4.3)
+	_cam.look_at(Vector3(0, h * 0.46, 0), Vector3.UP)
 
 func _process(delta: float) -> void:
 	if _pivot == null:
