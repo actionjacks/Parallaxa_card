@@ -147,41 +147,51 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 		var drum := Node3D.new()
 		drum.position = Vector3(0, RUNG_H * i, 0)
 		_pivot.add_child(drum)
-		var mesh := MeshInstance3D.new()
-		var cyl := CylinderMesh.new()
-		cyl.top_radius = RUNG_R - TAPER * (i + 1)
-		cyl.bottom_radius = RUNG_R - TAPER * i
-		cyl.height = RUNG_H * 0.92
-		cyl.radial_segments = 14      # low on purpose: software GL renders this scene every frame
-		mesh.mesh = cyl
-		# A cleared rung is cold stone, the current one burns, the summit wears the boss's colour.
+		# A PAGODA, NOT A PIPE. Round drums gave a silhouette with no storeys in it -- the eye read
+		# one tapering tube. A tiered tower reads as a CLIMB because every level announces itself:
+		# a square body, a wide eave over it casting the level below into shadow, and an alcove cut
+		# into the front where its occupant waits. That is the shape the reference picture has and
+		# the reason it reads at a glance.
+		var half: float = (RUNG_R - TAPER * i) * 0.86
+		var body := MeshInstance3D.new()
+		var bx := BoxMesh.new()
+		bx.size = Vector3(half * 2.0, RUNG_H * 0.96, half * 2.0)
+		body.mesh = bx
 		var lit: float = 0.0
 		if current:
 			lit = 1.0
 		elif is_summit:
 			lit = 0.55
-		mesh.material_override = _stone_material(0.0 if cleared else lit,
+		body.material_override = _stone_material(0.0 if cleared else lit,
 			Color(1.0, 0.42, 0.3) if is_summit else accent)
-		drum.add_child(mesh)
-		# a band of brick between drums, so the rungs read as separate storeys
-		var band := MeshInstance3D.new()
-		var ring := CylinderMesh.new()
-		ring.top_radius = cyl.top_radius * 1.09
-		ring.bottom_radius = cyl.top_radius * 1.09
-		ring.height = RUNG_H * 0.08
-		ring.radial_segments = 14
-		band.mesh = ring
-		band.position = Vector3(0, RUNG_H * 0.5, 0)
-		band.material_override = _stone_material(0.0, accent)
-		drum.add_child(band)
-		# WINDOWS: a narrow slot on every storey, three around the drum. Cold and empty on a
-		# cleared rung, warm on the one you stand on -- a lit window is the cheapest way to say
-		# "someone is in there" and the reason the silhouette reads as a building at all.
-		for w in 3:
+		drum.add_child(body)
+		# THE EAVE. Wider than the body it crowns, thin, and slightly proud at the corners -- this
+		# single slab is what turns a stack of boxes into a tower with floors.
+		var eave := MeshInstance3D.new()
+		var eb := BoxMesh.new()
+		eb.size = Vector3(half * 2.34, RUNG_H * 0.11, half * 2.34)
+		eave.mesh = eb
+		eave.position = Vector3(0, RUNG_H * 0.50, 0)
+		eave.material_override = _stone_material(0.0, accent.lerp(Color(0.35, 0.22, 0.18), 0.5))
+		drum.add_child(eave)
+		# THE ALCOVE: a dark recess in the front face, so the occupant stands INSIDE the building
+		# rather than glued to its wall. Unshaded black -- it is a hole, and a hole is not lit.
+		var nook := MeshInstance3D.new()
+		var nb := BoxMesh.new()
+		nb.size = Vector3(half * 1.30, RUNG_H * 0.62, 0.05)
+		nook.mesh = nb
+		nook.position = Vector3(0, -RUNG_H * 0.02, half * 0.99)
+		var nm := StandardMaterial3D.new()
+		nm.albedo_color = Color(0.015, 0.012, 0.02)
+		nm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		nook.material_override = nm
+		drum.add_child(nook)
+		# two slot windows flanking the alcove, on the side walls
+		for w in 2:
 			var slot := MeshInstance3D.new()
-			var bm := BoxMesh.new()
-			bm.size = Vector3(0.13, RUNG_H * 0.34, 0.10)
-			slot.mesh = bm
+			var sb := BoxMesh.new()
+			sb.size = Vector3(0.07, RUNG_H * 0.30, 0.10)
+			slot.mesh = sb
 			var wm := StandardMaterial3D.new()
 			wm.albedo_color = Color(0.02, 0.02, 0.03)
 			if current:
@@ -193,31 +203,29 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 				wm.emission = Color(1.0, 0.34, 0.26)
 				wm.emission_energy_multiplier = 2.4
 			slot.material_override = wm
-			var ang: float = TAU * float(w) / 3.0 + 0.4
-			var rr: float = cyl.bottom_radius * 0.97
-			slot.position = Vector3(sin(ang) * rr, 0.05, cos(ang) * rr)
-			slot.rotation.y = ang
+			slot.position = Vector3((half * 1.02) * (1.0 if w == 0 else -1.0), 0.02, 0.0)
+			slot.rotation.y = TAU * 0.25
 			drum.add_child(slot)
-		# CRENELLATIONS crown the summit: the tower has to END, not just stop.
+		# THE SUMMIT ENDS IN A POINT. A tower that merely stops is a column; a roof says "top".
 		if is_summit:
-			for k in 10:
-				var merlon := MeshInstance3D.new()
-				var mb := BoxMesh.new()
-				mb.size = Vector3(0.19, 0.30, 0.19)
-				merlon.mesh = mb
-				merlon.material_override = _stone_material(0.0, accent)
-				var a2: float = TAU * float(k) / 10.0
-				var r2: float = cyl.top_radius * 0.92
-				merlon.position = Vector3(sin(a2) * r2, RUNG_H * 0.55, cos(a2) * r2)
-				merlon.rotation.y = a2
-				drum.add_child(merlon)
+			var roof := MeshInstance3D.new()
+			var rc := CylinderMesh.new()
+			rc.top_radius = 0.0
+			rc.bottom_radius = half * 1.85
+			rc.height = RUNG_H * 0.62
+			rc.radial_segments = 4          # four-sided: a pagoda roof, and cheap
+			roof.mesh = rc
+			roof.position = Vector3(0, RUNG_H * 0.86, 0)
+			roof.rotation.y = TAU * 0.125
+			roof.material_override = _stone_material(0.30, Color(1.0, 0.42, 0.3))
+			drum.add_child(roof)
 		# the lit window of the storey you are standing on: the eye goes straight to it
 		if current or is_summit:
 			var win := OmniLight3D.new()
 			win.light_color = Color(1.0, 0.55, 0.3) if is_summit else Color(1.0, 0.86, 0.6)
 			win.light_energy = 1.3 if current else 0.9
 			win.omni_range = 2.6
-			win.position = Vector3(0, 0, cyl.bottom_radius + 0.35)
+			win.position = Vector3(0, 0, half + 0.45)
 			drum.add_child(win)
 		# THE OCCUPANT. Billboarded so it faces the reader from every angle of the slow spin, and
 		# pushed clear of the drum's face so it never sinks into the stone. A rung already cleared
@@ -237,11 +245,12 @@ func build(total: int, step: int, accent: Color, foes: Array = []) -> void:
 			fg.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 			fg.transparent = true
 			fg.no_depth_test = true
-			fg.pixel_size = (RUNG_H * 0.86) / float(foes[i].figure.get_height())
+			fg.pixel_size = (RUNG_H * 0.60) / float(foes[i].figure.get_height())
 			# OUTSIDE the drum's face, not just inside it: at 0.98r the near wall of the cylinder
 			# stood in front of the figure and hid it completely -- the first build drew all five
 			# occupants and showed none of them.
-			fg.position = Vector3(0, RUNG_H * 0.04, cyl.bottom_radius * 1.12)
+			# inside the alcove mouth: the recess frames it, the eave above shades it
+			fg.position = Vector3(0, RUNG_H * 0.02, half * 1.06)
 			if cleared:
 				fg.modulate = Color(0.46, 0.46, 0.52)
 			elif current:
