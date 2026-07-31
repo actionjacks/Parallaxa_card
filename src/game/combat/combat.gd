@@ -27,7 +27,8 @@ var _relics: Array = []
 var _selected: Array = []
 var _freeze_btn: Button
 var _stash_row: HBoxContainer       ## the Celtic Cross's four slots, beside the hand
-var _order_row: HBoxContainer      ## the staged play, in play order, with move-left/right handles          ## selected CardData instances (not indices)
+var _order_row: HBoxContainer
+var _order_sig: String = "!"       ## signature of the staged play the strip was last built for      ## the staged play, in play order, with move-left/right handles          ## selected CardData instances (not indices)
 
 var _widgets: Dictionary = {}      ## CardData -> its card panel in the hand
 var _log_lines: Array[String] = []
@@ -897,6 +898,16 @@ func _refresh_stash() -> void:
 func _refresh_order_strip() -> void:
 	if _order_row == null:
 		return
+	# Rebuild ONLY when the staged play actually changed. _update_selection_ui() runs on every
+	# hover and every preview refresh, and tearing the strip down each time meant the handle under
+	# the cursor could be freed between the press and the release -- the click then did nothing,
+	# which reads as "reordering is broken" rather than "the UI rebuilt itself".
+	var sig := ""
+	for c: CardData in _selected:
+		sig += "%d/%d," % [c.rank, int(c.aspect)]
+	if sig == _order_sig:
+		return
+	_order_sig = sig
 	for ch in _order_row.get_children():
 		_order_row.remove_child(ch)
 		ch.queue_free()

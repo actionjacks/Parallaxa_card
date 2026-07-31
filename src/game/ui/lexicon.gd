@@ -98,7 +98,11 @@ static func ink(text: String, size: int, col: Color, host: Node) -> RichTextLabe
 	rt.fit_content = true
 	rt.scroll_active = false
 	rt.autowrap_mode = TextServer.AUTOWRAP_OFF
-	rt.mouse_filter = Control.MOUSE_FILTER_PASS
+	# STOP, not PASS. A link has to WIN the hit test: with PASS the label is picked but the click
+	# keeps travelling, and anything laid over the bottom bar (the hand fan reaches down there)
+	# takes it instead -- the terms were highlighted, hoverable and completely unclickable.
+	rt.mouse_filter = Control.MOUSE_FILTER_STOP
+	rt.selection_enabled = false
 	rt.add_theme_font_size_override("normal_font_size", size)
 	rt.add_theme_color_override("default_color", col)
 	rt.meta_clicked.connect(func(meta): open_panel(String(meta), host))
