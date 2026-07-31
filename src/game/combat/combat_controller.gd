@@ -159,8 +159,15 @@ func mirror_intent(play_damage: int) -> int:
 	return clampi(play_damage / 14, 8, 34)
 
 ## One-step lookahead (turn planning): the exact damage of the FOLLOWING enemy turn.
+## Two bosses do not step their clock by one, and the telegraph was reading the table anyway:
+## the Wheel advances TWICE a turn (so it showed 22 and struck 9), and the Fool does not use the
+## table at all -- his blow is a mirror of yours, unknowable until the play is staged.
+## Returns -1 when the next blow genuinely cannot be foretold, and the HUD hides the telegraph.
 func next_intent() -> int:
-	return _intent_at(_intent_index + 1)
+	if enemy != null and enemy.rule == EnemyData.Rule.FOOL_MIRROR:
+		return -1
+	var stride: int = 2 if (enemy != null and enemy.rule == EnemyData.Rule.WHEEL_TURN) else 1
+	return _intent_at(_intent_index + stride)
 
 ## Intent as the player will FEEL it: pact + reversed-curse surcharges included (a non-attack
 ## turn stays 0 -- surcharges only ride real hits).
@@ -293,6 +300,10 @@ func play(selected: Array) -> void:
 	# discards than a turn starts with.
 	if bool(result.get("refund_discard", false)):
 		discards_left = mini(discards_left + 1, START_DISCARDS + _bonus_discards())
+		# The Hanged Man's suspension caps discards at one, and the refund was slipping past it --
+		# his announced rule was breakable by playing a Pentagram.
+		if enemy != null and enemy.rule == EnemyData.Rule.HANGED_CAP:
+			discards_left = mini(discards_left, 1)
 		message.emit("LOG_PENTAGRAM", [])
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
 	if int(result["block"]) > 0:

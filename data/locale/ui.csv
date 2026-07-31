@@ -389,7 +389,7 @@ KWD_FURIA,x1.5 Mult if you add no block this play.,x1.5 Mult jeśli nie dodasz b
 KWD_SPALENIE,Flat damage on top of the score.,Obrażenia wprost ponad wynik.
 KWD_ECHO,+Chips for each play made this fight.,+Chips za każde zagranie w tej walce.
 KWD_BUJNOSC,Bonus Chips when 3+ cards share an Aspect.,Bonus Chips gdy 3+ karty jednej barwy.
-KWD_WZROST,Gains +X chips each turn it waits in hand (keeps it for the run).,Zyskuje +X chipsów co turę w ręce (zostaje na cały run).
+KWD_WZROST,Gains +%d chips for every turn it waits in hand. The ramp lasts for THIS duel.,Zyskuje +%d chipsów za każdą turę czekania w ręce. Narost trwa do końca TEGO pojedynku.
 KWD_SYMBIOZA,+X chips for every allied-colour card in the play.,+X chipsów za każdą kartę sojuszniczej barwy w zagraniu.
 KWD_PIJAWKA,Heals you for X% of the damage dealt.,Leczy Cię o X% zadanych obrażeń.
 KWD_KLATWA,The enemy takes +X% damage from your NEXT plays (stacks).,Wróg dostaje +X% obrażeń z KOLEJNYCH zagrań (kumuluje się).
@@ -761,3 +761,6 @@ KWD_OFIARA,Played LAST: devours the card to its left — that card is destroyed 
 LOG_OFIARA,The sacrifice devours: +%d chips,Ofiara pożera: +%d chipsów
 CRACKED_EARNED,Cracked — it survived,Spękana — przetrwała
 LOG_RAISE_DEAD,Judgement: %d cards rise from the grave,Sąd: %d kart powstaje z grobu
+ARC_FX_RAISE,"Once per duel, the moment your deck runs dry, the grave returns to it.","Raz na pojedynek, gdy talia się wyczerpie, grób do niej wraca."
+PREVIEW_OFIARA,"SACRIFICE: %s %s will be destroyed","OFIARA: %s %s zostanie zniszczona"
+MIRROR_TELEGRAPH,Next: your own blow,Potem: twój własny cios

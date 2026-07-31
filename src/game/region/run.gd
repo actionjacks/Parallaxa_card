@@ -44,6 +44,7 @@ const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THRE
 var _shop_offers: Array = []
 var _shop_reroll_cost: int = 1
 var _shop_star: int = -1          ## Poker.Hand this visit's Star levels; -1 = sold/none
+var _star_sold: bool = false      ## a Star was already bought this VISIT (rerolls must not restock)
 
 var _stage: Control
 var _statusbar: PanelContainer
@@ -188,6 +189,8 @@ func _clear_stage() -> void:
 		ch.queue_free()
 
 func _mount(screen: Control) -> void:
+	if screen is VBoxContainer:
+		screen = _scrollable(screen)
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	screen.modulate.a = 0.0
 	_stage.add_child(screen)
@@ -221,7 +224,9 @@ func _show_map() -> void:
 	var tower_row := HBoxContainer.new()
 	tower_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	tower_row.add_theme_constant_override("separation", 18)
-	var tower := TowerView.new(Vector2(360, 400))
+	# The tower shrinks when an omen is waiting: the omen block is ~150 px tall and the action bar
+	# is pinned to the bottom, so without this the two overlap.
+	var tower := TowerView.new(Vector2(320, 300) if _pending_omen != null else Vector2(360, 390))
 	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent)
 	tower_row.add_child(tower)
 	var ladder := VBoxContainer.new()
@@ -287,10 +292,22 @@ func _show_map() -> void:
 		el.add_theme_color_override("font_color", Color(0.95, 0.55, 0.5))
 		ctrls.add_child(el)
 	ctrls.add_child(_button(tr("VIEW_DECK"), _view_deck))
-	root.add_child(ctrls)
 	if elite_ok:
-		root.add_child(_hint(tr("ELITE_INLINE") % [RunState.region.elite.max_hp, RunState.region.elite.enrage_step]))
+		var eh := _hint(tr("ELITE_INLINE") % [RunState.region.elite.max_hp, RunState.region.elite.enrage_step])
+		eh.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		root.add_child(eh)
+	# THE ACTION BAR LIVES OUTSIDE THE COLUMN, pinned to the bottom edge. Inside it, a pending
+	# omen (~150 px of extra content) pushed "Set out" below 720p -- the same failure that has
+	# softlocked the arena three times. Anchored here it cannot be pushed anywhere.
 	_mount(root)
+	var bar := CenterContainer.new()
+	bar.anchor_top = 1.0
+	bar.anchor_bottom = 1.0
+	bar.anchor_right = 1.0
+	bar.offset_top = -58
+	bar.offset_bottom = -10
+	bar.add_child(ctrls)
+	_stage.add_child(bar)
 
 func _relic_chip(a: ArcanumData) -> Control:
 	var p := _panel(Color(0.11, 0.09, 0.14), Color("b23a48") if a.is_reversed else Aspects.color(a.effect_aspect))
@@ -412,6 +429,11 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 		RunState.stat_regions_cleared += 1
 		_show_boss_choice()
 		return
+	# THE RUNG IS CLIMBED THE MOMENT THE DUEL IS WON, not when the shop is left. It used to
+	# advance only in _leave_shop, so once "Save & exit" started saving the run (batch 1) a player
+	# could win a duel, bank the reward, the overkill, the interest and the XP, quit from the
+	# reward screen, continue -- and find the SAME rung waiting, farmable without limit.
+	RunState.step += 1
 	_last_rest = RunState.rest()   # recover between fights so the run isn't a one-HP knife-edge
 	_roll_omen()                   # the road reveals an omen; it waits on the map screen
 	# Balatro cadence: EVERY won fight pays out a card pick AND a shop visit -- the economy is
@@ -421,6 +443,9 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 # ---------------------------------------------------------------- REWARD
 
 func _show_reward() -> void:
+	# The reward screen is now a save point: the rung is already climbed, so a player who quits
+	# here resumes AFTER the duel they won rather than in front of it.
+	RunState.save_run(_pending_omen.id if _pending_omen != null else "")
 	_statusbar.visible = true
 	_update_status()
 	_reward_panels.clear()
@@ -480,6 +505,7 @@ func _skip_reward() -> void:
 func _enter_shop() -> void:
 	_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())
 	_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
+	_star_sold = false
 	_shop_reroll_cost = 1
 	_show_shop()
 
@@ -600,6 +626,10 @@ func _buy(card: CardData) -> void:
 	if RunState.spend(_cost(BUY_COST)):
 		RunState.stat_bought += 1
 		RunState.add_card(card)
+		# The card LEAVES the counter. Without this it stayed on offer and could be bought again
+		# for as long as the Mercury lasted -- eight copies of the same King for 40 -- which makes
+		# nonsense of the rarity roll that took such care not to repeat a card within one offer.
+		_shop_offers.erase(card)
 		Sfx.play(&"coin", -4.0)
 		_show_shop()  # refresh prices / affordability
 
@@ -680,13 +710,14 @@ func _buy_star() -> void:
 		RunState.stat_star_used = true
 		RunState.level_up_hand(_shop_star)
 		Sfx.play(&"coin", -4.0, 1.2)
-		_shop_star = -1   # one Star per visit
+		_shop_star = -1
+		_star_sold = true   # one Star per VISIT -- a reroll must not restock it
 		_show_shop()
 
 func _reroll_shop() -> void:
 	if RunState.spend(_shop_reroll_cost):
 		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())   # the slot-machine pull
-		_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
+		_shop_star = -1 if _star_sold else RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost += 1
 		_show_shop()
 
@@ -736,7 +767,6 @@ func _close_overlay(overlay: Control, after := Callable()) -> void:
 		tw.tween_callback(after)
 
 func _leave_shop() -> void:
-	RunState.step += 1
 	_show_map()
 
 # ---------------------------------------------------------------- BOSS CLAIM (1-of-2/3)
@@ -882,6 +912,16 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 		sealed_now = Profile.grant_seal(RunState.region.seal_aspect)
 	# The journey is the tower plus The World -- not the legacy four-region array, which would
 	# have sent the player back through The World again and again.
+	# THE SEALED BIOME IS A TERMINUS. Its own text promises "the Journey ends there", and the
+	# World Gate used to come back afterwards with "THE WORLD HAS FALLEN" over the Fool's corpse.
+	if RunState.sealed_entered:
+		_show_spread(true)
+		return
+	# The seal ceremony must fire BEFORE the final-leg return, or a colour won on the last rung of
+	# a journey is banked in silence -- effect counted, never shown, which is the family of bug
+	# this whole audit started from.
+	if sealed_now:
+		Sfx.play(&"coin", -3.0)
 	var final: bool = RunState.region_index + 1 >= JOURNEY_BIOMES + 1
 	if final:
 		# The World has fallen: the run is WON (recorded once, endless deaths stay wins) and the
@@ -889,7 +929,7 @@ func _show_complete(claimed: ArcanumData = null) -> void:
 		if not RunState.run_won:
 			RunState.run_won = true
 			Profile.record_victory(RunState.veil)
-		_show_world_gate(claimed)
+		_show_world_gate(claimed, sealed_now)
 		return
 	var root := _screen_column()
 	root.add_child(_big(tr("COMPLETE_TITLE"), Color(0.65, 0.9, 0.55)))
@@ -927,22 +967,24 @@ func _continue_journey() -> void:
 	var idx := RunState.region_index + 1
 	_pending_omen = null
 	if idx >= JOURNEY_BIOMES:
-		# three colours walked: The World is the fixed terminus of every journey
+		# the tower is climbed: The World is the fixed terminus of every journey, at EVERY depth
 		_last_rest = RunState.enter_region(load(WORLD_REGION), idx)
 		_refresh_backdrop()
 		_show_map()
 		return
-	_show_biome_choice()
+	_show_biome_choice(idx)
 
 ## THE CHOICE OF ROAD: which colour you walk into next. The first step is free among all five;
 ## later steps offer two of what is left, so a journey is a route through the pentagram rather
 ## than a fixed corridor. Offers are rolled from RunState.rng (one draw, the standard contract).
-func _show_biome_choice() -> void:
+## `leg` is which stop of the journey the chosen road becomes: 0 for the tower, 1 for The World.
+## It used to be INFERRED from fights_won, which is why a Beyond loop -- where fights_won is
+## already high but the journey restarts -- computed leg 1, walked a tower into The World's slot
+## and made boss_world unreachable from Depth 1 onward.
+func _show_biome_choice(leg: int = 0) -> void:
 	_statusbar.visible = true
 	_update_status()
-	var idx := RunState.region_index + 1 if RunState.region != null and RunState.fights_won > 0 else 0
-	if RunState.region_index == 0 and RunState.fights_won == 0:
-		idx = 0
+	var idx: int = leg
 	var taken: Array = RunState.biomes_walked
 	var left: Array = []
 	for path in BIOMES:
@@ -1018,9 +1060,16 @@ func _walk_biome(path: String, idx: int) -> void:
 
 ## BEYOND THE WORLD: the victory gate. The exponential vector finally has something to spend
 ## itself on -- every depth loops the Journey with +50% HP / +35% intents / +1 enrage.
-func _show_world_gate(claimed: ArcanumData = null) -> void:
+func _show_world_gate(claimed: ArcanumData = null, sealed_now: bool = false) -> void:
 	var root := _screen_column()
 	root.add_child(_big(tr("GATE_TITLE"), Color(0.95, 0.85, 0.5)))
+	# A colour won on the LAST rung of a journey lands here, not on the region-clear screen, so
+	# the ceremony has to be repeated or the seal is banked in silence.
+	if sealed_now and RunState.region != null and RunState.region.seal_aspect >= 0:
+		var sl := _hint(tr("SEAL_TAKEN") % tr(Aspects.name_key(RunState.region.seal_aspect)))
+		sl.add_theme_color_override("font_color", Aspects.color(RunState.region.seal_aspect))
+		root.add_child(sl)
+		root.add_child(_hint(tr("SEAL_PROGRESS") % [Profile.seals.size(), 5]))
 	if claimed != null and claimed.art != null:
 		var t := TextureRect.new()
 		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -1075,7 +1124,7 @@ func _go_beyond() -> void:
 	# because at depth the point is the scaling, not the seal) and the choice screen decides.
 	RunState.biomes_walked = []
 	RunState.region_index = 0
-	_show_biome_choice()
+	_show_biome_choice(0)
 
 ## The run's ending -- win or death -- is a tarot SPREAD laid on the table (P5). Sol, victory
 ## recording and the achievement sweep all happen HERE, exactly once per run.
@@ -1337,11 +1386,25 @@ func _take_arcanum() -> void:
 
 # ---------------------------------------------------------------- helpers
 
+## Every run screen is built into this column. It is a plain VBox at PRESET_FULL_RECT, so a tall
+## screen (the map with a pending omen is ~150 px taller) pushed its own action buttons past
+## 720p -- the fourth softlock of that family in this project. The column now scrolls: content
+## can grow without ever taking the buttons off screen.
 func _screen_column() -> VBoxContainer:
 	var c := VBoxContainer.new()
 	c.alignment = BoxContainer.ALIGNMENT_CENTER
 	c.add_theme_constant_override("separation", 24)
 	return c
+
+## Wrap a built screen so it can never be taller than the window.
+func _scrollable(col: Control) -> Control:
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.add_child(col)
+	return sc
 
 func _title(text: String) -> Label:
 	return _label_center(text, 30, Color(0.96, 0.92, 0.82))

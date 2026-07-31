@@ -335,8 +335,15 @@ func _render() -> void:
 	var intent := controller.intent_shown(controller.current_intent())
 	_intent_label.text = tr("COMBAT_INTENT") % intent
 	# Next-turn telegraph: a REST window is the game's tactical beat -- shout it, don't whisper.
-	var nxt := controller.intent_shown(controller.next_intent())
-	if controller.next_intent() == 0:
+	var raw_next := controller.next_intent()
+	var nxt := controller.intent_shown(raw_next) if raw_next >= 0 else -1
+	if raw_next < 0:
+		# The Fool answers with YOUR blow: there is no next number to promise, so the telegraph
+		# says so instead of printing a stale one from a table he never reads.
+		_next_intent_label.text = tr("MIRROR_TELEGRAPH")
+		_next_intent_label.add_theme_font_size_override("font_size", 15)
+		_next_intent_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.8))
+	elif raw_next == 0:
 		_next_intent_label.text = tr("REST_TELEGRAPH")
 		_next_intent_label.add_theme_font_size_override("font_size", 16)
 		_next_intent_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.4))
@@ -399,7 +406,14 @@ func _render() -> void:
 		# courts -- the Fool's Journey). Elites hang REVERSED: the profaned card is the brand.
 		_portrait.set_enemy(_enemy, etint)
 		_portrait_of = _enemy
-	_rule_label.text = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
+	# THE LAW OF THE PLACE, stated where it is being applied. It changes chips, mult, block, hand
+	# size and the heal pool in every duel of a biome, and until now it was named once, on the
+	# road-choice screen, and never again -- so the player had no way to explain the numbers.
+	var rule_txt: String = tr(_enemy.rule_key) if (_enemy.is_boss and _enemy.rule_key != "") else ""
+	if not standalone and RunState.region != null and RunState.region.law_key != "":
+		var law_txt: String = tr(RunState.region.law_key)
+		rule_txt = law_txt if rule_txt == "" else law_txt + "   |   " + rule_txt
+	_rule_label.text = rule_txt
 	_rule_label.visible = _rule_label.text != ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
@@ -982,6 +996,13 @@ func _update_selection_ui() -> void:
 		if card.keyword == CardData.Keyword.PRZECIAZENIE and card.keyword_value - card.wear <= 1:
 			parts.append(tr("PREVIEW_SHATTER"))
 			break
+	# SACRIFICE WARNING. The preview warned about glass and said nothing about the Ofiara, which
+	# destroys its left-hand neighbour outright and erases it from the RUN deck after a win. The
+	# information was already in hand -- Scoring returns "devoured" -- it simply was not shown.
+	var eaten: int = int(r.get("devoured", -1))
+	if eaten >= 0 and eaten < _selected.size():
+		var victim: CardData = _selected[eaten]
+		parts.append(tr("PREVIEW_OFIARA") % [victim.rank_glyph(), tr(Aspects.name_key(victim.aspect))])
 	_preview_extra.text = "    ".join(parts)
 	_breakdown_label.text = _mult_breakdown(int(r["hand"]))
 	_refresh_cockpit(eff, int(r["block"]), lethal_now)

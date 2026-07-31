@@ -52,6 +52,11 @@ func describe() -> String:
 			text = tr("ARC_FX_PACT") % [String.num(effect_mult, 2), effect_value]
 		Effect.MAGNIFY:
 			text = tr("ARC_FX_MAGNIFY_REV" if is_reversed else "ARC_FX_MAGNIFY") % String.num(effect_mult, 2)
+		Effect.RAISE_DEAD:
+			# Without this branch the Arcanum of Judgement described itself as an empty string --
+			# in the draft, on the claim screen, in the relic tooltip, in combat and in the
+			# collection. A boss reward that says nothing about itself.
+			text = tr("ARC_FX_RAISE")
 	if is_reversed:
 		text = tr("ARC_REVERSED_TAG") + text
 		var pl := price_line()
