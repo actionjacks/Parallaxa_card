@@ -888,3 +888,6 @@ HAND_KINDS,%d hands lie in this one,%d układów leży w tej ręce
 LOG_THORNS,The ward turns your excess back on you: %d.,Strażnica zwraca ci nadmiar: %d.
 RULE_WARD,"THE WARDEN: any blow above 120 is refused, and overreaching costs you up to 10 HP a turn. The biggest hand is the wrong hand here — measure, block, be patient.","STRAŻNICA: każdy cios powyżej 120 zostaje odrzucony, a przesada kosztuje do 10 HP na turę. Największy układ jest tu złym układem — mierz, blokuj, bądź cierpliwy."
 ENEMY_STRAZNICA,The Warden,Strażnica
+LOG_ROTBOUND,It seals every wound — only rot holds it open.,Zasklepia każdą ranę — tylko zgnilizna trzyma ją otwartą.
+RULE_ROTBOUND,"BOUND TO ROT: at the end of each of its turns it closes every wound completely, unless Gnicie is in it. Damage alone cannot finish this one.","ZWIĄZANY ZGNILIZNĄ: na końcu każdej swojej tury zasklepia wszystkie rany, chyba że trawi go Gnicie. Samymi obrażeniami się go nie kończy."
+RULE_BULWARK,"THE BULWARK: a play that commits no block does nothing to it at all. Aggression has to stand on defence here.","WAŁ: zagranie, które nie daje bloku, nie robi mu absolutnie nic. Agresja musi tu stać na obronie."

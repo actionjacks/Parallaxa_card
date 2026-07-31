@@ -1273,7 +1273,7 @@ func _update_selection_ui() -> void:
 		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
 	# Boss rules may bend the scored damage (Strength's resist): the preview shows the number
 	# that will actually LAND -- the covenant never lies through a rule.
-	var eff := controller.effective_damage(int(r["damage"]), _selected.size(), int(r["hand"]))
+	var eff := controller.effective_damage(int(r["damage"]), _selected.size(), int(r["hand"]), int(r["block"]))
 	# THE BIGGEST NUMBER ON THE SCREEN IS THE ONE THAT MUST BE TRUE. The cockpit and the prophecy
 	# already honoured the spread seats; this line -- the one the player reads FIRST, and the same
 	# label the reckoning later re-prints as "= 0" -- still showed the undeferred damage.

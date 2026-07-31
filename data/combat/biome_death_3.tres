@@ -7,10 +7,10 @@
 [resource]
 script = ExtResource("3_vbogf")
 name_key = "BIOME_DEATH_3"
-max_hp = 883
+max_hp = 1750
 intents = PackedInt32Array(13, 11, 11)
 enrage_step = 3
-rule = 9
-rule_key = "RULE_JUDGEMENT"
+rule = 25
+rule_key = "RULE_ROTBOUND"
 art = ExtResource("1_gt3a5")
 figure = ExtResource("2_kqme5")

@@ -43,10 +43,17 @@ extends Resource
 ##                rot never competed. Against this enemy the biggest play is the WRONG play, and a
 ##                measured, blocked, patient one wins. Fully priced by the cockpit: the cap runs
 ##                through effective_damage() and the thorns through predicted_self_damage().
+##  ROT_BOUND     THE SECOND AXIS, VIA ROT. It closes its wounds completely at the end of every one
+##                of its turns UNLESS it is rotting -- so Gnicie stops being a side-effect and
+##                becomes the only way through. Damage alone literally cannot finish it.
+##  BULWARK       THE SECOND AXIS, VIA BLOCK. A play that commits no block does nothing at all to
+##                it. Aggression has to be built on defence here, which is the exact trade Furia
+##                (x1.5 Mult only when you block NOTHING) refuses -- so the deck that flattened
+##                everything else is the wrong deck.
 ##  CELTIC_CROSS  four slots beside the hand. Freezing costs a discard and parks cards out of the
 ##                hand so it refills -- that is how you assemble one enormous play for the turn
 ##                the enemy telegraphs its worst blow.
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN, THREE_SPREAD, CELTIC_CROSS, WARD_THORNS }
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN, THREE_SPREAD, CELTIC_CROSS, WARD_THORNS, ROT_BOUND, BULWARK }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

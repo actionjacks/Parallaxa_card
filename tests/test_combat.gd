@@ -64,6 +64,10 @@ func _initialize() -> void:
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
 	fails += _expect("the Glutton's blow is what the cockpit promised", _glutton_preview_honest())
+	fails += _expect("Bulwark: a play with no block does nothing", _bulwark_needs_block())
+	fails += _expect("...but the same play WITH block lands in full", _bulwark_pays_defence())
+	fails += _expect("Rot-bound seals itself unless it is rotting", _rotbound_seals())
+	fails += _expect("...and stays wounded while the rot holds", _rotbound_rot_holds())
 	fails += _expect("the Warden caps the blow and returns the excess", _warden_caps())
 	fails += _expect("...and a measured play passes it untouched", _warden_lets_small_through())
 	fails += _expect("every field rule is carried by a real enemy", _no_orphan_rules())
@@ -819,6 +823,41 @@ func _glutton_preview_honest() -> bool:
 	ctrl.resolve_enemy_turn()
 	return hp_before - ctrl.player_hp == promised
 
+func _second_axis_foe(rule: int) -> CombatController:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.max_hp = 900
+	e.intents = PackedInt32Array([0])
+	e.rule = rule
+	ctrl.start(_flat_deck(20), e, [], 60, 60)
+	return ctrl
+
+## Both directions, because a rule that also punished the defended play would be a damage nerf.
+func _bulwark_needs_block() -> bool:
+	var ctrl := _second_axis_foe(EnemyData.Rule.BULWARK)
+	return ctrl.effective_damage(400, 5, -1, 0) == 0
+
+func _bulwark_pays_defence() -> bool:
+	var ctrl := _second_axis_foe(EnemyData.Rule.BULWARK)
+	return ctrl.effective_damage(400, 5, -1, 6) == 400
+
+## Damage alone must literally not finish it.
+func _rotbound_seals() -> bool:
+	var ctrl := _second_axis_foe(EnemyData.Rule.ROT_BOUND)
+	ctrl.enemy_hp = 200
+	ctrl.enemy_gnicie = 0
+	ctrl.phase = "enemy"
+	ctrl.resolve_enemy_turn()
+	return ctrl.enemy_hp == ctrl.enemy_max_hp
+
+func _rotbound_rot_holds() -> bool:
+	var ctrl := _second_axis_foe(EnemyData.Rule.ROT_BOUND)
+	ctrl.enemy_hp = 200
+	ctrl.enemy_gnicie = 4
+	ctrl.phase = "enemy"
+	ctrl.resolve_enemy_turn()
+	return ctrl.enemy_hp < ctrl.enemy_max_hp
+
 ## THE SECOND AXIS, ASSERTED BOTH WAYS. Damage was the only thing worth maximising in this game --
 ## which is why "the best hand" and "the biggest hit" were the same answer in 98.9% of hands. The
 ## Warden makes the biggest hand the WRONG hand: the blow is capped and half the refused excess
@@ -881,6 +920,7 @@ const RULE_KEY_OF := {
 	EnemyData.Rule.VAMPIRE_MEND: "RULE_VAMPIRE", EnemyData.Rule.HAND_THIEF: "RULE_THIEF",
 	EnemyData.Rule.GRAVE_GLUTTON: "RULE_GLUTTON", EnemyData.Rule.THIRD_BURST: "RULE_BURST",
 	EnemyData.Rule.BARK_HIDE: "RULE_BARK", EnemyData.Rule.WARD_THORNS: "RULE_WARD",
+	EnemyData.Rule.ROT_BOUND: "RULE_ROTBOUND", EnemyData.Rule.BULWARK: "RULE_BULWARK",
 }
 
 func _rule_keys_match() -> bool:

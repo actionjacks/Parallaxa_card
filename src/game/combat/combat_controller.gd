@@ -249,7 +249,7 @@ func preview(selected: Array) -> Dictionary:
 ## Boss-side damage modifier -- the ONLY place a rule may touch scored damage. The combat scene
 ## displays effective_damage() everywhere (preview, lethal, prophecy), so the covenant holds.
 ## `hand` lets the Pentagram break armour (-1 = do not care, keeps every old call site exact).
-func effective_damage(raw: int, cards_played: int = 5, hand: int = -1) -> int:
+func effective_damage(raw: int, cards_played: int = 5, hand: int = -1, block_committed: int = 1) -> int:
 	if enemy == null:
 		return raw
 	# THE CIRCLE BREAKS THE ARMOUR (docs/todo.md par.4: "natychmiastowe przelamanie pancerza
@@ -263,6 +263,10 @@ func effective_damage(raw: int, cards_played: int = 5, hand: int = -1) -> int:
 	# thorn_backlash). This is the one enemy where "play the biggest hand" is the losing answer.
 	if enemy.rule == EnemyData.Rule.WARD_THORNS:
 		return mini(raw, THORN_CAP)
+	# THE BULWARK: aggression that defends nothing achieves nothing. Priced through the same funnel
+	# as every other reduction, so the cockpit shows the zero BEFORE the player commits.
+	if enemy.rule == EnemyData.Rule.BULWARK and block_committed <= 0:
+		return 0
 	if enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
 		return ceili(raw * 0.8)
 	# The bark only splits under a WHOLE hand. Routed through effective_damage so the preview,
@@ -338,7 +342,7 @@ func play(selected: Array) -> void:
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
-	var dmg := effective_damage(int(result["damage"]), cards.size(), int(result["hand"]))
+	var dmg := effective_damage(int(result["damage"]), cards.size(), int(result["hand"]), int(result["block"]))
 	# THE SPREAD REASSIGNS THE BLOW (docs/todo.md par.2). The Past banks its Mult for the whole
 	# duel and strikes nothing; the Future is written down and lands SPREAD_DELAY turns later.
 	var seat := spread_seat()
@@ -597,6 +601,11 @@ func resolve_enemy_turn() -> void:
 	if _rule_moon_mends() and _dmg_this_round < MOON_MEND_THRESHOLD:
 		enemy_hp = mini(enemy_max_hp, enemy_hp + MOON_MEND_HEAL)
 		message.emit("LOG_MOON_MEND", [MOON_MEND_HEAL])
+	# THE ROT-BOUND: it seals itself completely unless the rot is in it. No amount of damage
+	# finishes this one -- only Gnicie does, and the player has to keep it applied.
+	if enemy.rule == EnemyData.Rule.ROT_BOUND and enemy_gnicie <= 0 and enemy_hp > 0:
+		enemy_hp = enemy_max_hp
+		message.emit("LOG_ROTBOUND", [])
 	# The Star's hope: a flat self-heal every turn -- outdamage it or watch the fight undo itself.
 	if enemy.rule == EnemyData.Rule.STAR_REGEN:
 		enemy_hp = mini(enemy_max_hp, enemy_hp + 12)
