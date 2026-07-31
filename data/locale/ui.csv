@@ -764,3 +764,41 @@ LOG_RAISE_DEAD,Judgement: %d cards rise from the grave,Sąd: %d kart powstaje z 
 ARC_FX_RAISE,"Once per duel, the moment your deck runs dry, the grave returns to it.","Raz na pojedynek, gdy talia się wyczerpie, grób do niej wraca."
 PREVIEW_OFIARA,"SACRIFICE: %s %s will be destroyed","OFIARA: %s %s zostanie zniszczona"
 MIRROR_TELEGRAPH,Next: your own blow,Potem: twój własny cios
+GLOSSARY_TITLE,What the words mean,Co znaczą te słowa
+GLOSSARY_HINT,"Every term the game uses, in one place. Press TAB in a run to see it again.","Wszystkie pojęcia gry w jednym miejscu. W trakcie runu naciśnij TAB, by tu wrócić."
+HELP_CHIPS,Chips,Chipsy
+HELP_CHIPS_D,"The raw size of a play. Every card adds its rank, and the poker hand you made adds a base on top.","Surowa wielkość zagrania. Każda karta dokłada swoją rangę, a ułożony układ pokerowy dokłada bazę."
+HELP_MULT,Mult,Mult
+HELP_MULT_D,"The multiplier. Chips x Mult is the damage you deal — which is why one good multiplier beats ten small cards.","Mnożnik. Chipsy x Mult to zadane obrażenia — dlatego jeden dobry mnożnik bije dziesięć małych kart."
+HELP_KEYSTONE,Keystone,Klucz
+HELP_KEYSTONE_D,"The LAST card you select scores double — its chips and its flat keyword value. You set it yourself: click order is play order.","OSTATNIA zaznaczona karta liczy podwójnie — swoje chipsy i płaską wartość słowa kluczowego. Ustawiasz go sam: kolejność klikania to kolejność zagrania."
+HELP_RTEC,Mercury,Rtęć
+HELP_RTEC_D,"Money inside ONE run. Won in duels, spent in the shop, gone when the run ends.","Pieniądz WEWNĄTRZ jednego runu. Zdobywasz w pojedynkach, wydajesz w sklepie, znika z końcem runu."
+HELP_SOL,Salt,Sól
+HELP_SOL_D,"Money BETWEEN runs. Every run pays it, win or lose, and it buys permanent unlocks.","Pieniądz MIĘDZY runami. Płaci go każdy run, wygrany czy nie, a kupuje trwałe odblokowania."
+HELP_ARCANUM,Arcanum / relic,Arkanum / relikt
+HELP_ARCANUM_D,"A Major Arcana you carry for the whole run. It changes how EVERY play scores. You draft one at the start and take one from each boss.","Wielkie Arkanum, które niesiesz przez cały run. Zmienia punktację KAŻDEGO zagrania. Jedno wybierasz na starcie, jedno bierzesz od każdego bossa."
+HELP_LAW,Law of the place,Prawo pola
+HELP_LAW_D,"Each colour's biome rewrites one rule of the duel — block, hand size, chips or multiplier. It applies to every fight in that tower and is printed above the enemy.","Biom każdego koloru przepisuje jedną zasadę pojedynku — blok, rozmiar ręki, chipsy albo mnożnik. Obowiązuje w każdej walce tej wieży i jest wypisane nad wrogiem."
+HELP_SEAL,Seal of a colour,Pieczęć koloru
+HELP_SEAL_D,"Beat a biome's boss and that colour is sealed forever. Five seals open the hidden biome. One run yields one seal, so you come back for the colour you lack.","Pokonaj bossa biomu, a ten kolor zostaje zapieczętowany na zawsze. Pięć pieczęci otwiera ukryty biom. Jeden run daje jedną pieczęć, więc wracasz po kolor, którego brakuje."
+HELP_VEIL,Veil,Zasłona
+HELP_VEIL_D,"Difficulty tiers. The higher ones do not just raise numbers — they change the rules themselves.","Poziomy trudności. Wyższe nie podnoszą liczb, tylko zmieniają same zasady."
+HELP_DEPTH,Depth,Głębia
+HELP_DEPTH_D,"After The World falls you may walk on. Every Depth loop makes enemies tougher; dying down there still counts as a victory.","Po upadku Świata możesz iść dalej. Każda pętla Głębi wzmacnia wrogów; śmierć na dole i tak liczy się jako zwycięstwo."
+HELP_ASPECT,Aspect (colour),Aspekt (kolor)
+HELP_ASPECT_D,"The five suits: Life, Mind, Death, Chaos, Nature. Five of one colour is a Flush — the rarest hand here, because this deck has five suits, not four.","Pięć kolorów: Życie, Umysł, Śmierć, Chaos, Natura. Pięć jednego koloru to Kolor — najrzadszy układ w tej grze, bo ta talia ma pięć kolorów, nie cztery."
+HELP_EDITION,Edition,Edycja
+HELP_EDITION_D,"A permanent upgrade carved into one card in the shop: Foil adds chips, Holo adds Mult, Polychrome multiplies it.","Trwałe ulepszenie wykute w karcie w sklepie: Foliowana dodaje chipsy, Holo dodaje Mult, Polichromia go mnoży."
+HELP_DISCARD,Discards,Odrzuty
+HELP_DISCARD_D,"Swap cards you do not want for new ones. They refresh every turn — digging is how a junk hand becomes a straight.","Wymieniasz niechciane karty na nowe. Odnawiają się co turę — kopanie zamienia śmieciową rękę w strita."
+TIP_PLAYER_HP,Your life. At zero the reading ends.,Twoje życie. Przy zerze odczytanie się kończy.
+TIP_BLOCK,"Block absorbs the enemy's next blow, then it is gone. It does not carry over.","Blok pochłania następny cios wroga i znika. Nie przechodzi na kolejną turę."
+TIP_TURN,"Turn of this duel. Each turn: you play once, then the enemy strikes.","Tura tego pojedynku. W każdej: grasz raz, potem uderza wróg."
+TIP_ENEMY_HP,"The enemy's life. Its bar empties from the left, exactly as much as the preview promised.","Życie wroga. Pasek opróżnia się od lewej dokładnie o tyle, ile obiecał podgląd."
+TIP_INTENT,"What the enemy will do on its NEXT turn. It is never a lie — it is the number you are planning against.","Co wróg zrobi w SWOJEJ następnej turze. To nigdy nie jest kłamstwo — to liczba, pod którą planujesz."
+TIP_NEXT_INTENT,"The blow after that one. A rest turn is your window to set up a big hand.","Cios po tamtym. Tura odpoczynku to twoje okno na złożenie wielkiej ręki."
+TIP_ENRAGE,"Once the enemy's written cycle ends, every further turn adds this much to its blow. Long fights punish stalling.","Gdy zapisany cykl wroga się kończy, każda kolejna tura dokłada tyle do jego ciosu. Długie walki karzą przeciąganie."
+TIP_COCKPIT,"The whole turn in one line: what you will do to the enemy, and what it will then do to you.","Cała tura w jednej linii: co zrobisz wrogowi i co on potem zrobi tobie."
+TIP_KEYSTONE_BADGE,"KEYSTONE — this card scores double because it is last. Click the cards in a different order to move it.","KLUCZ — ta karta liczy podwójnie, bo jest ostatnia. Klikaj karty w innej kolejności, by go przesunąć."
+VEIL_LOST,(no %s),(bez %s)

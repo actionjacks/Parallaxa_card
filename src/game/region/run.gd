@@ -162,6 +162,10 @@ func _update_status() -> void:
 	_relics_label.text = tr("RUN_RELICS") % RunState.relics.size()
 	_veil_label.text = (tr("VEIL_BADGE") % RunState.veil) if RunState.veil > 0 else ""
 	_veil_label.tooltip_text = tr("VEIL_%d_DESC" % RunState.veil) if RunState.veil > 0 else ""
+	# Veil V takes a whole Aspect out of the deck and used to keep the answer to itself.
+	if RunState.lost_aspect >= 0:
+		_veil_label.text += "  " + tr("VEIL_LOST") % tr(Aspects.name_key(RunState.lost_aspect))
+		_veil_label.tooltip_text += "\n" + tr("VEIL_LOST") % tr(Aspects.name_key(RunState.lost_aspect))
 	if _prev_hp != -1:   # pulse whatever changed (green up / red down) so the player sees why
 		if RunState.player_hp != _prev_hp:
 			_pulse_stat(_hp_label, RunState.player_hp > _prev_hp)

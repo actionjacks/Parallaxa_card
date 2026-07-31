@@ -10,6 +10,7 @@ const MENU_SCENE := "res://src/game/menu/menu.tscn"
 
 var run_active: bool = false      ## set by run.gd on ready/exit; gates ESC/TAB
 var _pause_root: Control
+var _glossary: Control          ## the "what the words mean" screen
 var _overview_root: Control
 var _inspect_root: Control
 var _settings: Control
@@ -51,6 +52,7 @@ func _open_pause() -> void:
 	vb.add_child(_title(tr("PAUSE_TITLE")))
 	vb.add_child(_menu_btn(tr("PAUSE_RESUME"), _resume))
 	vb.add_child(_menu_btn(tr("PAUSE_OPTIONS"), _open_options))
+	vb.add_child(_menu_btn(tr("GLOSSARY_TITLE"), _open_glossary))
 	vb.add_child(_menu_btn(tr("PAUSE_ABANDON"), _abandon))
 	vb.add_child(_menu_btn(tr("PAUSE_QUIT"), func() -> void: get_tree().quit()))
 	var wrap_c := CenterContainer.new()
@@ -287,6 +289,75 @@ func _lbl(text: String, font_size: int, color: Color) -> Label:
 	l.add_theme_font_size_override("font_size", font_size)
 	l.add_theme_color_override("font_color", color)
 	return l
+
+## THE GLOSSARY. The game explained its CARDS -- every keyword has a description -- and never its
+## own vocabulary: what Chips are as opposed to Mult, what Mercury is as opposed to Salt, what a
+## law or a seal or the Keystone is. A player told us they felt they did not understand most of
+## it, and an audit put a number on it: twenty tooltips in the whole game and no definition of a
+## single core term.
+const GLOSSARY_TERMS := [
+	"CHIPS", "MULT", "KEYSTONE", "DISCARD", "ASPECT", "LAW",
+	"RTEC", "SOL", "ARCANUM", "EDITION", "SEAL", "VEIL", "DEPTH",
+]
+
+func _open_glossary() -> void:
+	if _glossary != null and is_instance_valid(_glossary):
+		_glossary.queue_free()
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.02, 0.04, 0.985)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(dim)
+	var col := VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.add_theme_constant_override("separation", 8)
+	root.add_child(col)
+	var head := MarginContainer.new()
+	for side in ["left", "top", "right"]:
+		head.add_theme_constant_override("margin_" + side, 18)
+	col.add_child(head)
+	var head_col := VBoxContainer.new()
+	head_col.add_theme_constant_override("separation", 4)
+	head.add_child(head_col)
+	var title_l := _title(tr("GLOSSARY_TITLE"))
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head_col.add_child(title_l)
+	var hint := _lbl(tr("GLOSSARY_HINT"), 13, Color(0.66, 0.64, 0.72))
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head_col.add_child(hint)
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	col.add_child(sc)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 10)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(body)
+	for term in GLOSSARY_TERMS:
+		var row := VBoxContainer.new()
+		row.add_theme_constant_override("separation", 1)
+		row.custom_minimum_size = Vector2(880, 0)
+		var name_l := _lbl(tr("HELP_" + term), 16, Color(0.95, 0.9, 0.72))
+		row.add_child(name_l)
+		var desc := _lbl(tr("HELP_" + term + "_D"), 13, Color(0.76, 0.78, 0.84))
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.custom_minimum_size = Vector2(880, 0)
+		row.add_child(desc)
+		var wrap := CenterContainer.new()
+		wrap.add_child(row)
+		body.add_child(wrap)
+	var close := _menu_btn(tr("COMMON_CLOSE"), func() -> void:
+		if _glossary != null and is_instance_valid(_glossary):
+			_glossary.queue_free()
+		_glossary = null)
+	var cw := CenterContainer.new()
+	cw.add_child(close)
+	col.add_child(cw)
+	_glossary = root
+	add_child(root)
 
 func _menu_btn(text: String, cb: Callable) -> Button:
 	var b := Button.new()

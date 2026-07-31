@@ -144,8 +144,12 @@ func _build_ui() -> void:
 	_enemy_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	erow.add_child(_enemy_name)
 	_intent_label = _label("", 20, Color(1.0, 0.55, 0.45))
+	_intent_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_intent_label.tooltip_text = tr("TIP_INTENT")
 	erow.add_child(_intent_label)
 	_next_intent_label = _label("", 14, Color(0.8, 0.5, 0.45))
+	_next_intent_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_next_intent_label.tooltip_text = tr("TIP_NEXT_INTENT")
 	erow.add_child(_next_intent_label)
 	var ehp := HBoxContainer.new()
 	ehp.add_theme_constant_override("separation", 8)
@@ -153,6 +157,8 @@ func _build_ui() -> void:
 	_enemy_hp_bar = _bar(Color(0.8, 0.25, 0.28))
 	ehp.add_child(_enemy_hp_bar)
 	_enemy_hp_label = _label("", 16, Color(0.9, 0.9, 0.92))
+	_enemy_hp_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_enemy_hp_label.tooltip_text = tr("TIP_ENEMY_HP")
 	ehp.add_child(_enemy_hp_label)
 	_gnicie_label = _label("", 14, Aspects.color(Aspects.Id.DEATH))
 	ev.add_child(_gnicie_label)
@@ -161,6 +167,8 @@ func _build_ui() -> void:
 	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
 	ev.add_child(_rule_label)
 	_enrage_label = _label("", 13, Color(1.0, 0.45, 0.4))
+	_enrage_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_enrage_label.tooltip_text = tr("TIP_ENRAGE")
 	ev.add_child(_enrage_label)
 
 	# --- middle: relics + enemy emblem + score readout ---
@@ -185,6 +193,8 @@ func _build_ui() -> void:
 	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_extra)
 	_cockpit_label = _inked(_label("", 16, Color(0.85, 0.87, 0.9)))
+	_cockpit_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_cockpit_label.tooltip_text = tr("TIP_COCKPIT")
 	_cockpit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_cockpit_label)
 	_breakdown_label = _inked(_label("", 13, Color(0.66, 0.72, 0.62)))
@@ -202,14 +212,20 @@ func _build_ui() -> void:
 	_player_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	prow.add_child(_player_hp_bar)
 	_player_hp_label = _label("", 16, Color(0.9, 0.95, 0.9))
+	_player_hp_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_player_hp_label.tooltip_text = tr("TIP_PLAYER_HP")
 	prow.add_child(_player_hp_label)
 	_block_label = _label("", 16, Color(0.6, 0.8, 1.0))
+	_block_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_block_label.tooltip_text = tr("TIP_BLOCK")
 	prow.add_child(_block_label)
 	_heal_pool_label = _label("", 14, Color(0.55, 0.85, 0.6))
 	_heal_pool_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	_heal_pool_label.tooltip_text = tr("HEAL_POOL_TIP")
 	prow.add_child(_heal_pool_label)
 	_turn_label = _label("", 16, Color(0.8, 0.8, 0.85))
+	_turn_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_turn_label.tooltip_text = tr("TIP_TURN")
 	prow.add_child(_turn_label)
 	_counters_label = _label("", 16, Color(0.62, 0.66, 0.74))
 	_counters_label.mouse_filter = Control.MOUSE_FILTER_STOP

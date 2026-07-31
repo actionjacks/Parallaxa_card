@@ -371,6 +371,11 @@ static func set_order(panel: PanelContainer, index: int, keystone: bool) -> void
 		num.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		holder.add_child(num)
 		pip = holder
+	# The Keystone is the only mechanic the player SETS by the order they click, and the game
+	# never explained it once: KEYSTONE_TAG sat unused in the locale file. The badge now says
+	# what it is, and how to move it.
+	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.tooltip_text = _tooltip(panel.get_meta("card")) + ("\n\n" + TranslationServer.translate("TIP_KEYSTONE_BADGE") if keystone else "")
 	var badge2: ColorRect = pip.get_node("Badge")
 	var num2: Label = pip.get_node("Num")
 	var sz := 24.0
