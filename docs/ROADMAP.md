@@ -289,3 +289,24 @@ co druga tura podkrada karte OBOK ciosu — intencja zostaje prawdziwa), GRAVE_G
 KLUCZOWA DECYZJA: BARK_HIDE i modyfikatory intencji ida przez `effective_damage()` i `_intent_at()`
 — to sa lejki, ktore podglad, proroctwo i kokpit juz czytaja, wiec nie ma drugiego miejsca do
 zapomnienia. Technika, ktorej kokpit nie umie wycenic, NIE WCHODZI.
+
+## N4.3/N4.4 bossy przepisujace zasady + N2 arena 3D (2026-07-31) — ZROBIONE, PLAN N ZAMKNIETY
+N4.3: regula bossa modyfikowala LICZBE (o 20% mniej, dwa ciosy, +12 HP). Trzy z nich zmieniaja
+teraz GRE: INVERTED_TABLE (Ksiezyc) — tabela wyplat czytana DO GORY NOGAMI, para placi jak Magnum,
+kolor jak wysoka karta; uklad, ktory ULOZYLES, zostaje ten sam (tabela, podpowiedz i statystyki
+dalej go tak nazywaja), lustrzana jest WYPLATA, wiec instynkt calego runu staje sie zlym
+instynktem. WIDE_HAND (Wisielec) — trzy karty wiecej w rece i ZERO odrzutow: zawieszenie czytane
+poprawnie, nie racjonuje sita, tylko je zabiera. ASPECT_BAN (Sad) — co cykl jeden kolor zakazany,
+jego karty wypelniaja reke i licza sie do ukladu, ale nie daja chipsow; zakaz rotuje z zegarem
+intencji, wiec jest znany ture wczesniej i WYPISANY nad wrogiem.
+`Poker.mirrored` jest swoja wlasna odwrotnoscia (test), wiec dopisanie ukladow w przyszlosci nie
+rozjedzie tej reguly.
+N4.4: CEREMONIA WEJSCIA — boss przepisujacy zasady musi je ogłosic przed pierwsza karta, inaczej
+walka jest zasadzka, nie zagadka: nazwa, regula, chwila ciszy nad przyciemniona arena. ZWROT PRZY
+POLOWIE ZYCIA — kazdy boss przekracza ja raz, jednokierunkowo, i przestaje sie powstrzymywac:
+zegar szalu idzie o krok wyzej do konca pojedynku, plyta rozblyska, ekran drga, pada linia, a
+etykieta szalu juz pokazuje nowa liczbe.
+N2: ARENA DOSTALA POKOJ (`src/game/combat/arena_view.gd`) — podloga, sciana zzarta przez mgle,
+jedno cieple swiatlo przy krawedzi stolu i zimny rim. Ten sam wzorzec SubViewportu co wieza, wiec
+kosztuje 0 budzetu 720p; pokoj bierze akcent biomu i reaguje na trafienie (push-in kamery).
+Glebia z mgly i swiatla, nie z geometrii: dwie plaszczyzny, dwa swiatla (software GL).
