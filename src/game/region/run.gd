@@ -123,6 +123,8 @@ func _refresh_backdrop() -> void:
 # ---------------------------------------------------------------- shell / status
 
 var _backdrop: Control
+var _tower_bg: Control     ## the full-bleed climb behind the map screen
+var _mounting_map: bool = false
 
 func _build_shell() -> void:
 	_backdrop = Backdrop.build(RunState.region.accent if RunState.region != null else Color(0, 0, 0, 0))
@@ -201,6 +203,9 @@ func _clear_stage() -> void:
 		ch.queue_free()
 
 func _mount(screen: Control) -> void:
+	if _tower_bg != null and is_instance_valid(_tower_bg) and not _mounting_map:
+		_tower_bg.queue_free()
+		_tower_bg = null
 	if screen is VBoxContainer:
 		screen = _scrollable(screen)
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -223,9 +228,20 @@ func _show_map() -> void:
 	Profile.check_run_achievements(false)   # mid-run pops: new omens/arcana apply from the next roll
 	RunState.save_run(_pending_omen.id if _pending_omen != null else "")   # the map is the safe hub: always resumable
 	var root := _screen_column()
-	# The region header wears the region's accent (35% toward cream keeps 720p readability).
-	root.add_child(_label_center(tr(RunState.region.name_key), 30,
+	# LAYERS, NOT A LIST. Over a full-bleed picture a centred column drops every element into the
+	# middle of the image -- the title landed on the tower's third storey and the caption floated
+	# at its waist. The interface reads in three bands instead: title along the TOP, the climb
+	# owning the middle untouched, everything else pinned along the BOTTOM.
+	var head := MarginContainer.new()
+	head.add_theme_constant_override("margin_top", 6)
+	head.add_child(_label_center(tr(RunState.region.name_key), 30,
 		RunState.region.accent.lerp(Color(0.96, 0.92, 0.82), 0.35)))
+	root.add_child(head)
+	# the middle belongs to the tower: nothing is allowed to sit on it
+	var sky := Control.new()
+	sky.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(sky)
 	# The road's partial rest (region transition) is announced here -- the map is its only screen.
 	if _last_rest > 0:
 		root.add_child(_hint(tr("REST_HEALED") % _last_rest))
@@ -233,23 +249,19 @@ func _show_map() -> void:
 
 	# THE TOWER, in 3D: a real stack of stone standing in the dark behind the rung labels. The
 	# labels stay 2D on top of it -- crisp text, and every existing tooltip and click still works.
-	var tower_row := HBoxContainer.new()
-	tower_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	tower_row.add_theme_constant_override("separation", 18)
-	# The tower shrinks when an omen is waiting: the omen block is ~150 px tall and the action bar
-	# is pinned to the bottom, so without this the two overlap.
-	var tower := TowerView.new(Vector2(700, 340) if _pending_omen != null else Vector2(1180, 486))
-	# hand the tower its cast: every rung shows who waits on it, the summit shows the boss
+	# the map screen is a transparent overlay from here on -- the picture is behind it
+	# THE TOWER IS THE SCREEN. It was a widget inside a centred column, which is why every attempt
+	# to enlarge it only bought empty margins: a column gives its child the width it asks for and
+	# not one pixel more. The reference is a FULL-BLEED image with the interface laid over it, so
+	# that is what this is now -- the climb fills the frame edge to edge, behind everything.
+	_tower_bg = TowerView.new(Vector2(1280, 720))
 	var climb: Array = RunState.fights.duplicate()
 	climb.append(RunState.boss if RunState.boss != null else RunState.region.boss)
-	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb)
-	tower_row.add_child(tower)
-	# THE LIST OF RUNGS IS GONE. Five boxes beside the tower repeated, in words, everything the
-	# tower already shows in pictures -- which floor, who is on it, what it drops -- and stole half
-	# the frame doing it. The tower IS the map: the lit storey is where you stand, the figure in
-	# each alcove is who waits there, and the caption underneath names the climb. Anything the
-	# picture can say, the picture says.
-	root.add_child(tower_row)
+	_tower_bg.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb)
+	_tower_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_tower_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_tower_bg)
+	move_child(_tower_bg, 1)          # over the backdrop, under every screen
 
 	# THE CAPTION, UNDER THE PICTURE. The tower now says everything visually -- which storey burns,
 	# who waits on each -- so the words stop competing with it and take the place captions belong:
@@ -270,10 +282,14 @@ func _show_map() -> void:
 	rule_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rule_line.custom_minimum_size = Vector2(560, 0)
 	cap.add_child(rule_line)
-	var cap_wrap := MarginContainer.new()
-	cap_wrap.add_theme_constant_override("margin_left", 42)
-	cap_wrap.add_child(cap)
-	root.add_child(cap_wrap)
+	var scrim := PanelContainer.new()
+	var ss := StyleBoxFlat.new()
+	ss.bg_color = Color(0.03, 0.02, 0.04, 0.72)
+	ss.set_content_margin_all(10)
+	ss.content_margin_left = 42
+	scrim.add_theme_stylebox_override("panel", ss)
+	scrim.add_child(cap)
+	root.add_child(scrim)
 
 	if RunState.relics.size() > 0:
 		var rr := HBoxContainer.new()
@@ -313,7 +329,9 @@ func _show_map() -> void:
 	# THE ACTION BAR LIVES OUTSIDE THE COLUMN, pinned to the bottom edge. Inside it, a pending
 	# omen (~150 px of extra content) pushed "Set out" below 720p -- the same failure that has
 	# softlocked the arena three times. Anchored here it cannot be pushed anywhere.
+	_mounting_map = true
 	_mount(root)
+	_mounting_map = false
 	var bar := CenterContainer.new()
 	bar.anchor_top = 1.0
 	bar.anchor_bottom = 1.0
