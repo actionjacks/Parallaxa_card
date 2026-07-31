@@ -36,10 +36,17 @@ extends Resource
 ##                duel), Present (lands now), Future (lands in two turns). Honest because the deck
 ##                is deterministic: the cockpit prints the seat and the pending blow before you
 ##                commit, so a foretold future is a promise the engine keeps.
+##  WARD_THORNS   THE SECOND AXIS. Damage above a threshold is CAPPED, and the excess comes back
+##                at the player as thorns. Measured problem it answers: damage was the only axis in
+##                the game, so "the best hand" and "the biggest hit" were the same answer in 98.9%
+##                of hands -- which is why a hint could solve the puzzle and why block, healing and
+##                rot never competed. Against this enemy the biggest play is the WRONG play, and a
+##                measured, blocked, patient one wins. Fully priced by the cockpit: the cap runs
+##                through effective_damage() and the thorns through predicted_self_damage().
 ##  CELTIC_CROSS  four slots beside the hand. Freezing costs a discard and parks cards out of the
 ##                hand so it refills -- that is how you assemble one enormous play for the turn
 ##                the enemy telegraphs its worst blow.
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN, THREE_SPREAD, CELTIC_CROSS }
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN, THREE_SPREAD, CELTIC_CROSS, WARD_THORNS }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

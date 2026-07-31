@@ -64,6 +64,8 @@ func _initialize() -> void:
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
 	fails += _expect("the Glutton's blow is what the cockpit promised", _glutton_preview_honest())
+	fails += _expect("the Warden caps the blow and returns the excess", _warden_caps())
+	fails += _expect("...and a measured play passes it untouched", _warden_lets_small_through())
 	fails += _expect("every field rule is carried by a real enemy", _no_orphan_rules())
 	fails += _expect("no enemy describes a rule it does not have", _rule_keys_match())
 	fails += _expect("the mirror keeps its promise: a PAIR outscores a FLUSH", _mirror_inverts_instinct())
@@ -817,6 +819,28 @@ func _glutton_preview_honest() -> bool:
 	ctrl.resolve_enemy_turn()
 	return hp_before - ctrl.player_hp == promised
 
+## THE SECOND AXIS, ASSERTED BOTH WAYS. Damage was the only thing worth maximising in this game --
+## which is why "the best hand" and "the biggest hit" were the same answer in 98.9% of hands. The
+## Warden makes the biggest hand the WRONG hand: the blow is capped and half the refused excess
+## comes back. Both halves are asserted, because a cap that also punished small plays would just be
+## a damage nerf, not a second axis.
+func _warden_caps() -> bool:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.rule = EnemyData.Rule.WARD_THORNS
+	ctrl.enemy = e
+	var raw: int = CombatController.THORN_CAP + 80
+	return ctrl.effective_damage(raw) == CombatController.THORN_CAP \
+		and ctrl.thorn_backlash(raw) == CombatController.THORN_MAX
+
+func _warden_lets_small_through() -> bool:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.rule = EnemyData.Rule.WARD_THORNS
+	ctrl.enemy = e
+	var small: int = CombatController.THORN_CAP - 30
+	return ctrl.effective_damage(small) == small and ctrl.thorn_backlash(small) == 0
+
 ## NO ORPHAN RULES. MOON_CLEANSE shipped for months with ZERO carriers in data/combat -- and because
 ## _rule_moon_mends() is an alias of _rule_cleanses_rot(), the Moon's own self-mend (two named
 ## constants, a whole branch of resolve_enemy_turn) never fired either. A rule nothing carries is
@@ -856,7 +880,7 @@ const RULE_KEY_OF := {
 	EnemyData.Rule.THREE_SPREAD: "RULE_SPREAD", EnemyData.Rule.CELTIC_CROSS: "RULE_CELTIC",
 	EnemyData.Rule.VAMPIRE_MEND: "RULE_VAMPIRE", EnemyData.Rule.HAND_THIEF: "RULE_THIEF",
 	EnemyData.Rule.GRAVE_GLUTTON: "RULE_GLUTTON", EnemyData.Rule.THIRD_BURST: "RULE_BURST",
-	EnemyData.Rule.BARK_HIDE: "RULE_BARK",
+	EnemyData.Rule.BARK_HIDE: "RULE_BARK", EnemyData.Rule.WARD_THORNS: "RULE_WARD",
 }
 
 func _rule_keys_match() -> bool:

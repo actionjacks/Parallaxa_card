@@ -28,6 +28,7 @@ var _selected: Array = []
 var _freeze_btn: Button
 var _stash_row: HBoxContainer       ## the Celtic Cross's four slots, beside the hand
 var _order_row: HBoxContainer
+var _raw_staged: int = 0           ## the staged play BEFORE boss reduction (the Warden reads it)
 var _order_sig: String = "!"       ## signature of the staged play the strip was last built for      ## the staged play, in play order, with move-left/right handles          ## selected CardData instances (not indices)
 
 var _widgets: Dictionary = {}      ## CardData -> its card panel in the hand
@@ -689,7 +690,7 @@ func _refresh_cockpit(eff_dmg: int, play_block: int, lethal: bool) -> void:
 	var taken := controller.predicted_taken(play_block, eff_dmg)
 	# The play's OWN price (riposte / frail / blood tax) lands before the enemy turn, so the
 	# cockpit has to spend it too -- otherwise the promised HP is one the game will not honour.
-	var self_cost := controller.predicted_self_damage(eff_dmg, _selected)
+	var self_cost := controller.predicted_self_damage(eff_dmg, _selected, _raw_staged)
 	var hp_after: int = maxi(0, controller.player_hp - taken - self_cost)
 	# The Fool's number is the staged blow reflected: show THAT, live, not the stale one.
 	var shown_intent: int = controller.mirror_intent(eff_dmg) if (_enemy != null
@@ -1276,6 +1277,7 @@ func _update_selection_ui() -> void:
 	# THE BIGGEST NUMBER ON THE SCREEN IS THE ONE THAT MUST BE TRUE. The cockpit and the prophecy
 	# already honoured the spread seats; this line -- the one the player reads FIRST, and the same
 	# label the reckoning later re-prints as "= 0" -- still showed the undeferred damage.
+	_raw_staged = int(r["damage"])
 	var lands: int = controller.spread_now(eff) if controller.spread_seat() >= 0 else eff
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
 		hand_name, int(r["chips"]), float(r["mult"]), lands,

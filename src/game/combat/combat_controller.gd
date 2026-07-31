@@ -27,6 +27,13 @@ const VAMPIRE_THRESHOLD: int = 90    ## ...i.e. under this much damage between i
 ## engine recycles the grave unconditionally anyway, so "raise the dead" changed nothing but a log
 ## line. todo.md's closing paragraph asks for the grave to return in a MIGHTIER form -- this is it.
 const RAISE_CHIPS: int = 6
+## The Warden's threshold, and how much of the excess comes back as thorns.
+const THORN_CAP: int = 120
+const THORN_RATIO: float = 0.5
+## ...and a ceiling on it. Unbounded, half the excess of a 1380 play was 630 damage against 55 HP:
+## not a second axis, a trap that deletes the run for one wrong click. Capped, it is what it should
+## be -- a steady, readable price for overreaching, printed in the cockpit before you commit.
+const THORN_MAX: int = 10
 const HEAL_TRICKLE: int = 3          ## heal budget returned at the start of each of your turns
 const SPREAD_DELAY: int = 2          ## turns a Future-seat blow waits before it lands
 const CELTIC_SLOTS: int = 4          ## cards the Celtic Cross can hold beside the hand
@@ -252,6 +259,10 @@ func effective_damage(raw: int, cards_played: int = 5, hand: int = -1) -> int:
 	# all price it without a second call site to forget.
 	if hand == Poker.Hand.PENTAGRAM:
 		return raw
+	# THE WARDEN CAPS THE BLOW. Everything above the threshold is refused -- and comes back (see
+	# thorn_backlash). This is the one enemy where "play the biggest hand" is the losing answer.
+	if enemy.rule == EnemyData.Rule.WARD_THORNS:
+		return mini(raw, THORN_CAP)
 	if enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
 		return ceili(raw * 0.8)
 	# The bark only splits under a WHOLE hand. Routed through effective_damage so the preview,
@@ -282,6 +293,13 @@ func pending_total() -> int:
 	for e in pending:
 		n += int(e[1])
 	return n
+
+## What the Warden returns for a play of `raw` damage: half of everything above its threshold.
+## Preview-visible, exact, and the reason a huge hand is a mistake here rather than a triumph.
+func thorn_backlash(raw: int) -> int:
+	if enemy == null or enemy.rule != EnemyData.Rule.WARD_THORNS:
+		return 0
+	return mini(THORN_MAX, int(floor(maxf(0.0, float(raw - THORN_CAP)) * THORN_RATIO)))
 
 ## Justice's exact riposte for a play of the given EFFECTIVE damage (0 = none). Preview-visible.
 func riposte_for(dmg: int) -> int:
@@ -381,6 +399,11 @@ func play(selected: Array) -> void:
 			player_hp -= rip
 			damage_taken += rip
 			message.emit("LOG_RIPOSTE", [rip])
+		var thorns := thorn_backlash(int(result["damage"]))
+		if thorns > 0:
+			player_hp -= thorns
+			damage_taken += thorns
+			message.emit("LOG_THORNS", [thorns])
 		var frail := frail_tax(cards)
 		if frail > 0:
 			player_hp -= frail
@@ -758,10 +781,12 @@ func predicted_taken(extra_block: int = 0, staged_damage: int = -1) -> int:
 ## Judgement frail tax and the Devil's blood tax all land immediately after a play that fails to
 ## kill, and the cockpit was omitting all three -- so its "You 55 -> 45" was a number the game
 ## had no intention of honouring. A killing blow still wins first, so a lethal play bills nothing.
-func predicted_self_damage(staged_damage: int, cards: Array) -> int:
+## `raw_damage` is the play BEFORE any boss reduction -- the Warden's thorns are measured against
+## what you tried to throw, not against what landed.
+func predicted_self_damage(staged_damage: int, cards: Array, raw_damage: int = 0) -> int:
 	if enemy == null or staged_damage <= 0 or staged_damage >= enemy_hp:
 		return 0
-	var total: int = riposte_for(staged_damage) + frail_tax(cards)
+	var total: int = riposte_for(staged_damage) + frail_tax(cards) + thorn_backlash(raw_damage)
 	if _rule_blood_tax() and not enemy.intents.is_empty():
 		@warning_ignore("integer_division")
 		total += 2 + _intent_index / enemy.intents.size()

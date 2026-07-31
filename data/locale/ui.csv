@@ -885,3 +885,6 @@ TOWER_HERE,YOU ARE HERE,TU STOISZ
 TOWER_SUMMIT,SUMMIT,SZCZYT
 TOWER_OPPONENTS,%d OPPONENTS,%d PRZECIWNIKÓW
 HAND_KINDS,%d hands lie in this one,%d układów leży w tej ręce
+LOG_THORNS,The ward turns your excess back on you: %d.,Strażnica zwraca ci nadmiar: %d.
+RULE_WARD,"THE WARDEN: any blow above 120 is refused, and overreaching costs you up to 10 HP a turn. The biggest hand is the wrong hand here — measure, block, be patient.","STRAŻNICA: każdy cios powyżej 120 zostaje odrzucony, a przesada kosztuje do 10 HP na turę. Największy układ jest tu złym układem — mierz, blokuj, bądź cierpliwy."
+ENEMY_STRAZNICA,The Warden,Strażnica
