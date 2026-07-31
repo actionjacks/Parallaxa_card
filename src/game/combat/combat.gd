@@ -49,9 +49,10 @@ var _portrait_enraged := false     ## enrage ceremony fires once per fight, not 
 var _hand_sort := 0                ## 0 dealt, 1 by rank, 2 by Aspect (DISPLAY order only)
 var _sort_btn: Button
 var _hint_label: Label             ## names the best hand sitting in the current hand
-var _rule_label: Label
+var _rule_label: RichTextLabel
 var _preview_label: Label
-var _log_label: Label
+var _log_label: RichTextLabel
+var _log_shown: bool = true
 var _player_hp_bar: ProgressBar
 var _player_hp_label: Label
 var _block_label: Label
@@ -68,7 +69,7 @@ var _overlay_label: Label
 var _preview_extra: Label
 var _breakdown_label: Label
 var _counters_label: Label
-var _help_label: Label
+var _help_label: RichTextLabel
 var _enemy_panel: PanelContainer
 var _fx: Control
 var _fx_index: int = 0
@@ -177,7 +178,9 @@ func _build_ui() -> void:
 	ev.add_child(_gnicie_label)
 	_klatwa_label = _label("", 14, Color(0.85, 0.55, 0.95))
 	ev.add_child(_klatwa_label)
-	_rule_label = _label("", 15, Color(1.0, 0.7, 0.35))
+	# The densest jargon on the screen: the biome law and the boss rule. Inked, so every term in
+	# them is a button that explains itself without leaving the duel.
+	_rule_label = Lexicon.ink("", 15, Color(1.0, 0.7, 0.35), self)
 	ev.add_child(_rule_label)
 	_enrage_label = _label("", 13, Color(1.0, 0.45, 0.4))
 	_enrage_label.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -215,13 +218,14 @@ func _build_ui() -> void:
 	_breakdown_label = _inked(_label("", 13, Color(0.66, 0.72, 0.62)))
 	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_breakdown_label)
-	_log_label = _inked(_label("", 13, Color(0.6, 0.6, 0.66)))
+	_log_label = Lexicon.ink("", 13, Color(0.6, 0.6, 0.66), self)
 	# The log is history, and history is the first thing to fold away when the table gets crowded.
 	# Remembered in Settings, like the paytable toggle, so a player who wants a bare arena keeps it.
 	var st_log := get_node_or_null("/root/Settings")
 	if st_log != null and st_log.has_method("get_value"):
-		_log_label.visible = bool(st_log.call("get_value", "gameplay", "combat_log", true))
-	_log_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_log_shown = bool(st_log.call("get_value", "gameplay", "combat_log", true))
+		_log_label.visible = _log_shown
+	_log_label.custom_minimum_size = Vector2(560, 0)
 	mid.add_child(_log_label)
 
 	# --- player row ---
@@ -312,7 +316,7 @@ func _build_ui() -> void:
 	crow.add_child(pt_btn)
 	_hint_label = _label("", 14, Color(0.72, 0.68, 0.46))
 	crow.add_child(_hint_label)
-	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
+	_help_label = Lexicon.ink(tr("COMBAT_HELP") + "  " + tr("LEX_HINT"), 13, Color(0.5, 0.5, 0.58), self)
 	crow.add_child(_help_label)
 	# THE ORDER STRIP (docs/todo.md par.1). Order is a real axis of decision -- the Wrozba reads
 	# seat one, the Keystone and the Ofiara read the last -- but until now it was communicated by a
@@ -513,8 +517,8 @@ func _render() -> void:
 			rule_txt += "   " + (tr("SPREAD_BANKED") % controller.spread_mult)
 		for e in controller.pending:
 			rule_txt += "   " + (tr("SPREAD_PENDING") % [int(e[0]), int(e[1])])
-	_rule_label.text = rule_txt
-	_rule_label.visible = _rule_label.text != ""
+	Lexicon.set_text(_rule_label, rule_txt)
+	_rule_label.visible = rule_txt != ""
 	_player_hp_bar.max_value = controller.player_max_hp
 	_set_bar(_player_hp_bar, controller.player_hp)
 	_player_hp_label.text = tr("COMBAT_HP") % [controller.player_hp, controller.player_max_hp]
@@ -731,7 +735,8 @@ func _highlight_paytable(hand: int) -> void:
 func _toggle_log() -> void:
 	if _log_label == null:
 		return
-	_log_label.visible = not _log_label.visible
+	_log_shown = not _log_shown
+	_log_label.visible = _log_shown
 	var st := get_node_or_null("/root/Settings")
 	if st != null and st.has_method("set_value"):
 		st.call("set_value", "gameplay", "combat_log", _log_label.visible)
@@ -1463,7 +1468,7 @@ func _fly_card(panel: Control, target: Vector2) -> void:
 
 func _on_restart() -> void:
 	_log_lines.clear()
-	_log_label.text = ""
+	Lexicon.set_text(_log_label, "")
 	_overlay.visible = false
 	_reset_hand()
 	controller.start(_deck, _enemy, _relics)
@@ -1472,7 +1477,8 @@ func _on_message(text_key: String, args: Array) -> void:
 	_log_lines.append(tr(text_key) % args)
 	while _log_lines.size() > 4:
 		_log_lines.pop_front()
-	_log_label.text = "\n".join(_log_lines)
+	# The log is where the rules SPEAK to the player, so it is the highest-value place to ink.
+	Lexicon.set_text(_log_label, "\n".join(_log_lines))
 	match text_key:
 		"LOG_PLAY":
 			# The number grows with the hit and big hits shake the arena -- a 400 flush must FEEL

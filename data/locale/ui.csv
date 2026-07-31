@@ -860,3 +860,18 @@ LOG_CELTIC_FREEZE,Frozen in the cross (%d/4).,Zamrożone w krzyżu (%d/4).
 SPREAD_TO_PAST,-> the Past keeps +%.1f Mult for the whole duel,-> Przeszłość zatrzymuje +%.1f Mult na cały pojedynek
 SPREAD_TO_FUTURE,-> the Future: %d turns from now it strikes for %d,-> Przyszłość: za %d tury uderzy za %d
 ARCANUM_UMIARKOWANIA,Arcanum of Temperance,Arkanum Umiarkowania
+LEX_CHIPS,"chips|chip","chipsy|chipsow|chipsów|chipsom|chipsami|chipsa|chips"
+LEX_MULT,"mult|multiplier","mult|mnoznik|mnożnik|mnoznika|mnożnika|mnoznikiem|mnożnikiem"
+LEX_KEYSTONE,"keystone","klucz|klucza|kluczem|kluczu"
+LEX_DISCARD,"discards|discard","odrzuty|odrzut|odrzutu|odrzutow|odrzutów|odrzutem|odrzucic|odrzucić|odrzuć"
+LEX_ASPECT,"aspects|aspect","aspekty|aspekt|aspektu|aspektow|aspektów|aspektem|aspektowi|aspekcie|kolor|koloru|kolory|kolorow|kolorów|kolorze|kolorach|kolorem"
+LEX_LAW,"law of the place|law","prawo pola|prawo|prawa|prawem"
+LEX_RTEC,"mercury","rtec|rtęć|rteci|rtęci|rtecia|rtęcią"
+LEX_SOL,"salt","sol|sól|soli|sola|solą"
+LEX_ARCANUM,"arcanum|arcana|relic","arkanum|arkana|arkanow|arkanów|arkanum|relikt|reliktu|relikty|reliktow|reliktów"
+LEX_EDITION,"edition","edycja|edycji|edycje|edycją|edycja"
+LEX_SEAL,"seal","pieczec|pieczęć|pieczeci|pieczęci|pieczecie|pieczęcie"
+LEX_VEIL,"veil","zaslona|zasłona|zaslony|zasłony|zaslonie|zasłonie|zaslone|zasłonę"
+LEX_DEPTH,"depth","glebia|głębia|glebi|głębi|glebie|głębię"
+LEX_CLOSE,click anywhere to close,kliknij gdziekolwiek aby zamknąć
+LEX_HINT,Highlighted words explain themselves — click one.,Podświetlone słowa tłumaczą się same — kliknij.

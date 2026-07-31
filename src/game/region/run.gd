@@ -1567,8 +1567,14 @@ func _title(text: String) -> Label:
 func _big(text: String, color: Color) -> Label:
 	return _label_center(text, 48, color)
 
-func _hint(text: String) -> Label:
-	return _label_center(text, 15, Color(0.6, 0.6, 0.68))
+## Every explanatory line on the run screens -- omens, shop copy, road choices, epilogues -- goes
+## through here, so inking it once teaches the whole map layer to explain its own vocabulary.
+func _hint(text: String) -> Control:
+	var rt := Lexicon.ink(text, 15, Color(0.6, 0.6, 0.68), self)
+	rt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rt.custom_minimum_size = Vector2(720, 0)
+	return rt
 
 func _label_center(text: String, font_size: int, color: Color) -> Label:
 	var l := _label(text, font_size, color)
