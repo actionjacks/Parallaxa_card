@@ -26,3 +26,4 @@ tools/gen/__pycache__/
 
 # worktree agentow (izolowane kopie repo) — NIGDY do commitu
 .claude/worktrees/
+assets/foes_src/
