@@ -63,6 +63,8 @@ func _initialize() -> void:
 	fails += _expect("VAMPIRE_MEND: mends only after a weak round", _vampire())
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
+	fails += _expect("every field rule is carried by a real enemy", _no_orphan_rules())
+	fails += _expect("no enemy describes a rule it does not have", _rule_keys_match())
 	fails += _expect("the mirror keeps its promise: a PAIR outscores a FLUSH", _mirror_inverts_instinct())
 	fails += _expect("...and no mirrored hand is a free one-shot", _mirror_is_compressed())
 	fails += _expect("WIDE_HAND: three more cards, zero discards", _wide_hand())
@@ -782,6 +784,63 @@ func _inverted_table() -> bool:
 	var plain: Dictionary = Scoring.score(pair, [], {})
 	var flipped: Dictionary = Scoring.score(pair, [], {"inverted_table": true})
 	return int(flipped["hand"]) == Poker.evaluate(pair) and int(flipped["chips"]) > int(plain["chips"])
+
+## NO ORPHAN RULES. MOON_CLEANSE shipped for months with ZERO carriers in data/combat -- and because
+## _rule_moon_mends() is an alias of _rule_cleanses_rot(), the Moon's own self-mend (two named
+## constants, a whole branch of resolve_enemy_turn) never fired either. A rule nothing carries is
+## content the player can never meet; this fails the build instead of hiding it.
+func _no_orphan_rules() -> bool:
+	var carried: Dictionary = {}
+	var d := DirAccess.open("res://data/combat")
+	if d == null:
+		return false
+	for f in d.get_files():
+		var n := f.trim_suffix(".remap")
+		if not n.ends_with(".tres"):
+			continue
+		var e = load("res://data/combat/" + n)
+		if e != null:
+			carried[int(e.rule)] = true
+	for v in EnemyData.Rule.values():
+		if int(v) == int(EnemyData.Rule.NONE):
+			continue          # NONE is the absence of a rule, not a rule
+		if not carried.has(int(v)):
+			printerr("  orphan rule ordinal: %d" % int(v))
+			return false
+	return true
+
+## A rule_key is a PROMISE printed above the enemy. Editing an enemy's rule and forgetting its key
+## is the worst bug class this game can have -- it announces one fight and runs another. One shared
+## table, asserted both ways.
+const RULE_KEY_OF := {
+	EnemyData.Rule.TOWER_IGNORES_BLOCK: "RULE_TOWER", EnemyData.Rule.DEVIL_BLOOD_TAX: "RULE_DEVIL",
+	EnemyData.Rule.MOON_CLEANSE: "RULE_CLEANSE", EnemyData.Rule.WORLD_ALL: "RULE_WORLD",
+	EnemyData.Rule.CHARIOT_DOUBLE: "RULE_CHARIOT", EnemyData.Rule.STRENGTH_RESIST: "RULE_STRENGTH",
+	EnemyData.Rule.HANGED_CAP: "RULE_HANGED", EnemyData.Rule.JUSTICE_RIPOSTE: "RULE_JUSTICE",
+	EnemyData.Rule.JUDGEMENT_FRAIL: "RULE_JUDGEMENT", EnemyData.Rule.STAR_REGEN: "RULE_STAR",
+	EnemyData.Rule.EMPRESS_BLOOM: "RULE_EMPRESS", EnemyData.Rule.WHEEL_TURN: "RULE_WHEEL",
+	EnemyData.Rule.FOOL_MIRROR: "RULE_FOOL", EnemyData.Rule.INVERTED_TABLE: "RULE_INVERTED",
+	EnemyData.Rule.WIDE_HAND: "RULE_WIDE", EnemyData.Rule.ASPECT_BAN: "RULE_BAN",
+	EnemyData.Rule.THREE_SPREAD: "RULE_SPREAD", EnemyData.Rule.CELTIC_CROSS: "RULE_CELTIC",
+}
+
+func _rule_keys_match() -> bool:
+	var d := DirAccess.open("res://data/combat")
+	if d == null:
+		return false
+	var ok := true
+	for f in d.get_files():
+		var n := f.trim_suffix(".remap")
+		if not n.ends_with(".tres"):
+			continue
+		var e = load("res://data/combat/" + n)
+		if e == null or String(e.rule_key) == "":
+			continue
+		var want = RULE_KEY_OF.get(int(e.rule), "")
+		if want != "" and String(e.rule_key) != String(want):
+			printerr("  %s: rule=%d mowi '%s', powinno '%s'" % [n, int(e.rule), e.rule_key, want])
+			ok = false
+	return ok
 
 ## The rule's PROMISE, asserted directly: what you spent the run learning must become wrong.
 func _mirror_inverts_instinct() -> bool:

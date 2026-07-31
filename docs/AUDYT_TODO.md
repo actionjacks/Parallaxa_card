@@ -319,3 +319,50 @@ rozni drogi.
 - Czy Krzyz Celtycki nie jest za silny teraz, gdy naprawde dziala.
 - Czy odsetki Zaslony IV nie zabijaja mono-buildow za twardo.
 - HP obu nowych bossow (1180 / 1520) to pierwsze przyblizenie, nie pomiar.
+
+---
+
+# MAPA TAKTYKI W WALCE (2026-07-31)
+
+8 agentow zmapowalo 118 opcji/synergii/taktyk, kazda z adwersarzem sprawdzajacym OSIAGALNOSC
+(nie samo istnienie w kodzie). Wynik: **21 mocnych, 23 przecietne, 50 slabych, 24 nieuzywalne.**
+
+## Naprawione
+
+**MOON_CLEANSE byla MARTWA REGULA.** Zaden z 61 plikow w data/combat nie mial `rule = 3` — a
+poniewaz `_rule_moon_mends()` jest ALIASEM `_rule_cleanses_rot()`, samoleczenie Ksiezyca (dwie
+nazwane stale, cala galaz `resolve_enemy_turn`) rowniez nie odpalalo sie ani razu. Ksiezyc nosi
+`rule = 19` (INVERTED_TABLE). Regula trafila do elity Katakumb — tam mieszka build oparty na
+Gniciu, wiec kontrlekcja lezy we wlasciwym miejscu.
+
+**Dwa nowe testy, ktore to lapia na stale:**
+- `_no_orphan_rules` — kazda wartosc `EnemyData.Rule` musi byc niesiona przez realnego wroga.
+- `_rule_keys_match` — zaden wrog nie moze OPISYWAC reguly, ktorej nie ma. (Przy tej zmianie sam
+  w to wpadlem: podmienilem `rule` i zostawilem stary `rule_key`, wiec elita oglaszalaby "Sad",
+  a robilaby co innego. Test zlapal to natychmiast.)
+
+## Znaleziska, ktore wymagaja DECYZJI PROJEKTOWEJ (nie tknalem)
+
+1. **Wybor ROZMIARU zagrania jest matematycznie martwy.** Test 4000 rak: w **0.00%** przypadkow
+   zagranie mniej niz 5 kart bije najlepsze 5-kartowe. Kazda karta tylko DODAJE chipsy, a
+   `evaluate()` nigdy nie degraduje ukladu. Trzy osobne reguly (BARK_HIDE, EMPRESS_BLOOM, prawo
+   CHAOS) karza za cos, czego nikt racjonalnie nie robi. Zeby "ile kart" stalo sie decyzja, karta
+   w zagraniu musialaby cos KOSZTOWAC.
+
+2. **Podpowiedz "W rece: <uklad>" oddaje odpowiedz.** Symulacja 20 000 rak: najlepszy TYP ukladu
+   pokrywa sie z najwyzszymi obrazeniami w **98.9%** przypadkow. Razem z zawsze widoczna tabela
+   wyplat i dokladnym podgladem obrazen gra rozwiazuje za gracza zagadke wyboru podzbioru, ktora
+   miala byc jej rdzeniem. To nie jest blad podpowiedzi — to skutek tego, ze obrazenia sa jedyna
+   osia. Blok/leczenie/Gnicie prawie nigdy nie konkuruja.
+
+3. **MAGNUM OPUS jest nieosiagalny (0.00%).** Wymaga pieciu kart tej samej rangi I koloru, a pule
+   nie zawieraja tylu duplikatow. Wiersz w tabeli wyplat, ktorego nikt nie zobaczy.
+
+4. **Pula leczenia 15 HP/walke kasuje cale skalowanie sustainu.** PIJAWKA 15 (RARE) i PIJAWKA 20
+   (LEGENDARY) leczą DOKLADNIE tyle samo, bo obie sa scinane do 15. To samo dotyczy trzech
+   reliktow leczacych — nierozroznialne po czterech zagraniach.
+
+5. **PRZECIAZENIE x2 (x4 Mult) jest praktycznie nieosiagalne** — w calej grze sa DWIE karty szkla.
+
+6. **Przeciaganie karty na arene to scisle gorszy klon kliku** — potrafi tylko zaznaczyc, nigdy
+   odznaczyc, a przeciagniecie zjada zwykly klik.
