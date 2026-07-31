@@ -238,42 +238,17 @@ func _show_map() -> void:
 	tower_row.add_theme_constant_override("separation", 18)
 	# The tower shrinks when an omen is waiting: the omen block is ~150 px tall and the action bar
 	# is pinned to the bottom, so without this the two overlap.
-	var tower := TowerView.new(Vector2(330, 300) if _pending_omen != null else Vector2(380, 396))
+	var tower := TowerView.new(Vector2(700, 340) if _pending_omen != null else Vector2(1180, 486))
 	# hand the tower its cast: every rung shows who waits on it, the summit shows the boss
 	var climb: Array = RunState.fights.duplicate()
 	climb.append(RunState.boss if RunState.boss != null else RunState.region.boss)
 	tower.build(RunState.fights.size() + 1, RunState.step, RunState.region.accent, climb)
 	tower_row.add_child(tower)
-	var ladder := VBoxContainer.new()
-	ladder.alignment = BoxContainer.ALIGNMENT_CENTER
-	ladder.add_theme_constant_override("separation", 6)
-	var total := RunState.fights.size() + 1
-	var order: Array[int] = []
-	for i in total:
-		order.append(total - 1 - i)      # summit first
-	for i: int in order:
-		var is_boss: bool = i == RunState.fights.size()
-		var label := tr("TOWER_SUMMIT") if is_boss else (tr("TOWER_RUNG") % (i + 1))
-		var mark := "✓ " if i < RunState.step else ""
-		var enemy: EnemyData = (RunState.boss if RunState.boss != null else RunState.region.boss) if is_boss else RunState.fights[i]
-		var chip := _node_chip(mark + label, tr(enemy.name_key), i == RunState.step, i < RunState.step, is_boss)
-		if is_boss:
-			chip.tooltip_text = tr(enemy.rule_key) if enemy.rule_key != "" else ""
-			var rl := _label(tr("MAP_STEP_BOSS"), 10, Color(1.0, 0.7, 0.35))
-			rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			chip.get_child(0).add_child(rl)
-		else:
-			var sl := _label(tr("MAP_STEP_LOOT"), 10, Color(0.6, 0.64, 0.58))
-			sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			sl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			chip.get_child(0).add_child(sl)
-		var rung := HBoxContainer.new()
-		rung.alignment = BoxContainer.ALIGNMENT_CENTER
-		rung.add_theme_constant_override("separation", 10)
-		rung.add_child(chip)
-		ladder.add_child(rung)
-	tower_row.add_child(ladder)
+	# THE LIST OF RUNGS IS GONE. Five boxes beside the tower repeated, in words, everything the
+	# tower already shows in pictures -- which floor, who is on it, what it drops -- and stole half
+	# the frame doing it. The tower IS the map: the lit storey is where you stand, the figure in
+	# each alcove is who waits there, and the caption underneath names the climb. Anything the
+	# picture can say, the picture says.
 	root.add_child(tower_row)
 
 	# THE CAPTION, UNDER THE PICTURE. The tower now says everything visually -- which storey burns,
@@ -281,8 +256,8 @@ func _show_map() -> void:
 	# a block beneath, left-aligned, naming the climb, its length and what the place does to you.
 	var cap := VBoxContainer.new()
 	cap.add_theme_constant_override("separation", 2)
-	cap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	cap.custom_minimum_size = Vector2(680, 0)
+	cap.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	cap.custom_minimum_size = Vector2(560, 0)
 	var cap_head := HBoxContainer.new()
 	cap_head.add_theme_constant_override("separation", 10)
 	var cap_name := _label(tr(RunState.region.name_key).to_upper(), 22, RunState.region.accent)
@@ -293,9 +268,10 @@ func _show_map() -> void:
 	cap.add_child(cap_head)
 	var rule_line := Lexicon.ink(tr(RunState.region.law_key), 14, Color(0.78, 0.76, 0.84), self)
 	rule_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rule_line.custom_minimum_size = Vector2(680, 0)
+	rule_line.custom_minimum_size = Vector2(560, 0)
 	cap.add_child(rule_line)
-	var cap_wrap := CenterContainer.new()
+	var cap_wrap := MarginContainer.new()
+	cap_wrap.add_theme_constant_override("margin_left", 42)
 	cap_wrap.add_child(cap)
 	root.add_child(cap_wrap)
 

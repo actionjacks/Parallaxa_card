@@ -48,7 +48,7 @@ func _ready() -> void:
 	_pivot = Node3D.new()
 	_world.add_child(_pivot)
 	_cam = Camera3D.new()
-	_cam.fov = 46.0
+	_cam.fov = 62.0
 	_cam.current = true          # never rely on implicit first-camera selection
 	_world.add_child(_cam)
 	_build_environment()
@@ -317,8 +317,8 @@ func _frame_camera(total: int) -> void:
 	# FOOT of the tower and tilting it up does the one thing the picture has to do: it puts the
 	# summit far away and above you. The eaves now stack toward a vanishing point, each storey
 	# overhangs the one below, and the climb is legible before a single word is read.
-	_cam.position = Vector3(0, RUNG_H * 0.05, h * 1.02 + 4.3)
-	_cam.look_at(Vector3(0, h * 0.46, 0), Vector3.UP)
+	_cam.position = Vector3(0, RUNG_H * 0.02, h * 0.62 + 2.2)
+	_cam.look_at(Vector3(0, h * 0.50, 0), Vector3.UP)
 
 func _process(delta: float) -> void:
 	if _pivot == null:
