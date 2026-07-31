@@ -19,6 +19,10 @@ const MOON_MEND_THRESHOLD: int = 60  ## ...i.e. under this much damage between i
 const EMPRESS_BLOOM_HEAL: int = 40   ## the Empress feeds on any play shorter than five cards
 const VAMPIRE_HEAL: int = 25         ## the mender's self-repair when a round barely scratched it
 const VAMPIRE_THRESHOLD: int = 90    ## ...i.e. under this much damage between its turns
+## What the Judgement adds to every card it calls back. Without this the Arcanum was a no-op: the
+## engine recycles the grave unconditionally anyway, so "raise the dead" changed nothing but a log
+## line. todo.md's closing paragraph asks for the grave to return in a MIGHTIER form -- this is it.
+const RAISE_CHIPS: int = 6
 
 var relics: Array = []          ## Array[ArcanumData] applied to every play
 var hand_levels: Dictionary = {}   ## Poker.Hand -> level (Star consumables)
@@ -62,6 +66,10 @@ var killing_cards: Array = []
 var _raised: bool = false
 ## A boss crosses half health once, and from there its enrage runs a step hotter.
 var _turned: bool = false
+## THE PENTAGRAM'S TEMPO, BANKED. The refund used to be written straight into `discards_left` on a
+## play -- and the play ENDS the turn, so resolve_enemy_turn's unconditional reset overwrote it
+## before the player could ever spend it. The circle's only unique payoff could not fire once.
+var _banked_discards: int = 0
 
 var _draw: Array = []
 var _used: Array = []
@@ -123,6 +131,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	_last_play_size = 0
 	_last_play_damage = 0
 	killing_cards = []
+	_banked_discards = 0
 	_raised = false
 	_turned = false
 	# WZROST/KORZENIE ramps are RUN-LOCAL and per-fight: nothing ever cleared them, so a card that
@@ -131,6 +140,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	for c: CardData in deck:
 		c.growth = 0
 		c.bloom = 0
+		c.feast = 0
 	phase = "player"
 	last_score = {}
 	_refill()
@@ -202,8 +212,16 @@ func preview(selected: Array) -> Dictionary:
 
 ## Boss-side damage modifier -- the ONLY place a rule may touch scored damage. The combat scene
 ## displays effective_damage() everywhere (preview, lethal, prophecy), so the covenant holds.
-func effective_damage(raw: int, cards_played: int = 5) -> int:
+## `hand` lets the Pentagram break armour (-1 = do not care, keeps every old call site exact).
+func effective_damage(raw: int, cards_played: int = 5, hand: int = -1) -> int:
 	if enemy == null:
+		return raw
+	# THE CIRCLE BREAKS THE ARMOUR (docs/todo.md par.4: "natychmiastowe przelamanie pancerza
+	# bossa"). Closing all five Aspects at once is the one hand that ignores damage reduction --
+	# the Pentagram's payout is small on purpose, so its power has to be a KEY rather than a
+	# number. Routed through here, which means the preview, the cockpit and the prophecy stamp
+	# all price it without a second call site to forget.
+	if hand == Poker.Hand.PENTAGRAM:
 		return raw
 	if enemy.rule == EnemyData.Rule.STRENGTH_RESIST:
 		return ceili(raw * 0.8)
@@ -250,7 +268,7 @@ func play(selected: Array) -> void:
 	player_block += int(result["block"])
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
-	var dmg := effective_damage(int(result["damage"]), cards.size())
+	var dmg := effective_damage(int(result["damage"]), cards.size(), int(result["hand"]))
 	var hp_before: int = enemy_hp
 	enemy_hp -= dmg
 	# THE TURN AT HALF HEALTH. A boss that has been holding back stops: from here its clock runs
@@ -329,11 +347,7 @@ func play(selected: Array) -> void:
 	# The Pentagram returns a discard (Scoring flags it) -- capped so it can never bank more
 	# discards than a turn starts with.
 	if bool(result.get("refund_discard", false)):
-		discards_left = mini(discards_left + 1, START_DISCARDS + _bonus_discards())
-		# The Hanged Man's suspension caps discards at one, and the refund was slipping past it --
-		# his announced rule was breakable by playing a Pentagram.
-		if enemy != null and enemy.rule == EnemyData.Rule.HANGED_CAP:
-			discards_left = mini(discards_left, 1)
+		_banked_discards = mini(_banked_discards + 1, START_DISCARDS)
 		message.emit("LOG_PENTAGRAM", [])
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
 	if int(result["block"]) > 0:
@@ -353,8 +367,17 @@ func play(selected: Array) -> void:
 	var eaten: int = int(result.get("devoured", -1))
 	if eaten >= 0 and eaten < cards.size():
 		var victim: CardData = cards[eaten]
+		var swallowed: int = int(result.get("devoured_chips", 0))
 		if not destroyed_cards.has(victim):
 			destroyed_cards.append(victim)
+		# "wysysajac z niej Chipsy i Mult na cala reszte walki" -- the absorption used to last one
+		# play, so the net effect was the OPPOSITE of the promise: the victim died and its chips
+		# were simply gone. The Ofiara now KEEPS them (growth, per-fight) and fattens by one Mult
+		# per meal (feast). Both are read by chip_value()/Scoring, so the preview shows it at once.
+		if eaten + 1 < cards.size():
+			var eater: CardData = cards[eaten + 1]
+			eater.growth += swallowed
+			eater.feast += 1
 		message.emit("LOG_OFIARA", [victim.chip_value()])
 	_move_to_used(selected)
 	_refill()
@@ -446,7 +469,8 @@ func resolve_enemy_turn() -> void:
 		_finish(false)
 		return
 	turn += 1
-	discards_left = START_DISCARDS + _bonus_discards()
+	discards_left = START_DISCARDS + _bonus_discards() + _banked_discards
+	_banked_discards = 0
 	if enemy.rule == EnemyData.Rule.HANGED_CAP:
 		discards_left = mini(discards_left, 1)
 	if enemy.rule == EnemyData.Rule.WIDE_HAND:
@@ -632,6 +656,11 @@ func _refill() -> void:
 				_raised = true
 				_draw = _used.duplicate()
 				_used.clear()
+				# Raised, not merely recycled: every card comes back carrying +RAISE_CHIPS for the
+				# rest of the duel. `growth` is per-fight and chip_value() already counts it, so
+				# the cockpit prices the risen deck the instant it returns.
+				for c: CardData in _draw:
+					c.growth += RAISE_CHIPS
 				message.emit("LOG_RAISE_DEAD", [_draw.size()])
 				continue
 			if _used.is_empty():

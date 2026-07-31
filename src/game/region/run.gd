@@ -38,8 +38,11 @@ func SHOP_SLOTS() -> int:
 const ENCHANT_COST := 5
 const STAR_COST := 8
 ## Hands a Star can level (the reachable ones).
+## PENTAGRAM and FULL_COURT are here because Poker.LEVEL_UP already prices them: leaving them out
+## made those two table entries dead code the player could never buy into.
 const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THREE,
-	Poker.Hand.STRAIGHT, Poker.Hand.FLUSH, Poker.Hand.FULL_HOUSE, Poker.Hand.FOUR]
+	Poker.Hand.STRAIGHT, Poker.Hand.FLUSH, Poker.Hand.FULL_HOUSE, Poker.Hand.FOUR,
+	Poker.Hand.PENTAGRAM, Poker.Hand.FULL_COURT]
 
 var _shop_offers: Array = []
 var _shop_reroll_cost: int = 1
@@ -472,7 +475,7 @@ func _show_reward() -> void:
 	_reward_panels.clear()
 	_reward_cards.clear()
 	_reward_pick = -1
-	var offers: Array = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), 3, _elite_boost)
+	var offers: Array = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), 3, _elite_boost)
 	var boosted := _elite_boost
 	_elite_boost = false
 	var rested := _last_rest
@@ -524,7 +527,7 @@ func _skip_reward() -> void:
 
 ## Fresh shop stock for this rung (reward always flows here; leaving the shop advances the run).
 func _enter_shop() -> void:
-	_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())
+	_shop_offers = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), SHOP_SLOTS())
 	_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 	_star_sold = false
 	_shop_reroll_cost = 1
@@ -565,7 +568,7 @@ func _show_shop() -> void:
 	var rested := _last_rest
 	_last_rest = 0
 	if _shop_offers.is_empty():
-		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())
+		_shop_offers = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), SHOP_SLOTS())
 	var root := _screen_column()
 	root.add_child(_title(tr("SHOP_TITLE")))
 	if rested > 0:
@@ -625,8 +628,8 @@ func _show_shop() -> void:
 	var controls := HBoxContainer.new()
 	controls.alignment = BoxContainer.ALIGNMENT_CENTER
 	controls.add_theme_constant_override("separation", 12)
-	var reroll := _button(tr("SHOP_REROLL") % _shop_reroll_cost, _reroll_shop)
-	reroll.disabled = RunState.rtec < _shop_reroll_cost
+	var reroll := _button(tr("SHOP_REROLL") % _cost(_shop_reroll_cost), _reroll_shop)
+	reroll.disabled = RunState.rtec < _cost(_shop_reroll_cost)
 	controls.add_child(reroll)
 	var thin := _button(tr("SHOP_THIN") % _cost(THIN_COST), _thin_deck)
 	thin.disabled = RunState.rtec < _cost(THIN_COST) or RunState.deck.size() <= 5
@@ -673,6 +676,8 @@ func _invert_card() -> void:
 	if RunState.rtec < _cost(INVERT_COST) or RunState.deck.is_empty():
 		return
 	var cb := func(card: CardData) -> void:
+		if card.inverted:
+			return                       # a card turns over ONCE; a second fee bought nothing
 		var foes: Array = Aspects.foes(card.aspect)
 		if foes.is_empty():
 			return
@@ -736,8 +741,8 @@ func _buy_star() -> void:
 		_show_shop()
 
 func _reroll_shop() -> void:
-	if RunState.spend(_shop_reroll_cost):
-		_shop_offers = RunState.pick_tiered_offers(DeckLibrary.reward_pool(), SHOP_SLOTS())   # the slot-machine pull
+	if RunState.spend(_cost(_shop_reroll_cost)):
+		_shop_offers = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), SHOP_SLOTS())   # the slot-machine pull
 		_shop_star = -1 if _star_sold else RunState.pick_offers(STAR_HANDS, 1)[0]
 		_shop_reroll_cost += 1
 		_show_shop()

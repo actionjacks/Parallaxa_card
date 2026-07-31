@@ -345,6 +345,19 @@ func pick_tiered_offers(pool: Array, n: int, boosted: bool = false) -> Array:
 ## replayed it for an entire journey. Cards are shuffled between duels, never inside one: the
 ## preview still cannot lie, and peek_draw stays exact for the whole fight.
 ## SEED CONTRACT: exactly one main-rng draw per fight, same shape as pick_offers.
+## THE COLOUR THAT IS GONE (Veil V). `lost_aspect` used to filter the STARTING deck only, so the
+## first shop sold the "removed" colour straight back and the Veil quietly undid itself. Every
+## offer runs through here. Filtering BEFORE the draw is safe for the seed contract: pick_offers
+## and pick_tiered_offers each consume exactly one main-rng draw regardless of pool size.
+func filter_lost(pool: Array) -> Array:
+	if lost_aspect < 0:
+		return pool
+	var out: Array = []
+	for c in pool:
+		if int(c.aspect) != lost_aspect and c.splash != lost_aspect:
+			out.append(c)
+	return out if not out.is_empty() else pool
+
 func shuffle_for_fight() -> void:
 	_shuffle_with(deck, _sub_rng())
 

@@ -15,7 +15,14 @@ func _initialize() -> void:
 	fails += _expect("Fool mirrors the blow (dmg/14, floor 8, cap 34)", _fool_answers())
 	# The secret hands (docs/todo.md T2)
 	fails += _expect("Pentagram: one card of every Aspect", _pentagram_reads() == Poker.Hand.PENTAGRAM)
-	fails += _expect("Pentagram hands a discard back", _pentagram_refund())
+	fails += _expect("Pentagram's refund SURVIVES the turn reset", _pentagram_refund())
+	fails += _expect("Pentagram breaks armour (Strength cannot dull it)", _pentagram_breaks_armour())
+	fails += _expect("...but a Flush is still dulled by the same boss", _flush_is_dulled())
+	fails += _expect("Full Court from FOUR cards", _full_court_four() == Poker.Hand.FULL_COURT)
+	fails += _expect("the Judgement raises the dead STRONGER", _raise_dead_empowers())
+	fails += _expect("Ofiara keeps what it ate for the rest of the fight", _ofiara_feast())
+	fails += _expect("a banned colour cannot be laundered through Ofiara", _ofiara_respects_ban())
+	fails += _expect("Veil V's lost colour is filtered out of every offer", _lost_aspect_filters())
 	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
 	fails += _expect("Full Court: Page+Knight+Queen+King", _full_court_reads() == Poker.Hand.FULL_COURT)
 	fails += _expect("a scar adds permanent chips and survives a save round-trip", _scar_persists())
@@ -471,7 +478,11 @@ func _pentagram_refund() -> bool:
 	if play.size() < 5:
 		return false
 	ctrl.play(play)
-	return spent < before and ctrl.discards_left == before
+	# The refund is BANKED, not written into the current turn: a play ends the turn, and the turn
+	# reset used to overwrite it, so the circle's only unique payoff could never be spent. It has
+	# to survive into the turn the player actually gets to act in.
+	ctrl.resolve_enemy_turn()
+	return spent < before and ctrl.discards_left == before + 1
 
 ## The scar must add chips AND survive the run save -- reusing `growth` would have failed the
 ## second half silently, because growth is deliberately never written.
@@ -783,6 +794,92 @@ func _aspect_ban() -> bool:
 	var free: int = int(Scoring.score(play, [], {})["chips"])
 	var banned: int = int(Scoring.score(play, [], {"banned_aspect": 0})["chips"])
 	return free - banned == 9
+
+## The circle is the one hand that ignores damage reduction (docs/todo.md par.4). Both halves are
+## asserted: it must pierce, and the SAME boss must still dull an ordinary hand -- otherwise the
+## test would pass on a rule that simply stopped working.
+func _pentagram_breaks_armour() -> bool:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.rule = EnemyData.Rule.STRENGTH_RESIST
+	ctrl.enemy = e
+	return ctrl.effective_damage(100, 5, Poker.Hand.PENTAGRAM) == 100
+
+func _flush_is_dulled() -> bool:
+	var ctrl := CombatController.new()
+	var e := EnemyData.new()
+	e.rule = EnemyData.Rule.STRENGTH_RESIST
+	ctrl.enemy = e
+	return ctrl.effective_damage(100, 5, Poker.Hand.FLUSH) == 80
+
+func _full_court_four() -> int:
+	return Poker.evaluate([_card(11, 0), _card(12, 0), _card(13, 1), _card(14, 2)])
+
+## Without the empowerment the Arcanum was a no-op: the engine recycles the grave unconditionally,
+## so "raise the dead" changed nothing a player could measure.
+func _raise_dead_empowers() -> bool:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 9:
+		deck.append(_card(5, 0))
+	var a := ArcanumData.new()
+	a.effect = ArcanumData.Effect.RAISE_DEAD
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [a], 50, 50)
+	var base: int = ctrl.hand[0].chip_value()
+	# 9 cards, hand of 8: the first play drains the draw pile, the second finds it empty and the
+	# Judgement calls the grave back -- raised, not merely recycled.
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()
+	ctrl.play([0])
+	var risen := false
+	for c: CardData in ctrl.hand:
+		if c.chip_value() >= base + CombatController.RAISE_CHIPS:
+			risen = true
+	return risen
+
+## "wysysajac z niej Chipsy i Mult na cala reszte walki": the absorption used to last one play.
+func _ofiara_feast() -> bool:
+	var eater := _card(5, 2)
+	eater.keyword = CardData.Keyword.OFIARA
+	var victim := _card(9, 2)
+	var ctrl := CombatController.new()
+	var deck: Array = [_card(3, 0), victim, eater]
+	for i in 8:
+		deck.append(_card(2, 1))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	ctrl.start(deck, e, [], 50, 50)
+	var vi: int = ctrl.hand.find(victim)
+	var ei: int = ctrl.hand.find(eater)
+	if vi < 0 or ei < 0:
+		return false
+	var swallowed: int = victim.chip_value()
+	ctrl.play([vi, ei])
+	return eater.growth == swallowed and eater.feast == 1
+
+func _ofiara_respects_ban() -> bool:
+	var eater := _card(5, 2)
+	eater.keyword = CardData.Keyword.OFIARA
+	var victim := _card(9, 2)
+	var r: Dictionary = Scoring.score([victim, eater], [], {"banned_aspect": int(Aspects.Id.DEATH)})
+	return int(r.get("devoured_chips", -1)) == 0
+
+## Autoloads are reached through root in a `-s` SceneTree script -- a bare `RunState` does not
+## resolve there (a lesson this repo has already paid for once).
+func _lost_aspect_filters() -> bool:
+	var rs: Node = root.get_node_or_null("RunState")
+	if rs == null:
+		return false
+	var pool: Array = [_card(5, 0), _card(6, 1), _card(7, 0)]
+	var prev: int = rs.lost_aspect
+	rs.lost_aspect = 0
+	var kept: Array = rs.filter_lost(pool)
+	rs.lost_aspect = prev
+	return kept.size() == 1 and int(kept[0].aspect) == 1
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

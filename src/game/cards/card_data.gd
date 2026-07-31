@@ -53,7 +53,7 @@ var bloom: int = 0
 ## a boss. Its own field, NOT `growth` -- growth is deliberately transient (Wzrost resets every
 ## fight and is never written to the run save), so reusing it would both break Wzrost and lose
 ## the scar on the next load. Scars are saved with the run.
-var scar: int = 0
+@export var scar: int = 0
 
 ## REVERSED (docs/PLAN_TODO.md T4): the card has been turned upside down in a shop. Its Aspect
 ## was CHANGED IN PLACE at that moment to its enemy on the pentagram, so nothing downstream has
@@ -64,12 +64,17 @@ var inverted: bool = false
 ## CRACKED (docs/todo.md par.5, "Trauma po Wiezy"): a card the Tower shattered and you won back
 ## anyway. It lost a third of its chip base for good, but it survived something -- so any
 ## retrigger in the play (Lawina) fires TWICE on it. A scar that costs you and pays you.
-var cracked: bool = false
+@export var cracked: bool = false
 
 ## SPLASH (docs/todo.md "Karty Dwukolorowe"): a SECOND Aspect the card also counts as, carved in
 ## a shop. -1 = single-coloured. A splashed card belongs to BOTH colours at once, which is what
 ## makes a two-colour deck coherent instead of a compromise.
-var splash: int = -1
+@export var splash: int = -1
+
+## THE FEAST (docs/todo.md par.1, "wysysajac z niej Chipsy i Mult"): how many cards this Ofiara has
+## devoured THIS FIGHT. Per-fight like `growth`, never exported -- the sacrifice is a thing that
+## happens in a duel, not a property of the card in your deck.
+var feast: int = 0
 
 ## Every Aspect this card counts as. One entry for a plain card, two for a splashed one --
 ## everything that asks about colour asks THIS, so a hybrid works everywhere at once.

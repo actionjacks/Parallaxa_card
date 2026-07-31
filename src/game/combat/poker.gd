@@ -107,7 +107,10 @@ static func name_key(hand: int) -> String:
 ## make an existing hand worse.
 static func evaluate(cards: Array) -> int:
 	var plain := _evaluate_plain(cards)
-	if cards.size() != 5:
+	# FOUR cards can already be a secret hand: the whole court IS four cards, and demanding a
+	# fifth meant the exact act todo.md describes -- laying down Page, Knight, Queen and King --
+	# scored as a high card. PENTAGRAM still needs five (one seat per Aspect); _secret_hand checks.
+	if cards.size() < 4 or cards.size() > 5:
 		return plain
 	var secret := _secret_hand(cards)
 	if secret < 0:
@@ -125,7 +128,7 @@ static func _secret_hand(cards: Array) -> int:
 	# Splashed cards make this a MATCHING problem, not a count: a hybrid can fill whichever
 	# colour seat is still empty, so the question is whether five different Aspects can be
 	# assigned one per card.
-	if _covers_five(cards):
+	if cards.size() == 5 and _covers_five(cards):
 		return Hand.PENTAGRAM
 	return -1
 

@@ -420,8 +420,6 @@ func _render() -> void:
 		elif not standalone and RunState.region != null and RunState.region.law_key != "" \
 				and Profile.claim_once("first_law"):
 			_covenant_line(tr("FIRST_LAW"))
-		elif _selected.size() > 1 and _veil < 4 and Profile.claim_once("first_keystone"):
-			_covenant_line(tr("FIRST_KEYSTONE"))
 		elif controller.banned_aspect() >= 0 and Profile.claim_once("first_ban"):
 			_covenant_line(tr("FIRST_BAN"))
 		elif _enemy.rule == EnemyData.Rule.INVERTED_TABLE and Profile.claim_once("first_inverted"):
@@ -792,6 +790,14 @@ func _set_prophecy(lethal: bool, dmg: int, hand: int, bonus: int) -> void:
 
 ## A short diegetic line floated over the arena (the covenant speaking, once).
 ## Sits in the quiet band between the breakdown and the player bar -- clear of the relic row.
+## THE KEYSTONE LESSON, WHERE IT CAN ACTUALLY FIRE. This used to sit in _render(), which only ever
+## runs on controller.state_changed -- and `_selected` is cleared before every one of those
+## emissions, so its `_selected.size() > 1` guard could never be true. The lesson belongs on the
+## click that creates the second selection, which is exactly when the ordering starts to matter.
+func _maybe_teach_keystone() -> void:
+	if _selected.size() > 1 and _veil < 4 and Profile.claim_once("first_keystone"):
+		_covenant_line(tr("FIRST_KEYSTONE"))
+
 func _covenant_line(text: String) -> void:
 	var l := _label(text, 14, Color(0.8, 0.7, 0.9))
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -963,6 +969,7 @@ func _on_card_input(event: InputEvent, card: CardData) -> void:
 					Sfx.play(&"card_select", -8.0)
 				_refresh_card_styles()
 				_update_selection_ui()
+				_maybe_teach_keystone()
 				return
 			# plain click: toggle
 			if _selected.has(card):
@@ -973,6 +980,7 @@ func _on_card_input(event: InputEvent, card: CardData) -> void:
 				Sfx.play(&"card_select", -8.0)
 			_refresh_card_styles()
 			_update_selection_ui()
+			_maybe_teach_keystone()
 	elif event is InputEventMouseMotion and _drag_card == card and _drag_panel != null:
 		var mouse := _drag_panel.get_global_mouse_position()
 		if not _drag_active and (mouse - (_drag_panel.global_position + _drag_offset)).length() > 14.0:
@@ -1413,9 +1421,18 @@ func _on_ended(won: bool) -> void:
 		# it for the rest of the run. The trigger is deterministic -- the last card of the last
 		# play, never a roll -- so the covenant holds and the player can aim for it on purpose.
 		if won and _enemy.is_boss and not controller.killing_cards.is_empty():
-			var killer: CardData = controller.killing_cards[controller.killing_cards.size() - 1]
-			killer.scar += SCAR_CHIPS
-			_popup(tr("SCAR_EARNED") % SCAR_CHIPS, Color(0.98, 0.82, 0.35), _enemy_fx_pos(), 24)
+			# Walk back from the last card: glass that shattered on the killing blow (and a card
+			# the Ofiara ate) leaves the deck seconds later, so scarring it printed a promise the
+			# run was about to erase.
+			var killer: CardData = null
+			for i in range(controller.killing_cards.size() - 1, -1, -1):
+				var c: CardData = controller.killing_cards[i]
+				if not controller.destroyed_cards.has(c):
+					killer = c
+					break
+			if killer != null:
+				killer.scar += SCAR_CHIPS
+				_popup(tr("SCAR_EARNED") % SCAR_CHIPS, Color(0.98, 0.82, 0.35), _enemy_fx_pos(), 24)
 		RunState.pending_overkill = controller.overkill_rtec
 		if won:
 			for c in controller.destroyed_cards:

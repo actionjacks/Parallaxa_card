@@ -13,6 +13,11 @@ class_name Scoring
 ##  7. relics (with the Magician's MAGNIFY amplification)  8. Polychrome  9. Klatwa + flat
 ##  10. leech -> heal, then the heal-budget clamp
 
+## Flat chips a reversed card carries on top of its x1.45. Measured trade-off: todo.md asks for a
+## "powerful bonus (e.g. x3 Mult)", but x3 per card compounds to x243 across five and would end the
+## game. Flat chips make one reversal felt without the stack detonating.
+const INVERT_CHIPS: int = 20
+
 static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictionary:
 	var grave: int = int(ctx.get("grave", 0))
 	var plays: int = int(ctx.get("plays", 0))
@@ -69,6 +74,12 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	if cards.size() > 1 and cards[cards.size() - 1].keyword == CardData.Keyword.OFIARA:
 		devoured = cards.size() - 2
 		devoured_chips = cards[devoured].chip_value()
+		# A banned colour brings nothing -- including through a mouth. Eating a forbidden card used
+		# to launder its chips into the Ofiara, which was a hole straight through the Judgement's
+		# announced rule.
+		var ban: int = int(ctx.get("banned_aspect", -1))
+		if ban >= 0 and cards[devoured].has_aspect(ban):
+			devoured_chips = 0
 	for ci in cards.size():
 		var c = cards[ci]
 		var key: int = 2 if ci == keystone else 1
@@ -91,6 +102,13 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		# fights for a different Aspect than the deck was built around.
 		if c.inverted:
 			mult *= 1.45
+			# A reversal is now worth taking on ONE card, not only in a stack of five: the flat
+			# chips make a single reversed card felt, while the multiplier stays small enough that
+			# five of them is x6.4 rather than an explosion.
+			chips += INVERT_CHIPS * key
+		# What this card has already devoured this fight rides with it (docs/todo.md par.1).
+		if c.feast > 0:
+			mult += float(c.feast)
 		match c.edition:
 			CardData.Edition.FOIL:
 				chips += 15
@@ -237,6 +255,8 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		# index WITHIN the played set of the card the Ofiara devoured (-1 = none). The controller
 		# destroys it; Scoring never mutates the cards it is asked about.
 		"devoured": devoured,
+		# what the mouth actually swallowed (0 when the victim's colour was banned)
+		"devoured_chips": devoured_chips,
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,
