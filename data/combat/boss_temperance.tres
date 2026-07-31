@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_star.tres" id="1_tmp01"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/14_temperance.jpg" id="2_tmp02"]
+[ext_resource type="Texture2D" path="res://assets/foes/14_temperance.png" id="3_tmp03"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_tmp04"]
+
+[resource]
+script = ExtResource("4_tmp04")
+name_key = "ENEMY_UMIARKOWANIE"
+max_hp = 1520
+intents = PackedInt32Array(19, 26, 15)
+enrage_step = 5
+reward_rtec = 17
+is_boss = true
+rule = 23
+rule_key = "RULE_CELTIC"
+art = ExtResource("2_tmp02")
+arcanum = ExtResource("1_tmp01")
+figure = ExtResource("3_tmp03")

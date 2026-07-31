@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://data/arcana/arcanum_devil.tres" id="15_rimnp"]
 [ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="16_a7pah"]
 [ext_resource type="Resource" path="res://data/arcana/arcanum_magician.tres" id="17_bwm5p"]
+[ext_resource type="Resource" path="res://data/combat/boss_hermit.tres" id="x_hermit"]
 
 [resource]
 script = ExtResource("10_rimnp")
@@ -28,7 +29,7 @@ boss_arcanum = ExtResource("2_813l4")
 starting_pool = Array[ExtResource("11_a7pah")]([ExtResource("12_4wait"), ExtResource("13_bi01l"), ExtResource("14_wjsdg"), ExtResource("15_rimnp"), ExtResource("16_a7pah"), ExtResource("17_bwm5p")])
 accent = Color(0.43, 0.62, 0.8, 1)
 elite = ExtResource("5_pifbc")
-boss_pool = Array[ExtResource("3_7apjq")]([ExtResource("1_h2kas"), ExtResource("4_y4kc4")])
+boss_pool = Array[ExtResource("3_7apjq")]([ExtResource("1_h2kas"), ExtResource("4_y4kc4"), ExtResource("x_hermit")])
 law = 2
 law_key = "LAW_MIND"
 seal_aspect = 1

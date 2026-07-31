@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Resource" path="res://data/arcana/arcanum_hermit.tres" id="1_hrm01"]
+[ext_resource type="Texture2D" path="res://assets/cards/arcana/09_hermit.jpg" id="2_hrm02"]
+[ext_resource type="Texture2D" path="res://assets/foes/09_hermit.png" id="3_hrm03"]
+[ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_hrm04"]
+
+[resource]
+script = ExtResource("4_hrm04")
+name_key = "ENEMY_PUSTELNIK"
+max_hp = 1180
+intents = PackedInt32Array(16, 22, 14)
+enrage_step = 4
+reward_rtec = 16
+is_boss = true
+rule = 22
+rule_key = "RULE_SPREAD"
+art = ExtResource("2_hrm02")
+arcanum = ExtResource("1_hrm01")
+figure = ExtResource("3_hrm03")

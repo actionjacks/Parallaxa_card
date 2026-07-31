@@ -30,7 +30,16 @@ extends Resource
 ##  INVERTED_TABLE the hand chart is READ UPSIDE DOWN -- a pair outscores a flush
 ##  WIDE_HAND      no discards at all, but three more cards in hand
 ##  ASPECT_BAN     one colour is forbidden each cycle; its cards bring no chips
-enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN }
+## Wave G -- the two spreads todo.md par.2 asked for. These do not modify a number, they change
+## the GEOMETRY of a turn, which is why the original plan filed them as "a second game mode":
+##  THREE_SPREAD  each turn falls into a seat -- Past (no damage, its Mult is kept for the whole
+##                duel), Present (lands now), Future (lands in two turns). Honest because the deck
+##                is deterministic: the cockpit prints the seat and the pending blow before you
+##                commit, so a foretold future is a promise the engine keeps.
+##  CELTIC_CROSS  four slots beside the hand. Freezing costs a discard and parks cards out of the
+##                hand so it refills -- that is how you assemble one enormous play for the turn
+##                the enemy telegraphs its worst blow.
+enum Rule { NONE, TOWER_IGNORES_BLOCK, DEVIL_BLOOD_TAX, MOON_CLEANSE, WORLD_ALL, CHARIOT_DOUBLE, STRENGTH_RESIST, HANGED_CAP, JUSTICE_RIPOSTE, JUDGEMENT_FRAIL, STAR_REGEN, EMPRESS_BLOOM, WHEEL_TURN, FOOL_MIRROR, VAMPIRE_MEND, HAND_THIEF, GRAVE_GLUTTON, THIRD_BURST, BARK_HIDE, INVERTED_TABLE, WIDE_HAND, ASPECT_BAN, THREE_SPREAD, CELTIC_CROSS }
 
 @export var name_key: String = ""
 @export var max_hp: int = 150

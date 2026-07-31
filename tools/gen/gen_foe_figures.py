@@ -234,6 +234,8 @@ PLATES = [
     "arcana/10_wheel_of_fortune", "arcana/11_justice", "arcana/12_hanged_man",
     "arcana/15_devil", "arcana/16_tower", "arcana/17_star", "arcana/18_moon",
     "arcana/20_judgement", "arcana/21_world",
+    # Wave G bosses: the Hermit reads the three-card spread, Temperance holds the Celtic Cross.
+    "arcana/09_hermit", "arcana/14_temperance",
 ]
 
 if __name__ == "__main__":

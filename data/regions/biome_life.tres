@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://data/arcana/arcanum_devil.tres" id="15_4ikxi"]
 [ext_resource type="Resource" path="res://data/arcana/arcanum_empress.tres" id="16_kxtqt"]
 [ext_resource type="Resource" path="res://data/arcana/arcanum_magician.tres" id="17_qibdk"]
+[ext_resource type="Resource" path="res://data/combat/boss_temperance.tres" id="x_temper"]
 
 [resource]
 script = ExtResource("10_4ikxi")
@@ -28,7 +29,7 @@ boss_arcanum = ExtResource("2_5pfou")
 starting_pool = Array[ExtResource("11_kxtqt")]([ExtResource("12_pl33u"), ExtResource("13_17k53"), ExtResource("14_72pc0"), ExtResource("15_4ikxi"), ExtResource("16_kxtqt"), ExtResource("17_qibdk")])
 accent = Color(0.82, 0.74, 0.5, 1)
 elite = ExtResource("5_4olqo")
-boss_pool = Array[ExtResource("3_msv5t")]([ExtResource("1_405h2"), ExtResource("4_6jv31")])
+boss_pool = Array[ExtResource("3_msv5t")]([ExtResource("1_405h2"), ExtResource("4_6jv31"), ExtResource("x_temper")])
 law = 1
 law_key = "LAW_LIFE"
 seal_aspect = 0

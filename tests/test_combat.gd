@@ -23,6 +23,11 @@ func _initialize() -> void:
 	fails += _expect("Ofiara keeps what it ate for the rest of the fight", _ofiara_feast())
 	fails += _expect("a banned colour cannot be laundered through Ofiara", _ofiara_respects_ban())
 	fails += _expect("Veil V's lost colour is filtered out of every offer", _lost_aspect_filters())
+	fails += _expect("Spread: the PAST deals no damage and banks its Mult", _spread_past())
+	fails += _expect("Spread: the FUTURE lands exactly two turns later", _spread_future())
+	fails += _expect("Spread: the cockpit and play() agree on what lands now", _spread_preview_honest())
+	fails += _expect("Celtic Cross: freezing parks a card and refills the hand", _celtic_freeze())
+	fails += _expect("Celtic Cross: a recall is refused when the hand is full", _celtic_recall_guard())
 	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
 	fails += _expect("Full Court: Page+Knight+Queen+King", _full_court_reads() == Poker.Hand.FULL_COURT)
 	fails += _expect("a scar adds permanent chips and survives a save round-trip", _scar_persists())
@@ -880,6 +885,90 @@ func _lost_aspect_filters() -> bool:
 	var kept: Array = rs.filter_lost(pool)
 	rs.lost_aspect = prev
 	return kept.size() == 1 and int(kept[0].aspect) == 1
+
+func _spread_ctrl() -> CombatController:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 14:
+		deck.append(_card(5, i % 5))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	e.rule = EnemyData.Rule.THREE_SPREAD
+	ctrl.start(deck, e, [], 50, 50)
+	return ctrl
+
+## Turn 1 is the PAST seat: it must strike nothing and keep its Mult for the whole duel.
+func _spread_past() -> bool:
+	var ctrl := _spread_ctrl()
+	if ctrl.spread_seat() != 0:
+		return false
+	var hp: int = ctrl.enemy_hp
+	ctrl.play([0, 1])
+	return ctrl.enemy_hp == hp and ctrl.spread_mult > 0.0
+
+## Turn 3 is the FUTURE seat: nothing now, everything two enemy turns later -- and not one turn
+## early, which is the half of the promise a naive countdown gets wrong.
+func _spread_future() -> bool:
+	var ctrl := _spread_ctrl()
+	ctrl.play([0])                       # PAST
+	ctrl.resolve_enemy_turn()
+	ctrl.play([0])                       # PRESENT
+	ctrl.resolve_enemy_turn()
+	if ctrl.spread_seat() != 2:
+		return false
+	var hp: int = ctrl.enemy_hp
+	ctrl.play([0])                       # FUTURE: banked
+	if ctrl.enemy_hp != hp or ctrl.pending_total() <= 0:
+		return false
+	var owed: int = ctrl.pending_total()
+	ctrl.resolve_enemy_turn()            # one turn later: still pending
+	if ctrl.enemy_hp != hp:
+		return false
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()            # two turns later: it lands
+	return ctrl.enemy_hp <= hp - owed
+
+## The covenant: what the cockpit prints must be what play() does.
+func _spread_preview_honest() -> bool:
+	var ctrl := _spread_ctrl()
+	var raw: int = 500
+	if ctrl.spread_now(raw) != 0:
+		return false                     # PAST seat
+	ctrl.play([0])
+	ctrl.resolve_enemy_turn()
+	return ctrl.spread_now(raw) == raw   # PRESENT seat
+
+func _celtic_ctrl() -> CombatController:
+	var ctrl := CombatController.new()
+	var deck: Array = []
+	for i in 14:
+		deck.append(_card(5, i % 5))
+	var e := EnemyData.new()
+	e.max_hp = 99999
+	e.intents = PackedInt32Array([0])
+	e.rule = EnemyData.Rule.CELTIC_CROSS
+	ctrl.start(deck, e, [], 50, 50)
+	return ctrl
+
+func _celtic_freeze() -> bool:
+	var ctrl := _celtic_ctrl()
+	var n: int = ctrl.hand.size()
+	var d: int = ctrl.discards_left
+	var parked: CardData = ctrl.hand[0]
+	ctrl.freeze([0])
+	# the card left the hand for the cross, the hand refilled, and it cost exactly one discard
+	return ctrl.stash.size() == 1 and ctrl.stash[0] == parked \
+		and ctrl.hand.size() == n and not ctrl.hand.has(parked) and ctrl.discards_left == d - 1
+
+## NEGATIVE: the cross is a store, never a way to hold more cards than the duel allows.
+func _celtic_recall_guard() -> bool:
+	var ctrl := _celtic_ctrl()
+	ctrl.freeze([0])
+	if ctrl.stash.size() != 1 or ctrl.hand.size() != ctrl.hand_size():
+		return false
+	ctrl.recall(0)
+	return ctrl.stash.size() == 1        # refused: the hand is already full
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

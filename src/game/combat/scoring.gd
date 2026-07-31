@@ -212,6 +212,9 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 			ArcanumData.Effect.HEAL_ON_PLAY:
 				heal += relic.effect_value
 
+	# The Past seat's banked Mult (THREE_SPREAD): a play spent on the Past pays every later play.
+	mult += float(ctx.get("spread_mult", 0.0))
+
 	mult *= poly
 
 	# --- BIOME LAW: the field itself scores, one deterministic rule per biome (RegionData.Law).

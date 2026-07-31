@@ -23,6 +23,8 @@ const VAMPIRE_THRESHOLD: int = 90    ## ...i.e. under this much damage between i
 ## engine recycles the grave unconditionally anyway, so "raise the dead" changed nothing but a log
 ## line. todo.md's closing paragraph asks for the grave to return in a MIGHTIER form -- this is it.
 const RAISE_CHIPS: int = 6
+const SPREAD_DELAY: int = 2          ## turns a Future-seat blow waits before it lands
+const CELTIC_SLOTS: int = 4          ## cards the Celtic Cross can hold beside the hand
 
 var relics: Array = []          ## Array[ArcanumData] applied to every play
 var hand_levels: Dictionary = {}   ## Poker.Hand -> level (Star consumables)
@@ -48,6 +50,12 @@ var destroyed_cards: Array = []   ## PRZECIAZENIE glass shattered this fight (le
 ## What the TOWER itself broke. Kept apart from destroyed_cards because these are the cards the
 ## player wins BACK if they survive -- cracked, not gone (docs/todo.md par.5).
 var tower_broke: Array = []
+## THE THREE-CARD SPREAD. `_spread_mult` is what the Past seat banked (added to every later play
+## this duel); `_pending` holds [turns_left, damage] for blows sent to the Future.
+var spread_mult: float = 0.0
+var pending: Array = []
+## THE CELTIC CROSS: cards parked beside the hand. They are still yours and still in the run.
+var stash: Array = []
 
 # --- fight statistics (read by RunState.record_fight) ---
 var damage_taken: int = 0         ## HP lost to enemy hits + blood tax this fight
@@ -124,6 +132,9 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 	overkill_rtec = 0
 	destroyed_cards.clear()
 	tower_broke.clear()
+	spread_mult = 0.0
+	pending.clear()
+	stash.clear()
 	damage_taken = 0
 	death_cause = ""
 	fight_damage = 0
@@ -235,6 +246,29 @@ func effective_damage(raw: int, cards_played: int = 5, hand: int = -1) -> int:
 		return ceili(raw * 0.6)
 	return raw
 
+## Which seat this turn falls into: 0 Past, 1 Present, 2 Future. -1 when this is not a spread
+## fight. Driven by `turn`, so it is knowable before a single card is picked and the HUD prints it.
+func spread_seat() -> int:
+	if enemy == null or enemy.rule != EnemyData.Rule.THREE_SPREAD:
+		return -1
+	return (turn - 1) % 3
+
+## Damage that lands RIGHT NOW for a play worth `raw`. The Past keeps its Mult instead of striking
+## and the Future defers -- both are zero on the turn they are played, and the cockpit reads this
+## same function, so the preview cannot disagree with the outcome.
+func spread_now(raw: int) -> int:
+	var seat := spread_seat()
+	if seat == 0 or seat == 2:
+		return 0
+	return raw
+
+## Total already promised to the Future, for the cockpit line.
+func pending_total() -> int:
+	var n := 0
+	for e in pending:
+		n += int(e[1])
+	return n
+
 ## Justice's exact riposte for a play of the given EFFECTIVE damage (0 = none). Preview-visible.
 func riposte_for(dmg: int) -> int:
 	if enemy == null or enemy.rule != EnemyData.Rule.JUSTICE_RIPOSTE or dmg < 40:
@@ -273,6 +307,17 @@ func play(selected: Array) -> void:
 	enemy_gnicie += int(result["gnicie"])
 	enemy_klatwa += int(result.get("klatwa_add", 0))   # this play's Curse cards debuff FUTURE plays
 	var dmg := effective_damage(int(result["damage"]), cards.size(), int(result["hand"]))
+	# THE SPREAD REASSIGNS THE BLOW (docs/todo.md par.2). The Past banks its Mult for the whole
+	# duel and strikes nothing; the Future is written down and lands SPREAD_DELAY turns later.
+	var seat := spread_seat()
+	if seat == 0:
+		spread_mult += float(result["mult"])
+		message.emit("LOG_SPREAD_PAST", [float(result["mult"])])
+		dmg = 0
+	elif seat == 2:
+		pending.append([SPREAD_DELAY, dmg])
+		message.emit("LOG_SPREAD_FUTURE", [SPREAD_DELAY, dmg])
+		dmg = 0
 	var hp_before: int = enemy_hp
 	enemy_hp -= dmg
 	# THE TURN AT HALF HEALTH. A boss that has been holding back stops: from here its clock runs
@@ -402,6 +447,40 @@ func play(selected: Array) -> void:
 	state_changed.emit()
 	awaiting_enemy.emit()   # the scene pauses for a beat, then calls resolve_enemy_turn()
 
+## FREEZE (docs/todo.md par.2, Celtic Cross). Parks cards beside the hand so the hand refills --
+## that is the whole engine of the mechanic: you keep what you want and still draw fresh material.
+## It costs a DISCARD, because a park-and-redraw that costs nothing would let a player cycle the
+## entire deck for free and turn a deterministic duel into a search.
+func freeze(selected: Array) -> void:
+	if phase != "player" or selected.is_empty() or discards_left <= 0:
+		return
+	if enemy == null or enemy.rule != EnemyData.Rule.CELTIC_CROSS:
+		return
+	if stash.size() + selected.size() > CELTIC_SLOTS:
+		return
+	var idx: Array = selected.duplicate()
+	idx.sort()
+	idx.reverse()
+	for i in idx:
+		if i >= 0 and i < hand.size():
+			stash.append(hand[i])
+			hand.remove_at(i)
+	discards_left -= 1
+	_refill()
+	message.emit("LOG_CELTIC_FREEZE", [stash.size()])
+	state_changed.emit()
+
+## Take a frozen card back. Free -- it is already yours -- but only when the hand has room, so
+## the cross is a store, never a way to hold more cards than the duel allows.
+func recall(stash_index: int) -> void:
+	if phase != "player" or stash_index < 0 or stash_index >= stash.size():
+		return
+	if hand.size() >= hand_size():
+		return
+	hand.append(stash[stash_index])
+	stash.remove_at(stash_index)
+	state_changed.emit()
+
 func discard(selected: Array) -> void:
 	if phase != "player" or selected.is_empty() or discards_left <= 0:
 		return
@@ -413,6 +492,24 @@ func discard(selected: Array) -> void:
 func resolve_enemy_turn() -> void:
 	if phase != "enemy":
 		return
+	# WHAT WAS FORETOLD ARRIVES. Ticked before anything else on the enemy's turn, so a Future blow
+	# can finish the fight exactly on the turn the cockpit said it would.
+	if not pending.is_empty():
+		var still: Array = []
+		for e in pending:
+			var left: int = int(e[0]) - 1
+			if left <= 0:
+				enemy_hp -= int(e[1])
+				_dmg_this_round += int(e[1])
+				fight_damage += int(e[1])
+				message.emit("LOG_SPREAD_LANDS", [int(e[1])])
+			else:
+				still.append([left, int(e[1])])
+		pending = still
+		if enemy_hp <= 0:
+			enemy_hp = 0
+			_finish(true)
+			return
 	if enemy_gnicie > 0:
 		enemy_hp -= enemy_gnicie
 		_dmg_this_round += enemy_gnicie
@@ -558,6 +655,8 @@ func _ctx() -> Dictionary:
 		"inverted_table": enemy != null and (enemy.rule == EnemyData.Rule.INVERTED_TABLE
 			or (enemy.is_boss and veil >= 5)),
 		"banned_aspect": banned_aspect(),
+		# What the Past seat banked: added to every later play of this duel (docs/todo.md par.2).
+		"spread_mult": spread_mult,
 		"grave": _used.size(),
 		"plays": _plays,
 		"hand_levels": hand_levels,

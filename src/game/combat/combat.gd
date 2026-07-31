@@ -25,6 +25,8 @@ var _deck: Array = []
 var _enemy: EnemyData
 var _relics: Array = []
 var _selected: Array = []
+var _freeze_btn: Button
+var _stash_row: HBoxContainer       ## the Celtic Cross's four slots, beside the hand
 var _order_row: HBoxContainer      ## the staged play, in play order, with move-left/right handles          ## selected CardData instances (not indices)
 
 var _widgets: Dictionary = {}      ## CardData -> its card panel in the hand
@@ -281,6 +283,13 @@ func _build_ui() -> void:
 	_discard_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_discard_btn.pressed.connect(_on_discard)
 	crow.add_child(_discard_btn)
+	# THE CELTIC CROSS (docs/todo.md par.2). Only ever visible in the duel that has the rule --
+	# an always-present button for a mechanic that exists in one fight would be noise.
+	_freeze_btn = Button.new()
+	_freeze_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_freeze_btn.pressed.connect(_on_freeze)
+	_freeze_btn.visible = false
+	crow.add_child(_freeze_btn)
 	var st0 := get_node_or_null("/root/Settings")
 	if st0 != null and st0.has_method("get_value"):
 		_hand_sort = int(st0.call("get_value", "gameplay", "hand_sort", 0))
@@ -309,6 +318,11 @@ func _build_ui() -> void:
 	# seat one, the Keystone and the Ofiara read the last -- but until now it was communicated by a
 	# tiny badge number that often contradicted where the card physically sat in the fan. This
 	# shows the sentence you are composing, left to right, and lets you rewrite it.
+	_stash_row = HBoxContainer.new()
+	_stash_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_stash_row.add_theme_constant_override("separation", 4)
+	_stash_row.visible = false
+	crow.add_child(_stash_row)
 	_order_row = HBoxContainer.new()
 	_order_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_order_row.add_theme_constant_override("separation", 4)
@@ -440,6 +454,7 @@ func _render() -> void:
 				and Profile.claim_once("first_technique"):
 			_covenant_line(tr("FIRST_TECHNIQUE"))
 	_refresh_next_draws()
+	_refresh_stash()
 	if _hint_label != null:
 		var ba := _best_available()
 		var bn: String = tr(Poker.name_key(ba)) if (ba >= 0 and _hand_known(ba)) else tr("HAND_UNDISCOVERED")
@@ -486,6 +501,16 @@ func _render() -> void:
 	var ban: int = controller.banned_aspect()
 	if ban >= 0:
 		rule_txt += "   |   " + tr("COMBAT_BANNED") % tr(Aspects.name_key(ban))
+	# The seat you are in, what the Past has already banked, and what the Future owes -- all three
+	# on screen, because a spread the player cannot read is a trap rather than a puzzle.
+	var seat := controller.spread_seat()
+	if seat >= 0:
+		var seat_key: String = ["SPREAD_PAST", "SPREAD_PRESENT", "SPREAD_FUTURE"][seat]
+		rule_txt = (tr("SPREAD_SEAT") % tr(seat_key)) + "   " + rule_txt
+		if controller.spread_mult > 0.0:
+			rule_txt += "   " + (tr("SPREAD_BANKED") % controller.spread_mult)
+		for e in controller.pending:
+			rule_txt += "   " + (tr("SPREAD_PENDING") % [int(e[0]), int(e[1])])
 	_rule_label.text = rule_txt
 	_rule_label.visible = _rule_label.text != ""
 	_player_hp_bar.max_value = controller.player_max_hp
@@ -620,8 +645,12 @@ func _refresh_cockpit(eff_dmg: int, play_block: int, lethal: bool) -> void:
 		and _enemy.rule == EnemyData.Rule.FOOL_MIRROR and eff_dmg > 0) else controller.current_intent()
 	var you := tr("COCKPIT_YOU") % [controller.intent_shown(shown_intent),
 		controller.player_block + play_block, controller.player_hp, hp_after]
+	# THE SPREAD IS PRICED BEFORE THE CLICK. A Past or Future play lands nothing NOW, and the
+	# cockpit says so with the same function play() uses -- so "the cards do not lie" survives a
+	# mechanic whose whole point is that the blow arrives later.
+	var now_dmg: int = controller.spread_now(eff_dmg) if controller.spread_seat() >= 0 else eff_dmg
 	if eff_dmg > 0:
-		var ehp_after: int = maxi(0, controller.enemy_hp - eff_dmg)
+		var ehp_after: int = maxi(0, controller.enemy_hp - now_dmg)
 		_cockpit_label.text = (tr("COCKPIT_ENEMY") % [controller.enemy_hp, ehp_after]) + "   |   " + you
 	else:
 		_cockpit_label.text = you
@@ -809,6 +838,44 @@ func _set_prophecy(lethal: bool, dmg: int, hand: int, bonus: int) -> void:
 ## Redraws the play-order strip. Each staged card is a chip carrying its rank glyph in its colour,
 ## flanked by handles that swap it with its neighbour -- so "which five, and in what order" is a
 ## question the player can actually answer instead of one they have to reverse-engineer.
+func _on_freeze() -> void:
+	if controller.phase != "player" or _selected.is_empty():
+		return
+	controller.freeze(_selected_indices())
+	_selected.clear()
+	Sfx.play(&"card_select", -8.0, 0.7)
+
+## The four slots, and the way back out of them. A frozen card is still yours: click it to take it
+## back whenever the hand has room.
+func _refresh_stash() -> void:
+	if _stash_row == null or controller == null:
+		return
+	var on: bool = _enemy != null and _enemy.rule == EnemyData.Rule.CELTIC_CROSS
+	_stash_row.visible = on
+	if _freeze_btn != null:
+		_freeze_btn.visible = on
+		if on:
+			_freeze_btn.text = tr("CELTIC_FREEZE") % controller.stash.size()
+			_freeze_btn.disabled = controller.phase != "player" or _selected.is_empty() \
+				or controller.discards_left <= 0 \
+				or controller.stash.size() + _selected.size() > CombatController.CELTIC_SLOTS
+	if not on:
+		return
+	for ch in _stash_row.get_children():
+		_stash_row.remove_child(ch)
+		ch.queue_free()
+	_stash_row.add_child(_label(tr("CELTIC_STASH") + ":", 12, Color(0.5, 0.5, 0.58)))
+	for i in controller.stash.size():
+		var c: CardData = controller.stash[i]
+		var b := Button.new()
+		b.text = c.rank_glyph()
+		b.focus_mode = Control.FOCUS_NONE
+		b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		b.add_theme_color_override("font_color", Aspects.color(int(c.aspect)))
+		b.tooltip_text = tr("CELTIC_STASH")
+		b.pressed.connect(func() -> void: controller.recall(i))
+		_stash_row.add_child(b)
+
 func _refresh_order_strip() -> void:
 	if _order_row == null:
 		return
@@ -1080,6 +1147,7 @@ func _update_selection_ui() -> void:
 	_discard_btn.text = tr("COMBAT_DISCARD") % controller.discards_left
 	_discard_btn.disabled = not (is_player and has_sel and controller.discards_left > 0)
 	_refresh_order_strip()
+	_refresh_stash()
 	if not has_sel:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
 		_preview_extra.text = ""
@@ -1256,9 +1324,14 @@ func _boss_entrance() -> void:
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(dim)
+	# FULL_RECT, not PRESET_CENTER: the centre preset puts the column's TOP-LEFT at the middle of
+	# the screen, so the name sat right of centre and a long rule ran off the edge entirely. With
+	# the column spanning the frame, ALIGNMENT_CENTER centres it vertically and the labels'
+	# own horizontal alignment centres the text.
 	var col := VBoxContainer.new()
-	col.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_theme_constant_override("separation", 10)
 	card.add_child(col)
 	var name_l := _inked(_label(tr(_enemy.name_key), 46, Color(0.98, 0.9, 0.62)))
@@ -1268,7 +1341,7 @@ func _boss_entrance() -> void:
 		var rule_l := _inked(_label(tr(_enemy.rule_key), 17, Color(1.0, 0.72, 0.45)))
 		rule_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		rule_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		rule_l.custom_minimum_size = Vector2(720, 0)
+		rule_l.custom_minimum_size = Vector2(0, 0)
 		col.add_child(rule_l)
 	Sfx.play(&"lose", -8.0)
 	var hold: float = 0.7 if Juice.fast_pace() else 1.9

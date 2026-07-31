@@ -853,3 +853,7 @@ ENEMY_PUSTELNIK,The Hermit,Pustelnik
 ENEMY_UMIARKOWANIE,Temperance,Umiarkowanie
 DAILY_SET,Today's Arcana are set for everyone.,Dzisiejsze Arkana są narzucone wszystkim.
 DAILY_LOCKED,Today's reading is already recorded.,Dzisiejsze odczytanie jest już zapisane.
+LOG_SPREAD_PAST,The Past keeps its Mult: +%.1f for the whole duel.,Przeszłość zatrzymuje swój Mult: +%.1f na cały pojedynek.
+LOG_SPREAD_FUTURE,Written into the Future: %d turns from now — %d.,Zapisane w Przyszłości: za %d tury — %d.
+LOG_SPREAD_LANDS,What was foretold arrives: %d.,Co przepowiedziane — nadchodzi: %d.
+LOG_CELTIC_FREEZE,Frozen in the cross (%d/4).,Zamrożone w krzyżu (%d/4).
