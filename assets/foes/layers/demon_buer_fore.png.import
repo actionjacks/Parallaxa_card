@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/demon_buer_fore.png-3915af091cf0a804e0a77d490
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

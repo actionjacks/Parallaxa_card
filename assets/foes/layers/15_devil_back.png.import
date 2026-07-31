@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/15_devil_back.png-01a44d069320fb91c9b8b22ff29
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

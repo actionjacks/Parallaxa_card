@@ -144,7 +144,11 @@ func check_run_achievements(victory: bool) -> Array:
 	if victory and grant_achievement("ACH_JOURNEY"):
 		fresh.append("ACH_JOURNEY")
 	# Wave C: the prestige ledger (no unlocks -- proof, not power).
-	if RunState.stat_best_hand == Poker.Hand.MAGNUM_OPUS and grant_achievement("ACH_MAGNUM"):
+	# MAGNUM OPUS jest niemozliwy Z DEFINICJI puli kart (piec kart tej samej rangi I koloru, a pula
+	# nie zawiera tylu duplikatow) -- osiagniecie za niego bylo martwe od premiery. Cel przeniesiony
+	# na najwyzszy uklad, ktory NAPRAWDE pada: Piec Jednakowych (0,07% rak, ~raz na 1400 rozdan).
+	if Poker.value_of(RunState.stat_best_hand) >= Poker.value_of(Poker.Hand.FIVE) \
+			and grant_achievement("ACH_MAGNUM"):
 		fresh.append("ACH_MAGNUM")
 	var any_reversed := false
 	for a: ArcanumData in RunState.relics:
@@ -271,6 +275,10 @@ func record_run_end(victory: bool) -> Dictionary:
 	_life_add("damage", RunState.stat_damage_total)
 	_life_max("best_hit", RunState.stat_best_hit)
 	_life_add("turns", RunState.stat_turns_total)
+	# Wall-clock of the run, so pacing stops being an opinion.
+	if RunState.stat_started_ms > 0:
+		RunState.stat_seconds = int((Time.get_ticks_msec() - RunState.stat_started_ms) / 1000)
+		_life_add("seconds", RunState.stat_seconds)
 	_life_add("sol_earned", RunState.stat_sol_earned)
 	_life_add("arcana", RunState.relics.size())
 	var reversed_count := 0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/10_wheel_of_fortune.png-8f3abd34ec9f05743d26a
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

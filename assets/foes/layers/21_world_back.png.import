@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/21_world_back.png-e770d78cc0e2caec8b5d75abb45
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

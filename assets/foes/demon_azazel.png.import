@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/demon_azazel.png-9183f8114e89a66d5c3e010c8555
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

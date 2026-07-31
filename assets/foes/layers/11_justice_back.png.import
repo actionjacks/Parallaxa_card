@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/11_justice_back.png-ee16a761e2437ff4bd09fd24a
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

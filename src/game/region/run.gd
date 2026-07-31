@@ -35,6 +35,10 @@ const SPLASH_COST := 9
 ## meant to be the run-defining decision todo.md describes, not a thing you nibble at.
 const WARP_COST := 18
 
+## What taking the elite fork pays on top of the rung's own reward. Sized against the measured
+## health gap: the elite carries 130-230 HP more than the rung it replaces.
+const ELITE_PURSE := 8
+
 ## Veil III -- the Sealed Market: one fewer card on the counter. The economy stops being a
 ## shopping list and becomes a choice between two compromises.
 func SHOP_SLOTS() -> int:
@@ -49,7 +53,11 @@ const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THRE
 	Poker.Hand.PENTAGRAM, Poker.Hand.FULL_COURT]
 
 var _shop_offers: Array = []
-var _shop_reroll_cost: int = 1
+## Rerolling doubled the slots a player saw for one Mercury, so the gap between someone who knew
+## about it and someone who did not was 2x archetype density -- a bigger balance hole than the
+## shortage of cards it was hiding. It starts at three and climbs steeply: one reroll is a tool,
+## four is a search, and a search is what made the shop solvable.
+var _shop_reroll_cost: int = 3
 var _shop_star: int = -1          ## Poker.Hand this visit's Star levels; -1 = sold/none
 var _pending_first_line: String = ""   ## one-shot explanation queued for the next screen
 var _star_sold: bool = false      ## a Star was already bought this VISIT (rerolls must not restock)
@@ -492,7 +500,12 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 	if was_elite:
 		RunState.elite_taken = true
 		RunState.stat_elites_slain += 1
-		_elite_boost = true   # the elite's prize: this rung's card offers roll with boosted rarity
+		# THE ELITE REPLACES A RUNG, IT DOES NOT ADD ONE -- and in all five biomes it has MORE health
+		# than three of the four rungs it can stand in for. So "risk for loot" was, measured, a
+		# harder fight for the same number of fights. The boosted rarity stays, and the purse comes
+		# with it: the fork has to pay for the health it costs.
+		_elite_boost = true
+		RunState.rtec += ELITE_PURSE
 	if RunState.step >= RunState.fights.size():
 		RunState.stat_regions_cleared += 1
 		# THE BOSS RUNG CLOSES TOO. This branch returned before the increment below, so a save made
@@ -579,7 +592,7 @@ func _enter_shop() -> void:
 	_shop_offers = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), SHOP_SLOTS())
 	_shop_star = RunState.pick_offers(STAR_HANDS, 1)[0]
 	_star_sold = false
-	_shop_reroll_cost = 1
+	_shop_reroll_cost = 3
 	_show_shop()
 
 ## One-shot economy hints (overkill / thrift / interest / reversed tax) shown after a fight.
@@ -838,7 +851,7 @@ func _reroll_shop() -> void:
 	if RunState.spend(_cost(_shop_reroll_cost)):
 		_shop_offers = RunState.pick_tiered_offers(RunState.filter_lost(DeckLibrary.reward_pool()), SHOP_SLOTS())   # the slot-machine pull
 		_shop_star = -1 if _star_sold else RunState.pick_offers(STAR_HANDS, 1)[0]
-		_shop_reroll_cost += 1
+		_shop_reroll_cost += 3
 		_show_shop()
 
 func _open_deck_picker(title: String, on_pick: Callable) -> void:

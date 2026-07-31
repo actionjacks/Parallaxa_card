@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/08_strength_back.png-3ca3195b99ec4970dca36309
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

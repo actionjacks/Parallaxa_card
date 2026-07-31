@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/07_chariot_mid.png-de301f5ea4f058287302ebb5fa
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

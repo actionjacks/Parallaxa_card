@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/demon_dictionnaire_infernal_1863_lucifer_back
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

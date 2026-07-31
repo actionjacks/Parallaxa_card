@@ -66,6 +66,11 @@ var stat_best_hit_foe: String = ""    ## EnemyData.name_key of that play's victi
 var stat_best_hit_hand: int = 0       ## Poker.Hand of that play
 var stat_best_hand: int = 0           ## highest Poker.Hand ordinal played this run
 var stat_turns_total: int = 0         ## sum of combat turns across fights
+## HOW LONG A RUN ACTUALLY TAKES. The only clock this project ever had was a boosted bot killing
+## things on turn one, so every decision about pacing was made by eye. Wall-clock seconds, started
+## when the run begins and read at the spread.
+var stat_started_ms: int = 0
+var stat_seconds: int = 0
 var stat_regions_cleared: int = 0     ## bosses beaten this run (0..4)
 var stat_untouched_fights: int = 0    ## fights WON with zero damage taken (incl. blood tax)
 var stat_death_flush_kill: bool = false  ## killing blow was a 5-card mono-Death flush-family hand
@@ -148,6 +153,8 @@ func begin(p_region: RegionData, p_seed: int = 0) -> void:
 	stat_best_hit_hand = 0
 	stat_best_hand = 0
 	stat_turns_total = 0
+	stat_started_ms = Time.get_ticks_msec()
+	stat_seconds = 0
 	stat_regions_cleared = 0
 	stat_untouched_fights = 0
 	stat_death_flush_kill = false

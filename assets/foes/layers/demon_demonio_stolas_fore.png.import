@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/demon_demonio_stolas_fore.png-0b52b9035c31c4f
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
