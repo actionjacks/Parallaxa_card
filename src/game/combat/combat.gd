@@ -189,14 +189,32 @@ func _build_ui() -> void:
 	ev.add_child(_enrage_label)
 
 	# --- middle: relics + enemy emblem + score readout ---
+	# THE TABLE, LAID OUT PROPERLY. The score readout used to run down the SCREEN'S SPINE, which
+	# is the one column the opponent also occupies -- so every number was printed across its chest
+	# and three rounds of reframing only moved the collision around. The fix is not a better
+	# number, it is a different axis: the centre belongs to the opponent and the cards, and the
+	# running totals move to the right edge where they can be read without competing with anything.
+	# (The paytable already floats on the left, so the frame reads left-chart / centre-fight /
+	# right-maths.)
+	var midrow := HBoxContainer.new()
+	midrow.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	midrow.add_theme_constant_override("separation", 0)
+	root.add_child(midrow)
+	var arena_gap := Control.new()
+	arena_gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	arena_gap.size_flags_stretch_ratio = 2.5
+	arena_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	midrow.add_child(arena_gap)
 	var mid := VBoxContainer.new()
 	# Breathing room: seven readouts at separation 6 read as one block of noise. The 3D room
 	# behind them gives the space back, so spend it.
 	mid.add_theme_constant_override("separation", 11)
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(mid)
+	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.custom_minimum_size = Vector2(352, 0)
+	midrow.add_child(mid)
 	_relic_row = HBoxContainer.new()
-	_relic_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_relic_row.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_relic_row.add_theme_constant_override("separation", 8)
 	mid.add_child(_relic_row)
 	# The middle column no longer carries the enemy art (it is the backdrop now) -- this spacer
@@ -208,19 +226,21 @@ func _build_ui() -> void:
 	gap.size_flags_stretch_ratio = 4.5
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mid.add_child(gap)
-	_preview_label = _inked(_label("", 26, Color(0.98, 0.95, 0.8)))
-	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_preview_label = _inked(_label("", 21, Color(0.98, 0.95, 0.8)))
+	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_preview_label.custom_minimum_size = Vector2(344, 0)
 	mid.add_child(_preview_label)
 	_preview_extra = _inked(_label("", 16, Color(0.7, 0.85, 0.95)))
-	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	mid.add_child(_preview_extra)
 	_cockpit_label = _inked(_label("", 16, Color(0.85, 0.87, 0.9)))
 	_cockpit_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	_cockpit_label.tooltip_text = tr("TIP_COCKPIT")
-	_cockpit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_cockpit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	mid.add_child(_cockpit_label)
 	_breakdown_label = _inked(_label("", 13, Color(0.66, 0.72, 0.62)))
-	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_breakdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	mid.add_child(_breakdown_label)
 	_log_label = Lexicon.ink("", 13, Color(0.6, 0.6, 0.66), self)
 	# The log is history, and history is the first thing to fold away when the table gets crowded.
@@ -229,7 +249,8 @@ func _build_ui() -> void:
 	if st_log != null and st_log.has_method("get_value"):
 		_log_shown = bool(st_log.call("get_value", "gameplay", "combat_log", true))
 		_log_label.visible = _log_shown
-	_log_label.custom_minimum_size = Vector2(560, 0)
+	_log_label.custom_minimum_size = Vector2(344, 0)
+	_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mid.add_child(_log_label)
 
 	# --- player row ---
