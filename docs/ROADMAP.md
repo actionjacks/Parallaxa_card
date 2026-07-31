@@ -310,3 +310,12 @@ N2: ARENA DOSTALA POKOJ (`src/game/combat/arena_view.gd`) — podloga, sciana zz
 jedno cieple swiatlo przy krawedzi stolu i zimny rim. Ten sam wzorzec SubViewportu co wieza, wiec
 kosztuje 0 budzetu 720p; pokoj bierze akcent biomu i reaguje na trafienie (push-in kamery).
 Glebia z mgly i swiatla, nie z geometrii: dwie plaszczyzny, dwa swiatla (software GL).
+Domkniecie piatki, ktora byla zadeklarowana jako gotowa i gotowa nie byla (audyt wlasnej roboty
+2026-07-31): kamera COFA sie przy ciosie wroga, nie tylko przechyla przy twoim (`move_toward`, nie
+`maxf` — dodatnie klamrowanie zjadloby caly ujemny dolly, bo push-in i recoil to jedna zmienna);
+epilog po bossie mowi, CO zabral i co zostawil; szesc pojec dostalo linie przy PIERWSZYM napotkaniu
+(`claim_once`); dziennik walki chowa sie na przycisk; PRZECIWNIK STOI W POKOJU — Sprite3D na
+podlodze, w tej samej swiecy, z plama cienia pod stopami, zamiast plaskiej warstwy 2D NAD scena 3D.
+Do tej pory podloga i postac byly dwoma niepowiazanymi swiatami i caly koszt zbudowania pokoju nie
+kupowal nic poza tlem. Warstwa 2D zostaje wylacznie dla wroga bez figury — nikt nie renderuje sie
+jako pusta ramka.
