@@ -13,6 +13,25 @@ const STARTERS := {
 	"oracle": "res://data/decks/starter_oracle.tres",
 }
 
+## EVERY Arcanum in the game, in a STABLE order (directory listing is not stable across machines,
+## and a daily challenge that deals different cards on different filesystems is not a challenge).
+## Powers the Daily Reading's imposed opening set.
+static func all_arcana() -> Array:
+	var paths: Array = []
+	var d := DirAccess.open("res://data/arcana")
+	if d != null:
+		for f in d.get_files():
+			var n := f.trim_suffix(".remap")
+			if n.ends_with(".tres"):
+				paths.append(n)
+	paths.sort()
+	var out: Array = []
+	for n in paths:
+		var a = load("res://data/arcana/" + str(n))
+		if a != null:
+			out.append(a)
+	return out
+
 static func deck_name_key(id: String) -> String:
 	return "DECK_" + id.to_upper()
 

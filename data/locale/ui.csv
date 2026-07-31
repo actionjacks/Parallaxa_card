@@ -562,7 +562,7 @@ SPREAD_CAUSE_ATTACK,the blow broke through,cios przebił obronę
 SPREAD_CAUSE_PACT,the blood pact collected,pakt krwi zebrał zapłatę
 SPREAD_CAUSE_ASHES,the deck burned to ash,talia spłonęła na popiół
 SPREAD_GOAL,Next goal: %s (%d/%d Salt),Najbliższy cel: %s (%d/%d Soli)
-SHARE_FATE,"The Cards Do Not Lie — Fate %s, Veil %d","The Cards Do Not Lie — Fate %s, Veil %d"
+SHARE_FATE,"The Cards Do Not Lie — Fate %s, Veil %d — %d damage","Karty nie kłamią — Los %s, Zasłona %d — %d obrażeń"
 PURE_BADGE,Pure Reading,Czyste Odczytanie
 DAILY_BADGE,Daily Fate %s,Dzienny Los %s
 MENU_DAILY,Daily Fate — %s,Dzienny Los — %s
@@ -827,3 +827,29 @@ FIRST_TECHNIQUE,"Ordinary foes have techniques too, not just bosses. Its rule is
 FIRST_SEAL,"That colour is yours for good — it survives death. Five seals open a door that is otherwise closed.","Ten kolor jest twój na zawsze — przetrwa śmierć. Pięć pieczęci otwiera drzwi, które inaczej są zamknięte."
 LOG_TOGGLE,Log,Dziennik
 LOG_TOGGLE_TIP,"Hide or show the running log of what just happened.","Chowa lub pokazuje bieżący dziennik tego, co się właśnie stało."
+PICK_INVERT_COLOR,Into which enemy colour?,W jaki wrogi kolor?
+PICK_SPLASH_COLOR,Which allied colour do you carve in?,Jaki sojuszniczy kolor wyrzeźbić?
+SHOP_WARP,Warp a whole colour (%d),Spacz cały kolor (%d)
+SHOP_WARP_TIP,"Turns EVERY card of one colour at once. One decision instead of a grind — this is how a deck changes its home colour mid-run.","Odwraca NARAZ każdą kartę jednego koloru. Jedna decyzja zamiast mielenia — tak talia zmienia swój kolor domowy w środku runu."
+PICK_WARP,Which colour do you give up?,Który kolor oddajesz?
+PICK_WARP_INTO,And what does it become?,A czym się staje?
+HAND_UNDISCOVERED,? ? ?,? ? ?
+HAND_DISCOVERED,You have found a secret spread: %s,Odkryto sekretny układ: %s
+LOG_TOWER_SHATTER,The Tower shatters %s in your hand.,Wieża roztrzaskuje %s w twojej ręce.
+CRACKED_RECOVERED,Recovered — cracked,Odzyskana — spękana
+VEIL_INTEREST_TIP,"Interest is paid only on cards in colours HOSTILE to your dominant Aspect: the economy now depends on how you built the deck.","Odsetki naliczają się tylko od kart w kolorach WROGICH twojemu dominującemu Aspektowi: ekonomia zależy teraz od tego, jak zbudowałeś talię."
+RULE_SPREAD,"THE THREE-CARD SPREAD: each turn falls into a seat. PAST — no damage, its Mult stays for the whole duel. PRESENT — it lands now. FUTURE — it lands in two turns.","ROZKŁAD TRZECH KART: każda tura wpada w slot. PRZESZŁOŚĆ — bez obrażeń, jej Mult zostaje na cały pojedynek. TERAŹNIEJSZOŚĆ — trafia teraz. PRZYSZŁOŚĆ — trafia za dwie tury."
+RULE_CELTIC,"THE CELTIC CROSS: four slots beside your hand. Freeze cards there across turns — they do not count against your hand, so you draw fresh ones and assemble one enormous play.","KRZYŻ CELTYCKI: cztery sloty obok ręki. Zamrażaj w nich karty na kolejne tury — nie liczą się do ręki, więc dobierasz świeże i składasz jedno ogromne zagranie."
+SPREAD_PAST,PAST,PRZESZŁOŚĆ
+SPREAD_PRESENT,PRESENT,TERAŹNIEJSZOŚĆ
+SPREAD_FUTURE,FUTURE,PRZYSZŁOŚĆ
+SPREAD_SEAT,Seat: %s,Slot: %s
+SPREAD_PENDING,Falls in %d turns: %d,Spada za %d tury: %d
+SPREAD_BANKED,Mult held from the Past: +%.1f,Mult z Przeszłości: +%.1f
+CELTIC_FREEZE,Freeze (%d/4),Zamroź (%d/4)
+CELTIC_STASH,Frozen,Zamrożone
+ORDER_TITLE,Play order,Kolejność zagrania
+ENEMY_PUSTELNIK,The Hermit,Pustelnik
+ENEMY_UMIARKOWANIE,Temperance,Umiarkowanie
+DAILY_SET,Today's Arcana are set for everyone.,Dzisiejsze Arkana są narzucone wszystkim.
+DAILY_LOCKED,Today's reading is already recorded.,Dzisiejsze odczytanie jest już zapisane.

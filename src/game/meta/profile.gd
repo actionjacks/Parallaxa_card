@@ -178,6 +178,16 @@ func check_run_achievements(victory: bool) -> Array:
 ## One-shot ceremony gate: returns true the FIRST time a key is claimed, false ever after.
 ## Used for the diegetic covenant lines and the Magnum Opus reveal -- moments that must land
 ## once with full weight and never nag again.
+## THE SECRET HANDS (docs/todo.md par.4: "gracze beda odkrywac z wypiekami na twarzy"). Until a
+## spread has been landed once, the paytable shows it as "? ? ?" and the best-available hint will
+## not name it. Kept in the profile, not the run: a secret discovered stays discovered.
+func hand_found(hand: int) -> bool:
+	return bool(flags.get("hand_%d" % hand, false))
+
+## Returns true the FIRST time this hand is landed (so the scene can announce the discovery).
+func discover_hand(hand: int) -> bool:
+	return claim_once("hand_%d" % hand)
+
 func claim_once(key: String) -> bool:
 	if flags.get(key, false):
 		return false
@@ -409,7 +419,10 @@ func _record_daily(victory: bool) -> void:
 		return
 	var score: int = RunState.stat_damage_total
 	var prev: Dictionary = astrologer.get(RunState.daily_tag, {})
-	if prev.is_empty() or score > int(prev.get("score", 0)):
+	# THE FIRST READING IS THE READING. Keeping the best of unlimited retries made the Book a
+	# measure of patience rather than of play, and destroyed the one thing a shared daily seed is
+	# for: comparing what people did with the SAME cards.
+	if prev.is_empty():
 		astrologer[RunState.daily_tag] = {
 			"score": score, "won": victory, "fights": RunState.fights_won,
 		}

@@ -349,6 +349,29 @@ func pick_tiered_offers(pool: Array, n: int, boosted: bool = false) -> Array:
 ## first shop sold the "removed" colour straight back and the Veil quietly undid itself. Every
 ## offer runs through here. Filtering BEFORE the draw is safe for the seed contract: pick_offers
 ## and pick_tiered_offers each consume exactly one main-rng draw regardless of pool size.
+## How many cards sit in colours HOSTILE to the deck's dominant Aspect (Veil IV economy rule).
+## Deterministic and readable from the deck screen -- no hidden state, nothing to be surprised by.
+func hostile_card_count() -> int:
+	var tally: Dictionary = {}
+	for c: CardData in deck:
+		tally[int(c.aspect)] = int(tally.get(int(c.aspect), 0)) + 1
+	var dominant: int = -1
+	var best: int = -1
+	for a in tally:
+		if int(tally[a]) > best:
+			best = int(tally[a])
+			dominant = int(a)
+	if dominant < 0:
+		return 0
+	var foes: Array = Aspects.foes(dominant)
+	var n: int = 0
+	for c: CardData in deck:
+		for a in c.aspects():
+			if foes.has(int(a)):
+				n += 1
+				break
+	return n
+
 func filter_lost(pool: Array) -> Array:
 	if lost_aspect < 0:
 		return pool

@@ -37,7 +37,7 @@ func _initialize() -> void:
 			total += 1
 			var r: Dictionary = ctrl.preview(idx)
 			var future: int = int(r["gnicie"]) + int(r.get("klatwa_add", 0))
-			profiles.append([ctrl.effective_damage(int(r["damage"])), int(r["block"]), int(r["heal"]), future, int(r["hand"])])
+			profiles.append([ctrl.effective_damage(int(r["damage"]), 5, int(r["hand"])), int(r["block"]), int(r["heal"]), future, int(r["hand"])])
 			hand_types[int(r["hand"])] = true
 		# Pareto over the 4 axes (strictly dominated = not optimal)
 		var pareto := 0

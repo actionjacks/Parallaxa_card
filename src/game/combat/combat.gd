@@ -24,7 +24,8 @@ var controller: CombatController
 var _deck: Array = []
 var _enemy: EnemyData
 var _relics: Array = []
-var _selected: Array = []          ## selected CardData instances (not indices)
+var _selected: Array = []
+var _order_row: HBoxContainer      ## the staged play, in play order, with move-left/right handles          ## selected CardData instances (not indices)
 
 var _widgets: Dictionary = {}      ## CardData -> its card panel in the hand
 var _log_lines: Array[String] = []
@@ -304,6 +305,15 @@ func _build_ui() -> void:
 	crow.add_child(_hint_label)
 	_help_label = _label(tr("COMBAT_HELP"), 13, Color(0.5, 0.5, 0.58))
 	crow.add_child(_help_label)
+	# THE ORDER STRIP (docs/todo.md par.1). Order is a real axis of decision -- the Wrozba reads
+	# seat one, the Keystone and the Ofiara read the last -- but until now it was communicated by a
+	# tiny badge number that often contradicted where the card physically sat in the fan. This
+	# shows the sentence you are composing, left to right, and lets you rewrite it.
+	_order_row = HBoxContainer.new()
+	_order_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_order_row.add_theme_constant_override("separation", 4)
+	_order_row.visible = false
+	crow.add_child(_order_row)
 	_build_paytable()
 
 	# The Fool stands on the player's side of the arena -- you ARE the card (Fool's Journey).
@@ -432,7 +442,8 @@ func _render() -> void:
 	_refresh_next_draws()
 	if _hint_label != null:
 		var ba := _best_available()
-		_hint_label.text = (tr("HAND_BEST_AVAILABLE") % tr(Poker.name_key(ba))) if ba >= 0 else ""
+		var bn: String = tr(Poker.name_key(ba)) if (ba >= 0 and _hand_known(ba)) else tr("HAND_UNDISCOVERED")
+		_hint_label.text = (tr("HAND_BEST_AVAILABLE") % bn) if ba >= 0 else ""
 	_refresh_cockpit(0, 0, false)
 	var pool_left := controller.heal_cap - controller.heal_used
 	_heal_pool_label.text = tr("COMBAT_HEAL_BUDGET") % [pool_left, controller.heal_cap]
@@ -661,7 +672,8 @@ func _refresh_paytable_values() -> void:
 	for hand in _paytable_rows:
 		var base: Array = Poker.leveled_base(hand, int(_levels.get(hand, 0)))
 		var lv := int(_levels.get(hand, 0))
-		var txt := "%s  %d x %s" % [tr(Poker.name_key(hand)), int(base[0]), String.num(float(base[1]), 1)]
+		var nm: String = tr(Poker.name_key(hand)) if _hand_known(hand) else tr("HAND_UNDISCOVERED")
+		var txt := "%s  %d x %s" % [nm, int(base[0]), String.num(float(base[1]), 1)]
 		if lv > 0:
 			txt += "  (Lv%d)" % (lv + 1)
 		(_paytable_rows[hand] as Label).text = txt
@@ -794,6 +806,51 @@ func _set_prophecy(lethal: bool, dmg: int, hand: int, bonus: int) -> void:
 ## runs on controller.state_changed -- and `_selected` is cleared before every one of those
 ## emissions, so its `_selected.size() > 1` guard could never be true. The lesson belongs on the
 ## click that creates the second selection, which is exactly when the ordering starts to matter.
+## Redraws the play-order strip. Each staged card is a chip carrying its rank glyph in its colour,
+## flanked by handles that swap it with its neighbour -- so "which five, and in what order" is a
+## question the player can actually answer instead of one they have to reverse-engineer.
+func _refresh_order_strip() -> void:
+	if _order_row == null:
+		return
+	for ch in _order_row.get_children():
+		_order_row.remove_child(ch)
+		ch.queue_free()
+	_order_row.visible = _selected.size() > 1
+	if _selected.size() <= 1:
+		return
+	_order_row.add_child(_label(tr("ORDER_TITLE") + ":", 12, Color(0.5, 0.5, 0.58)))
+	for i in _selected.size():
+		var c: CardData = _selected[i]
+		if i > 0:
+			var lb := Button.new()
+			lb.text = "<"
+			lb.focus_mode = Control.FOCUS_NONE
+			lb.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			lb.add_theme_font_size_override("font_size", 13)
+			lb.tooltip_text = tr("ORDER_TITLE")
+			lb.pressed.connect(_swap_order.bind(i, i - 1))
+			_order_row.add_child(lb)
+		# The colour already carries the Aspect, so the chip only needs the rank glyph.
+		var chip := _label(c.rank_glyph(), 16, Aspects.color(int(c.aspect)))
+		chip.tooltip_text = tr(Aspects.name_key(int(c.aspect)))
+		_order_row.add_child(chip)
+
+func _swap_order(a: int, b: int) -> void:
+	if a < 0 or b < 0 or a >= _selected.size() or b >= _selected.size():
+		return
+	var t = _selected[a]
+	_selected[a] = _selected[b]
+	_selected[b] = t
+	Sfx.play(&"card_select", -10.0, 1.1)
+	_refresh_card_styles()
+	_update_selection_ui()
+
+## Only the two SECRET spreads can be unknown; every ordinary hand is on the chart from turn one.
+func _hand_known(hand: int) -> bool:
+	if hand != Poker.Hand.PENTAGRAM and hand != Poker.Hand.FULL_COURT:
+		return true
+	return Profile.hand_found(hand)
+
 func _maybe_teach_keystone() -> void:
 	if _selected.size() > 1 and _veil < 4 and Profile.claim_once("first_keystone"):
 		_covenant_line(tr("FIRST_KEYSTONE"))
@@ -1022,6 +1079,7 @@ func _update_selection_ui() -> void:
 	_play_btn.disabled = not (is_player and has_sel)
 	_discard_btn.text = tr("COMBAT_DISCARD") % controller.discards_left
 	_discard_btn.disabled = not (is_player and has_sel and controller.discards_left > 0)
+	_refresh_order_strip()
 	if not has_sel:
 		_preview_label.text = tr("COMBAT_SELECT_HINT")
 		_preview_extra.text = ""
@@ -1040,7 +1098,7 @@ func _update_selection_ui() -> void:
 		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
 	# Boss rules may bend the scored damage (Strength's resist): the preview shows the number
 	# that will actually LAND -- the covenant never lies through a rule.
-	var eff := controller.effective_damage(int(r["damage"]), _selected.size())
+	var eff := controller.effective_damage(int(r["damage"]), _selected.size(), int(r["hand"]))
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
 		hand_name, int(r["chips"]), float(r["mult"]), eff,
 	]
@@ -1144,9 +1202,14 @@ func _on_play() -> void:
 	# Read the fate BEFORE committing: if the preview foretells the kill, the resolution must
 	# be the ceremony (counter rolling to the exact promised number), not a surprise.
 	var pre := controller.preview(idx)
-	var promised := controller.effective_damage(int(pre["damage"]), _selected.size())
+	var promised := controller.effective_damage(int(pre["damage"]), _selected.size(), int(pre["hand"]))
 	var foretold_kill := promised >= controller.enemy_hp
 	var pre_destroyed := controller.destroyed_cards.size()
+	# A secret found is a secret announced -- and from here the chart names it instead of "? ? ?".
+	var landed := int(pre["hand"])
+	if (landed == Poker.Hand.PENTAGRAM or landed == Poker.Hand.FULL_COURT) and Profile.discover_hand(landed):
+		_covenant_line(tr("HAND_DISCOVERED") % tr(Poker.name_key(landed)))
+		_refresh_paytable_values()
 	_hide_card_preview()
 	# THE RECKONING: score the hand card by card before the blow lands. Nothing here decides
 	# anything -- Scoring.score already did, and the preview already said so -- but a play that
@@ -1437,17 +1500,18 @@ func _on_ended(won: bool) -> void:
 		if won:
 			for c in controller.destroyed_cards:
 				RunState.deck.erase(c)   # identity erase: combat holds the run's own instances
-			# TRAUMA OF THE TOWER (docs/todo.md par.5): if the field rule that ignores your block
-			# took cards from you and you WON anyway, one survivor comes back CRACKED -- a third
-			# off its base for good, but the avalanche runs over it twice. You paid for it, so it
-			# is worth something no shop can sell you. The card is chosen deterministically (the
-			# first uncracked card in the run deck), never rolled.
-			if _enemy.rule == EnemyData.Rule.TOWER_IGNORES_BLOCK and not controller.destroyed_cards.is_empty():
-				for c: CardData in RunState.deck:
-					if not c.cracked:
-						c.cracked = true
-						_popup(tr("CRACKED_EARNED"), Color(0.75, 0.82, 0.95), _player_fx_pos(), 22)
-						break
+			# TRAUMA OF THE TOWER (docs/todo.md par.5): the cards the Tower broke come back CRACKED
+			# if you won anyway -- a third off the base for good, but the avalanche runs over them
+			# twice. You paid for that, and no shop can sell it to you.
+			# THE SAME OBJECT you lost is the one you get back. Before, the Tower broke nothing and
+			# the "reward" cracked an unrelated card drawn from a shuffled deck -- loss and prize
+			# had no connection at all, which is the whole point of the promise.
+			if not controller.tower_broke.is_empty():
+				for c: CardData in controller.tower_broke:
+					c.cracked = true
+					if not RunState.deck.has(c):
+						RunState.deck.append(c)
+				_popup(tr("CRACKED_RECOVERED"), Color(0.75, 0.82, 0.95), _player_fx_pos(), 22)
 		finished.emit(won, controller.player_hp, controller.discards_left)
 		return
 	_overlay_label.text = tr("COMBAT_WON") if won else tr("COMBAT_LOST")

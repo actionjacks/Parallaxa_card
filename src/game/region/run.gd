@@ -31,6 +31,10 @@ const INVERT_COST := 6
 ## both colours everywhere at once and is how a two-colour deck stops being a compromise.
 const SPLASH_COST := 9
 
+## Turning a WHOLE colour over at once. Priced as one big commitment rather than a grind: it is
+## meant to be the run-defining decision todo.md describes, not a thing you nibble at.
+const WARP_COST := 18
+
 ## Veil III -- the Sealed Market: one fewer card on the counter. The economy stops being a
 ## shopping list and becomes a choice between two compromises.
 func SHOP_SLOTS() -> int:
@@ -432,6 +436,12 @@ func _on_combat_finished(won: bool, remaining_hp: int, unused_discards: int) -> 
 	RunState.rtec += _last_thrift
 	@warning_ignore("integer_division")
 	_last_interest = mini(RunState.rtec / 5, 5)
+	# VEIL IV+ REWRITES THE ECONOMY (docs/todo.md par.6, verbatim example): interest is paid only
+	# on cards in colours HOSTILE to the deck's dominant Aspect. A Veil that only raises numbers is
+	# a difficulty slider; this one changes what a good deck IS -- a pure mono build stops earning,
+	# and the player has to decide whether coherence is worth the poverty.
+	if RunState.veil >= 4:
+		_last_interest = mini(_last_interest, RunState.hostile_card_count() / 4)
 	RunState.rtec += _last_interest
 	# Reversed-Arcana tax: RTEC_TAX prices bill after every won fight (visible on the next screen).
 	_last_tax = 0
@@ -639,9 +649,13 @@ func _show_shop() -> void:
 	var splash := _button(tr("SHOP_SPLASH") % _cost(SPLASH_COST), _splash_card)
 	splash.disabled = RunState.rtec < _cost(SPLASH_COST) or RunState.deck.is_empty()
 	splash.tooltip_text = tr("SHOP_SPLASH_TIP")
+	var warp := _button(tr("SHOP_WARP") % _cost(WARP_COST), _warp_deck)
+	warp.disabled = RunState.rtec < _cost(WARP_COST) or RunState.deck.is_empty()
+	warp.tooltip_text = tr("SHOP_WARP_TIP")
 	controls.add_child(thin)
 	controls.add_child(invert)
 	controls.add_child(splash)
+	controls.add_child(warp)
 	controls.add_child(_button(tr("SHOP_NEXT"), _leave_shop))
 	root.add_child(controls)
 	_mount(root)
@@ -681,24 +695,27 @@ func _invert_card() -> void:
 		var foes: Array = Aspects.foes(card.aspect)
 		if foes.is_empty():
 			return
-		# Deterministic pick: the FIRST enemy on the wheel, so the player can predict the colour
-		# they are buying before they spend.
-		card.aspect = foes[0] as Aspects.Id
-		card.inverted = true
-		# A carved second colour must FOLLOW the reversal. Left alone it stayed allied to the OLD
-		# aspect, which after the flip is an ENEMY of the new one -- and a hybrid of two opposed
-		# colours is exactly what _splash_card refuses to sell, because one such card closes a
-		# Flush in either of them. Neither shop action is wrong alone; the bug lived only in
-		# buying both on the same card.
-		if card.splash >= 0:
-			var new_pals: Array = Aspects.allies(card.aspect)
-			if not new_pals.has(card.splash):
-				card.splash = int(new_pals[0])
-		RunState.spend(_cost(INVERT_COST))
-		RunState.stat_bought += 1
-		RunState.changed.emit()
-		_show_shop()
+		_open_aspect_picker(tr("PICK_INVERT_COLOR"), foes, func(chosen: int) -> void:
+			_apply_inversion(card, chosen))
 	_open_deck_picker(tr("PICK_INVERT"), cb)
+
+## The reversal itself, once the card AND its new colour are both chosen.
+func _apply_inversion(card: CardData, chosen: int) -> void:
+	card.aspect = chosen as Aspects.Id
+	card.inverted = true
+	# A carved second colour must FOLLOW the reversal. Left alone it stayed allied to the OLD
+	# aspect, which after the flip is an ENEMY of the new one -- and a hybrid of two opposed
+	# colours is exactly what _splash_card refuses to sell, because one such card closes a
+	# Flush in either of them. Neither shop action is wrong alone; the bug lived only in
+	# buying both on the same card.
+	if card.splash >= 0:
+		var new_pals: Array = Aspects.allies(card.aspect)
+		if not new_pals.has(card.splash):
+			card.splash = int(new_pals[0])
+	RunState.spend(_cost(INVERT_COST))
+	RunState.stat_bought += 1
+	RunState.changed.emit()
+	_show_shop()
 
 ## THE SPLASH (docs/todo.md "Karty Dwukolorowe"): carve an ALLIED colour into a card, so it
 ## counts for both. Allied, not enemy -- the Lovers join what already belongs together, and a
@@ -712,12 +729,46 @@ func _splash_card() -> void:
 		var pals: Array = Aspects.allies(card.aspect)
 		if pals.is_empty():
 			return
-		card.splash = int(pals[0])
-		RunState.spend(_cost(SPLASH_COST))
-		RunState.stat_bought += 1
-		RunState.changed.emit()
-		_show_shop()
+		_open_aspect_picker(tr("PICK_SPLASH_COLOR"), pals, func(chosen: int) -> void:
+			card.splash = chosen
+			RunState.spend(_cost(SPLASH_COST))
+			RunState.stat_bought += 1
+			RunState.changed.emit()
+			_show_shop())
 	_open_deck_picker(tr("PICK_SPLASH"), cb)
+
+## THE WARP (docs/todo.md par.3, "Spaczone budowanie talii"): turn EVERY card of one colour at
+## once. Reversing card-by-card at 6 Mercury made todo.md's "reverse half your deck" arithmetically
+## unreachable -- half a deck is 96-120 Mercury against roughly 54 of hard rewards in a run, and
+## every purchase also eats the interest. One price, one decision, a whole wing of the deck.
+func _warp_deck() -> void:
+	if RunState.rtec < _cost(WARP_COST):
+		return
+	var present: Array = []
+	for c: CardData in RunState.deck:
+		if not c.inverted and not present.has(int(c.aspect)):
+			present.append(int(c.aspect))
+	if present.is_empty():
+		return
+	_open_aspect_picker(tr("PICK_WARP"), present, func(chosen: int) -> void:
+		var foes: Array = Aspects.foes(chosen)
+		if foes.is_empty():
+			return
+		_open_aspect_picker(tr("PICK_WARP_INTO"), foes, func(into: int) -> void:
+			var n := 0
+			for c: CardData in RunState.deck:
+				if c.inverted or int(c.aspect) != chosen:
+					continue
+				c.aspect = into as Aspects.Id
+				c.inverted = true
+				if c.splash >= 0 and not Aspects.allies(c.aspect).has(c.splash):
+					c.splash = int(Aspects.allies(c.aspect)[0])
+				n += 1
+			if n > 0:
+				RunState.spend(_cost(WARP_COST))
+				RunState.stat_bought += 1
+				RunState.changed.emit()
+			_show_shop()))
 
 func _enchant(edition: CardData.Edition) -> void:
 	if RunState.rtec < _cost(ENCHANT_COST) or RunState.deck.is_empty():
@@ -780,6 +831,38 @@ func _open_deck_picker(title: String, on_pick: Callable) -> void:
 	var wrap_c := CenterContainer.new()
 	wrap_c.add_child(_button(tr("COMMON_CANCEL"), _close_overlay.bind(overlay)))
 	col.add_child(wrap_c)
+
+## PICK THE COLOUR, not just the card. Both shop carvings used to take `foes[0]` / `pals[0]` on
+## the spot, which meant exactly ONE outcome existed per card -- and both worked examples in
+## todo.md ("Zycie + Natura", "Chaos w Umysl") were unreachable in the shipped game. The wheel
+## offers two of each; the player chooses which.
+func _open_aspect_picker(title: String, choices: Array, on_pick: Callable) -> void:
+	var overlay := Control.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.modulate.a = 0.0
+	add_child(overlay)
+	create_tween().tween_property(overlay, "modulate:a", 1.0, 0.15)
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.0, 0.82)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(dim)
+	var col := VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 18)
+	overlay.add_child(col)
+	col.add_child(_title(title))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	col.add_child(row)
+	for a in choices:
+		var b := _button(tr(Aspects.name_key(int(a))), _close_overlay.bind(overlay, on_pick.bind(int(a))))
+		b.add_theme_color_override("font_color", Aspects.color(int(a)))
+		row.add_child(b)
+	var wrap_a := CenterContainer.new()
+	wrap_a.add_child(_button(tr("COMMON_CANCEL"), _close_overlay.bind(overlay)))
+	col.add_child(wrap_a)
 
 func _on_picker_input(ev: InputEvent, card: CardData, overlay: Control, on_pick: Callable) -> void:
 	if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
@@ -1188,6 +1271,8 @@ func _repeat_fate() -> void:
 	_pending_omen = null
 	RunState.next_veil = RunState.veil
 	RunState.next_pure = RunState.pure_reading   # a repeated fate keeps its purity contract
+	# A repeat of a recorded day is a practice run, not a new entry: the Book already holds the
+	# reading, and _record_daily keeps the first one.
 	RunState.next_daily = RunState.daily_tag
 	var s := RunState.run_seed
 	RunState.begin(load(BIOMES[0]), s)
@@ -1336,6 +1421,11 @@ func _show_arcanum_draft() -> void:
 	var pool: Array = RunState.region.starting_pool.duplicate()
 	if not RunState.pure_reading:
 		pool.append_array(Profile.draft_extra_arcana())
+	# THE DAY DEALS THE SAME THREE ARCANA TO EVERYONE (docs/todo.md par.6). A daily challenge whose
+	# opening depends on which biome you walked into is not one challenge -- it is five. The set is
+	# drawn from the FULL library rather than the biome pool, and announced as imposed.
+	if RunState.daily_tag != "":
+		pool = DeckLibrary.all_arcana()
 	_arc_offers = RunState.pick_offers(pool, 3)
 	_arc_panels.clear()
 	_arc_pick = -1
@@ -1343,6 +1433,8 @@ func _show_arcanum_draft() -> void:
 	root.add_child(_title(tr("DRAFT_TITLE")))
 	root.add_child(_hint(tr("DRAFT_CONTEXT")))
 	root.add_child(_hint(tr("DRAFT_HINT")))
+	if RunState.daily_tag != "":
+		root.add_child(_hint(tr("DAILY_SET")))
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 24)

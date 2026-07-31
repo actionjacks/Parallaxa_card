@@ -148,7 +148,8 @@ func _build(victory: bool, fresh: Array, progress: Dictionary = {}) -> void:
 	seed_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	seed_btn.pressed.connect(func() -> void:
 		# The share string markets the game by name wherever it gets pasted.
-		DisplayServer.clipboard_set(tr("SHARE_FATE") % [seed_code, RunState.veil])
+		# A share string without the result is not a challenge, it is a bookmark.
+		DisplayServer.clipboard_set(tr("SHARE_FATE") % [seed_code, RunState.veil, RunState.stat_damage_total])
 		seed_btn.text = tr("SPREAD_SEED_COPIED")
 		get_tree().create_timer(1.2).timeout.connect(func() -> void:
 			if is_instance_valid(seed_btn):

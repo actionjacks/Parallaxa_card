@@ -45,6 +45,9 @@ var heal_used: int = 0            ## per-fight heal pool spent (budget burns eve
 var heal_cap: int = FIGHT_HEAL_CAP   ## effective cap this fight (veil + boss rule adjusted)
 var overkill_rtec: int = 0        ## Mercury earned by the killing blow's excess damage
 var destroyed_cards: Array = []   ## PRZECIAZENIE glass shattered this fight (leaves the run deck)
+## What the TOWER itself broke. Kept apart from destroyed_cards because these are the cards the
+## player wins BACK if they survive -- cracked, not gone (docs/todo.md par.5).
+var tower_broke: Array = []
 
 # --- fight statistics (read by RunState.record_fight) ---
 var damage_taken: int = 0         ## HP lost to enemy hits + blood tax this fight
@@ -120,6 +123,7 @@ func start(deck: Array, p_enemy: EnemyData, p_relics: Array, start_hp: int = -1,
 		heal_cap += 8   # the Orchard (LIFE law): the biome you are meant to survive in
 	overkill_rtec = 0
 	destroyed_cards.clear()
+	tower_broke.clear()
 	damage_taken = 0
 	death_cause = ""
 	fight_damage = 0
@@ -434,6 +438,17 @@ func resolve_enemy_turn() -> void:
 	# The Empress blooms on a half-hearted hand: anything short of five cards feeds her.
 	# Deterministic and stated up front -- the player knows the price of nibbling before paying it.
 	# The vampire mends when the round barely scratched it: chipping away is not a plan here.
+	# THE TOWER ACTUALLY BREAKS THINGS (docs/todo.md par.5). Its rule only ever ignored block, so
+	# "the Tower destroyed your cards" never once happened from the Tower's hand -- the player had
+	# to bring their own glass. It now shatters the card at the BACK of the hand every turn:
+	# deterministic, announced, and the loss the cracked reward is paid for.
+	if _rule_ignores_block() and not hand.is_empty():
+		var struck: CardData = hand[hand.size() - 1]
+		hand.remove_at(hand.size() - 1)
+		if not destroyed_cards.has(struck):
+			destroyed_cards.append(struck)
+		tower_broke.append(struck)
+		message.emit("LOG_TOWER_SHATTER", [struck.rank_glyph()])
 	if enemy.rule == EnemyData.Rule.HAND_THIEF and turn % 2 == 0 and not hand.is_empty():
 		var taken: CardData = hand[hand.size() - 1]
 		hand.remove_at(hand.size() - 1)
@@ -536,7 +551,12 @@ func _ctx() -> Dictionary:
 		# Veil IV -- the Cracked Mirror: the Keystone stops working, so the ordering game the
 		# player has learned is taken away and they have to score on the hand alone.
 		"keystone": veil < 4,
-		"inverted_table": enemy != null and enemy.rule == EnemyData.Rule.INVERTED_TABLE,
+		# VEIL V REWRITES THE RULES (docs/todo.md par.6, verbatim example: "every boss starts with
+		# an inverted field rule"). The mirror stops being the Moon's private trick: at the deepest
+		# Veil every Major Arcanum reads the chart upside down. The machinery (Poker.mirrored + this
+		# ctx flag) already existed and sat unused for exactly this.
+		"inverted_table": enemy != null and (enemy.rule == EnemyData.Rule.INVERTED_TABLE
+			or (enemy.is_boss and veil >= 5)),
 		"banned_aspect": banned_aspect(),
 		"grave": _used.size(),
 		"plays": _plays,
