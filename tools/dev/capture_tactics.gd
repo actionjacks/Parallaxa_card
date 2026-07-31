@@ -139,6 +139,15 @@ func _go() -> void:
 		if _ctrl.phase != "player":
 			_log("[tac] walka skonczona po %d turach (hp wroga %d)" % [t, _ctrl.enemy_hp])
 			break
+		# WHAT the best play actually is -- a ceiling without a name cannot be tuned.
+		var bi0: Array = _best_indices()
+		var br: Dictionary = _ctrl.preview(bi0)
+		var names := ""
+		for i in bi0:
+			var c: CardData = _ctrl.hand[i]
+			names += "%s%s " % [c.rank_glyph(), CardData.keyword_name_key(c.keyword).replace("KW_", "")]
+		_log("[tac]   najlepsze = %s | chips=%d mult=%.2f | karty: %s"
+			% [tr(Poker.name_key(int(br["hand"]))), int(br["chips"]), float(br["mult"]), names])
 		var s: Array = _decision_spread()
 		var gain: float = (float(s[0]) / maxf(1.0, float(s[1])) - 1.0) * 100.0
 		_log("[tac] tura %d: legalnych zagran=%d, typow ukladu=%d | najlepsze=%d naiwne=%d mediana=%d | zysk z myslenia +%.0f%%"

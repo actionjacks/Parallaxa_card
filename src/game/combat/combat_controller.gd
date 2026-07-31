@@ -682,7 +682,7 @@ func _ctx() -> Dictionary:
 		"keystone": veil < 4,
 		# VEIL V REWRITES THE RULES (docs/todo.md par.6, verbatim example: "every boss starts with
 		# an inverted field rule"). The mirror stops being the Moon's private trick: at the deepest
-		# Veil every Major Arcanum reads the chart upside down. The machinery (Poker.mirrored + this
+		# Veil every Major Arcanum reads the chart upside down. The machinery (Poker.base_for + this
 		# ctx flag) already existed and sat unused for exactly this.
 		"inverted_table": enemy != null and (enemy.rule == EnemyData.Rule.INVERTED_TABLE
 			or (enemy.is_boss and veil >= 5)),

@@ -716,9 +716,8 @@ func _build_paytable() -> void:
 
 func _refresh_paytable_values() -> void:
 	for hand in _paytable_rows:
-		var paid: int = Poker.mirrored(hand) if _table_mirrored() else hand
-		var base: Array = Poker.leveled_base(paid, int(_levels.get(paid, 0)))
-		var lv := int(_levels.get(paid, 0))
+		var base: Array = Poker.base_for(hand, int(_levels.get(hand, 0)), _table_mirrored())
+		var lv := int(_levels.get(hand, 0))
 		var nm: String = tr(Poker.name_key(hand)) if _hand_known(hand) else tr("HAND_UNDISCOVERED")
 		var txt := "%s  %d x %s" % [nm, int(base[0]), String.num(float(base[1]), 1)]
 		if lv > 0:
@@ -951,8 +950,8 @@ func _table_mirrored() -> bool:
 
 ## What a hand ACTUALLY pays here, mirror included.
 func _paid_value(hand: int) -> float:
-	var paid: int = Poker.mirrored(hand) if _table_mirrored() else hand
-	return Poker.value_of(paid, int(_levels.get(paid, 0)))
+	var b: Array = Poker.base_for(hand, int(_levels.get(hand, 0)), _table_mirrored())
+	return float(b[0]) * float(b[1])
 
 ## Only the two SECRET spreads can be unknown; every ordinary hand is on the chart from turn one.
 func _hand_known(hand: int) -> bool:

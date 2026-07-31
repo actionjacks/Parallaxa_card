@@ -63,7 +63,8 @@ func _initialize() -> void:
 	fails += _expect("VAMPIRE_MEND: mends only after a weak round", _vampire())
 	# BOSSES THAT REWRITE THE RULES (N4.3)
 	fails += _expect("INVERTED_TABLE: a pair is paid as the mirror hand", _inverted_table())
-	fails += _expect("Poker.mirrored is its own inverse", _mirror_is_involution())
+	fails += _expect("the mirror keeps its promise: a PAIR outscores a FLUSH", _mirror_inverts_instinct())
+	fails += _expect("...and no mirrored hand is a free one-shot", _mirror_is_compressed())
 	fails += _expect("WIDE_HAND: three more cards, zero discards", _wide_hand())
 	fails += _expect("ASPECT_BAN: the forbidden colour brings no chips", _aspect_ban())
 	fails += _expect("priestess grants extra discard (3+1)", _priestess_discards() == 4)
@@ -782,14 +783,25 @@ func _inverted_table() -> bool:
 	var flipped: Dictionary = Scoring.score(pair, [], {"inverted_table": true})
 	return int(flipped["hand"]) == Poker.evaluate(pair) and int(flipped["chips"]) > int(plain["chips"])
 
-## Mirroring twice must return the original, or the rule would drift as hands are added.
-func _mirror_is_involution() -> bool:
-	for h in Poker.BASE.keys():
-		if Poker.mirrored(Poker.mirrored(int(h))) != int(h):
+## The rule's PROMISE, asserted directly: what you spent the run learning must become wrong.
+func _mirror_inverts_instinct() -> bool:
+	var pair: Array = Poker.base_for(Poker.Hand.PAIR, 0, true)
+	var flush: Array = Poker.base_for(Poker.Hand.FLUSH, 0, true)
+	var magnum: Array = Poker.base_for(Poker.Hand.MAGNUM_OPUS, 0, true)
+	return float(pair[0]) * float(pair[1]) > float(flush[0]) * float(flush[1]) \
+		and float(flush[0]) * float(flush[1]) > float(magnum[0]) * float(magnum[1])
+
+## NEGATIVE, and the reason the mirror was rewritten: a full permutation of the payout table paid
+## MAGNUM OPUS money for a hand available in 83% of draws, which one-shotted a 1617 HP boss on turn
+## one. Nothing under the mirror may pay more than an ordinary Flush does upright.
+func _mirror_is_compressed() -> bool:
+	var ceiling: float = Poker.value_of(Poker.Hand.FLUSH, 0)
+	for h in Poker.MIRROR:
+		var b: Array = Poker.base_for(int(h), 0, true)
+		if float(b[0]) * float(b[1]) > ceiling:
 			return false
 	return true
 
-## She hands you the cards and takes the sieve away.
 func _wide_hand() -> bool:
 	var ctrl := CombatController.new()
 	ctrl.start(_flat_deck(40), _foe(EnemyData.Rule.WIDE_HAND), [], 500, 500)

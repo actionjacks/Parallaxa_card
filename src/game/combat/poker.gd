@@ -86,17 +86,46 @@ static func leveled_base(hand: int, level: int) -> Array:
 	var up: Array = LEVEL_UP[hand]
 	return [int(base[0]) + level * int(up[0]), float(base[1]) + level * float(up[1])]
 
-## THE CHART READ UPSIDE DOWN (INVERTED_TABLE boss). Hands swap places with their mirror in the
-## payout order: the cheapest pays what the dearest used to, and a pair outscores a flush. The
-## whole run's instinct becomes the wrong instinct, which is the point -- and it stays exact,
-## because it is a permutation of the same table the paytable prints.
-static func mirrored(hand: int) -> int:
-	var order: Array = BASE.keys()
-	order.sort_custom(func(a, b): return value_of(a) < value_of(b))
-	var i: int = order.find(hand)
-	if i < 0:
-		return hand
-	return int(order[order.size() - 1 - i])
+## THE CHART READ UPSIDE DOWN (INVERTED_TABLE boss, and every boss at Veil V).
+##
+## This used to be a PERMUTATION of BASE -- the cheapest hand simply paid what the dearest used to.
+## Measured on the live deck (tools/dev/probe_deckmath.gd) that was a free win, not a puzzle: a
+## HIGH CARD is available in 83.2% of hands and a PAIR in 98.8%, so the mirror handed the player
+## MAGNUM OPUS money (160 x 16 = 2560) for laying down no hand at all. A live pass one-shotted the
+## Moon -- 1617 HP -- on turn one with four unmatched cards for 3200, and the MEDIAN play of that
+## hand was 2912. A rule meant to invert instinct removed every decision instead.
+##
+## So the mirror is now its OWN table, authored rather than derived. It keeps the promise -- a pair
+## outscores a flush, everything you spent the run learning is now wrong -- but the spread is
+## COMPRESSED (10..420 instead of 5..2560), so reading the chart upside down is a puzzle to solve
+## rather than a prize to collect.
+const MIRROR: Dictionary = {
+	Hand.HIGH_CARD: [40, 4],       # no hand at all: playable, never a win
+	Hand.PAIR: [60, 5],
+	Hand.TWO_PAIR: [70, 6],        # the apex under the mirror -- cheap to make, and that IS the joke
+	Hand.THREE: [60, 5],
+	Hand.STRAIGHT: [50, 4],
+	Hand.PENTAGRAM: [55, 5],
+	Hand.FULL_HOUSE: [40, 3],
+	Hand.FLUSH: [20, 2],           # the colour journey, worthless here
+	Hand.FOUR: [25, 2],
+	Hand.FULL_COURT: [20, 2],
+	Hand.STRAIGHT_FLUSH: [15, 2],
+	Hand.FIVE: [10, 1],
+	Hand.MAGNUM_OPUS: [10, 1],     # the Great Work, laughed at
+}
+
+## Base [chips, mult] under the mirror, levelled by the same LEVEL_UP table so a Star still counts.
+static func mirror_base(hand: int, level: int) -> Array:
+	var base: Array = MIRROR.get(hand, MIRROR[Hand.HIGH_CARD])
+	var up: Array = LEVEL_UP[hand]
+	return [int(base[0]) + level * int(up[0]), float(base[1]) + level * float(up[1])]
+
+## What a hand pays HERE: the mirror when the chart is upside down, the ordinary table otherwise.
+## Every read of a payout -- scoring, the printed chart, the best-hand hint -- goes through this,
+## so the three can never disagree about what a hand is worth.
+static func base_for(hand: int, level: int, mirrored_table: bool) -> Array:
+	return mirror_base(hand, level) if mirrored_table else leveled_base(hand, level)
 
 static func name_key(hand: int) -> String:
 	return NAME_KEYS.get(hand, "")

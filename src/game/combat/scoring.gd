@@ -28,8 +28,8 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 	var hand: int = Poker.evaluate(cards)
 	# The boss who reads the chart upside down: the hand you MADE is still the hand you made (the
 	# paytable, the hint and the statistics all keep saying so), but it is PAID as its mirror.
-	var paid: int = Poker.mirrored(hand) if bool(ctx.get("inverted_table", false)) else hand
-	var base: Array = Poker.leveled_base(paid, int(levels.get(paid, 0)))
+	var upside_down: bool = bool(ctx.get("inverted_table", false))
+	var base: Array = Poker.base_for(hand, int(levels.get(hand, 0)), upside_down)
 	var chips: int = int(base[0])
 	var mult: float = float(base[1])
 	var block: int = 0
