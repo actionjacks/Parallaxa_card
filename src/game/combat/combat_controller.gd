@@ -11,11 +11,21 @@ signal awaiting_enemy
 signal boss_turned      ## player's play resolved; the scene pauses, then calls resolve_enemy_turn()
 
 const HAND_SIZE: int = 8
-## Discards are a POOL FOR THE WHOLE DUEL, not three free clicks every turn. Measured: refreshing
-## them per turn made the strongest axis of the turn a non-decision -- the outcome was known in
-## advance never to be worse, so the correct play was always "discard three, then think", roughly
-## 54 empty clicks per run. As a fight-long budget every single one is a question.
-const START_DISCARDS: int = 6
+## THE REAL ENGINE OF THIS GAME IS SEARCHING, NOT THE DECK -- and I got this wrong once already.
+## Moving discards from "3 per turn" to "6 per duel" was committed here as a fix. It was not:
+## fights last a median of TWO turns, so six per duel IS three per turn. Nothing changed except
+## the label.
+##
+## Simulated on a port of this scorer (median best play, 40-card starter):
+##   0 discards 264 | 1: 339 | 2: 392 | 3: 412 | 4: 823 | 6: 1029
+## Six discards let the player see 26 of 40 cards before committing -- a 3.9x multiplier from a
+## resource that cost nothing. It is also why the END-OF-RUN deck (48 cards) measures WEAKER than
+## the starter (844 vs 1029): every card bought dilutes the search. Deckbuilding was fighting the
+## strongest system in the game.
+##
+## Three per duel, measured: median 1029 -> 412, and the share of Flush-or-better plays falls from
+## 72% to 42%, which is what puts the lower half of the paytable back into the game.
+const START_DISCARDS: int = 3
 const PLAYER_MAX_HP: int = 55
 const FIGHT_HEAL_CAP: int = 15       ## shared per-fight heal pool (Opatrznosc + relic heal + leech)
 const MOON_MEND_HEAL: int = 15       ## the Moon self-mends when a round deals too little...

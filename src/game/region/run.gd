@@ -48,9 +48,13 @@ const STAR_COST := 8
 ## Hands a Star can level (the reachable ones).
 ## PENTAGRAM and FULL_COURT are here because Poker.LEVEL_UP already prices them: leaving them out
 ## made those two table entries dead code the player could never buy into.
+## FULL_COURT is out: simulated, levelling it is worth exactly 1.00x to the player, because the
+## starter holds zero court cards and a greedy hand closes on a Four before it ever assembles one.
+## Selling a 1.00x upgrade for 8 Mercury -- under a "???" label, no less -- is not a decision, it
+## is a tax on curiosity.
 const STAR_HANDS: Array = [Poker.Hand.PAIR, Poker.Hand.TWO_PAIR, Poker.Hand.THREE,
 	Poker.Hand.STRAIGHT, Poker.Hand.FLUSH, Poker.Hand.FULL_HOUSE, Poker.Hand.FOUR,
-	Poker.Hand.PENTAGRAM, Poker.Hand.FULL_COURT]
+	Poker.Hand.PENTAGRAM]
 
 var _shop_offers: Array = []
 ## Rerolling doubled the slots a player saw for one Mercury, so the gap between someone who knew
