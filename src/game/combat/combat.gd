@@ -446,7 +446,7 @@ func _render() -> void:
 			_covenant_line(tr("FIRST_LAW"))
 		elif controller.banned_aspect() >= 0 and Profile.claim_once("first_ban"):
 			_covenant_line(tr("FIRST_BAN"))
-		elif _enemy.rule == EnemyData.Rule.INVERTED_TABLE and Profile.claim_once("first_inverted"):
+		elif _table_mirrored() and Profile.claim_once("first_inverted"):
 			_covenant_line(tr("FIRST_INVERTED"))
 		elif _enemy.rule == EnemyData.Rule.WIDE_HAND and Profile.claim_once("first_wide"):
 			_covenant_line(tr("FIRST_WIDE"))
@@ -498,6 +498,8 @@ func _render() -> void:
 	if not standalone and RunState.region != null and RunState.region.law_key != "":
 		var law_txt: String = tr(RunState.region.law_key)
 		rule_txt = law_txt if rule_txt == "" else law_txt + "   |   " + rule_txt
+	if _table_mirrored() and _enemy.rule != EnemyData.Rule.INVERTED_TABLE:
+		rule_txt += ("   |   " if rule_txt != "" else "") + tr("RULE_INVERTED")
 	var ban: int = controller.banned_aspect()
 	if ban >= 0:
 		rule_txt += "   |   " + tr("COMBAT_BANNED") % tr(Aspects.name_key(ban))
@@ -529,7 +531,17 @@ func _reconcile_hand() -> void:
 	var want: Array = controller.hand
 	for card in _widgets.keys():
 		if not want.has(card):
-			_widgets.erase(card)   # already flying (played/discarded)
+			# Erasing the DICTIONARY entry is not enough: the panel stays a child of _hand_row, so
+			# HandFan keeps laying it out, it keeps its gui_input, and clicking the ghost adds it to
+			# _selected while _selected_indices() drops it -- the play and the preview then disagree
+			# about how many cards are being played. Cards flown out by play/discard are already
+			# detached; everything ELSE that leaves the hand (the Tower's shatter, the thief, the
+			# Celtic freeze) used to leave a ghost behind.
+			var ghost = _widgets[card]
+			if is_instance_valid(ghost) and ghost.get_parent() == _hand_row:
+				_hand_row.remove_child(ghost)
+				ghost.queue_free()
+			_widgets.erase(card)
 	for card in want:
 		if not _widgets.has(card):
 			var panel := _make_card(card)
@@ -597,7 +609,7 @@ func _best_available() -> int:
 		var h: int = Poker.evaluate(cards)
 		# Compare by PAYOUT, not by enum order: the enum is legacy four-suit ranking, and in a
 		# five-Aspect deck a Flush outranks a Four of a Kind.
-		if Poker.value_of(h, int(_levels.get(h, 0))) > Poker.value_of(best, int(_levels.get(best, 0))):
+		if _paid_value(h) > _paid_value(best):
 			best = h
 	return best
 
@@ -699,8 +711,9 @@ func _build_paytable() -> void:
 
 func _refresh_paytable_values() -> void:
 	for hand in _paytable_rows:
-		var base: Array = Poker.leveled_base(hand, int(_levels.get(hand, 0)))
-		var lv := int(_levels.get(hand, 0))
+		var paid: int = Poker.mirrored(hand) if _table_mirrored() else hand
+		var base: Array = Poker.leveled_base(paid, int(_levels.get(paid, 0)))
+		var lv := int(_levels.get(paid, 0))
 		var nm: String = tr(Poker.name_key(hand)) if _hand_known(hand) else tr("HAND_UNDISCOVERED")
 		var txt := "%s  %d x %s" % [nm, int(base[0]), String.num(float(base[1]), 1)]
 		if lv > 0:
@@ -911,6 +924,19 @@ func _swap_order(a: int, b: int) -> void:
 	Sfx.play(&"card_select", -10.0, 1.1)
 	_refresh_card_styles()
 	_update_selection_ui()
+
+## Is the payout chart being read UPSIDE DOWN right now? The Moon's private rule, and -- since
+## Veil V -- every boss. The whole advisory layer has to ask this: a paytable and a "best hand"
+## hint computed from the upright chart do not merely omit the rule, they actively recommend the
+## worst play in the hand.
+func _table_mirrored() -> bool:
+	return controller != null and controller.enemy != null and controller.enemy.is_boss \
+		and (controller.enemy.rule == EnemyData.Rule.INVERTED_TABLE or _veil >= 5)
+
+## What a hand ACTUALLY pays here, mirror included.
+func _paid_value(hand: int) -> float:
+	var paid: int = Poker.mirrored(hand) if _table_mirrored() else hand
+	return Poker.value_of(paid, int(_levels.get(paid, 0)))
 
 ## Only the two SECRET spreads can be unknown; every ordinary hand is on the chart from turn one.
 func _hand_known(hand: int) -> bool:
@@ -1160,16 +1186,26 @@ func _update_selection_ui() -> void:
 	# One-shot diegetic covenant line: the FIRST preview ever asserts the promise out loud.
 	if Profile.claim_once("covenant_preview"):
 		_covenant_line(tr("COVENANT_LINE_1"))
-	var hand_name := tr(Poker.name_key(int(r["hand"])))
+	var hand_name: String = tr(Poker.name_key(int(r["hand"]))) if _hand_known(int(r["hand"])) \
+		else tr("HAND_UNDISCOVERED")
 	var lv := int(_levels.get(int(r["hand"]), 0))
 	if lv > 0:
 		hand_name += " Lv%d" % (lv + 1)   # shown as the human level (base = Lv1)
 	# Boss rules may bend the scored damage (Strength's resist): the preview shows the number
 	# that will actually LAND -- the covenant never lies through a rule.
 	var eff := controller.effective_damage(int(r["damage"]), _selected.size(), int(r["hand"]))
+	# THE BIGGEST NUMBER ON THE SCREEN IS THE ONE THAT MUST BE TRUE. The cockpit and the prophecy
+	# already honoured the spread seats; this line -- the one the player reads FIRST, and the same
+	# label the reckoning later re-prints as "= 0" -- still showed the undeferred damage.
+	var lands: int = controller.spread_now(eff) if controller.spread_seat() >= 0 else eff
 	_preview_label.text = tr("COMBAT_PREVIEW") % [
-		hand_name, int(r["chips"]), float(r["mult"]), eff,
+		hand_name, int(r["chips"]), float(r["mult"]), lands,
 	]
+	var sseat := controller.spread_seat()
+	if sseat == 0:
+		_preview_label.text += "   " + (tr("SPREAD_TO_PAST") % float(r.get("mult_own", r["mult"])))
+	elif sseat == 2:
+		_preview_label.text += "   " + (tr("SPREAD_TO_FUTURE") % [CombatController.SPREAD_DELAY, eff])
 	var parts: Array = []
 	if int(r["block"]) > 0:
 		parts.append(tr("COMBAT_TAG_BLOCK") % int(r["block"]))
@@ -1215,7 +1251,7 @@ func _update_selection_ui() -> void:
 		parts.append(tr("PREVIEW_OFIARA") % [victim.rank_glyph(), tr(Aspects.name_key(victim.aspect))])
 	_preview_extra.text = "    ".join(parts)
 	_breakdown_label.text = _mult_breakdown(int(r["hand"]))
-	_refresh_cockpit(eff, int(r["block"]), lethal_now)
+	_refresh_cockpit(land, int(r["block"]), lethal_now)
 	_highlight_paytable(int(r["hand"]))
 
 ## Human-readable "why is the mult that value": leveled hand base + relic / Furia / Curse factors.

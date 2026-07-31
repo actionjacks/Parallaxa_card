@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
-[ext_resource type="Resource" path="res://data/arcana/arcanum_star.tres" id="1_tmp01"]
+[ext_resource type="Resource" path="res://data/arcana/arcanum_temperance.tres" id="1_tmp01"]
 [ext_resource type="Texture2D" path="res://assets/cards/arcana/14_temperance.jpg" id="2_tmp02"]
 [ext_resource type="Texture2D" path="res://assets/foes/14_temperance.png" id="3_tmp03"]
 [ext_resource type="Script" path="res://src/game/combat/enemy_data.gd" id="4_tmp04"]

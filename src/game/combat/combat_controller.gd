@@ -311,11 +311,16 @@ func play(selected: Array) -> void:
 	# duel and strikes nothing; the Future is written down and lands SPREAD_DELAY turns later.
 	var seat := spread_seat()
 	if seat == 0:
-		spread_mult += float(result["mult"])
-		message.emit("LOG_SPREAD_PAST", [float(result["mult"])])
+		# mult_own, NOT mult: the returned Mult already contains everything the Past banked
+		# earlier, so banking it whole compounded (two plays of 1.0 banked 3.0, not 2.0).
+		var own: float = float(result.get("mult_own", result["mult"]))
+		spread_mult += own
+		message.emit("LOG_SPREAD_PAST", [own])
 		dmg = 0
 	elif seat == 2:
-		pending.append([SPREAD_DELAY, dmg])
+		# the cards ride with the blow: if the Future lands the kill, the scar and the overkill
+		# have to know which hand struck it
+		pending.append([SPREAD_DELAY, dmg, cards.duplicate()])
 		message.emit("LOG_SPREAD_FUTURE", [SPREAD_DELAY, dmg])
 		dmg = 0
 	var hp_before: int = enemy_hp
@@ -323,11 +328,7 @@ func play(selected: Array) -> void:
 	# THE TURN AT HALF HEALTH. A boss that has been holding back stops: from here its clock runs
 	# one step hotter for the rest of the duel. Deterministic, one-way, and announced the instant
 	# it happens so the player can re-plan rather than be surprised by a number.
-	if enemy != null and enemy.is_boss and not _turned \
-			and hp_before * 2 > enemy_max_hp and enemy_hp * 2 <= enemy_max_hp and enemy_hp > 0:
-		_turned = true
-		message.emit("LOG_BOSS_TURNS", [])
-		boss_turned.emit()
+	_check_boss_turn(hp_before)
 	fight_damage += dmg
 	_dmg_this_round += dmg
 	# By PAYOUT, not by enum position: the enum is append-only, so a hand added at the end would
@@ -396,8 +397,15 @@ func play(selected: Array) -> void:
 	# The Pentagram returns a discard (Scoring flags it) -- capped so it can never bank more
 	# discards than a turn starts with.
 	if bool(result.get("refund_discard", false)):
-		_banked_discards = mini(_banked_discards + 1, START_DISCARDS)
-		message.emit("LOG_PENTAGRAM", [])
+		# The Hanged Man caps discards at one and the Wide Hand takes them away entirely, so the
+		# bank is worthless against those two -- announcing "a discard returns" there was the log
+		# promising something the next turn would immediately refuse.
+		if enemy != null and (enemy.rule == EnemyData.Rule.HANGED_CAP
+				or enemy.rule == EnemyData.Rule.WIDE_HAND):
+			pass
+		else:
+			_banked_discards = mini(_banked_discards + 1, START_DISCARDS)
+			message.emit("LOG_PENTAGRAM", [])
 	message.emit("LOG_PLAY", [tr(Poker.name_key(int(result["hand"]))), dmg])
 	if int(result["block"]) > 0:
 		message.emit("LOG_BLOCK", [int(result["block"])])
@@ -423,7 +431,9 @@ func play(selected: Array) -> void:
 		# play, so the net effect was the OPPOSITE of the promise: the victim died and its chips
 		# were simply gone. The Ofiara now KEEPS them (growth, per-fight) and fattens by one Mult
 		# per meal (feast). Both are read by chip_value()/Scoring, so the preview shows it at once.
-		if eaten + 1 < cards.size():
+		# Nothing was actually swallowed when the victim's colour was banned -- the mouth must not
+		# fatten on a meal the rule refused.
+		if eaten + 1 < cards.size() and swallowed > 0:
 			var eater: CardData = cards[eaten + 1]
 			eater.growth += swallowed
 			eater.feast += 1
@@ -475,11 +485,26 @@ func freeze(selected: Array) -> void:
 func recall(stash_index: int) -> void:
 	if phase != "player" or stash_index < 0 or stash_index >= stash.size():
 		return
-	if hand.size() >= hand_size():
-		return
+	# NO hand-size guard. freeze() refills the hand to full by design, so a "only when there is
+	# room" rule made the cross a ONE-WAY PARK: cards went in, nothing ever came out, and the
+	# player paid a discard to delete their own cards from the duel. The whole promise is that you
+	# assemble ONE enormous play, which means the hand is allowed to run over while you do it --
+	# the stash is capped at CELTIC_SLOTS, so the overflow is bounded, and _refill() simply does
+	# nothing while the hand is above its normal size.
 	hand.append(stash[stash_index])
 	stash.remove_at(stash_index)
 	state_changed.emit()
+
+## The one-way turn at half health. Extracted because a boss could cross the halfway mark from a
+## DEFERRED blow (the Hermit's Future seat) or from rot, and the check only ever ran inside play()
+## -- so on the Hermit, whose own rule makes two turns in three deal nothing immediately, the
+## ceremony and the permanent +1 enrage step could be skipped for the whole duel.
+func _check_boss_turn(hp_before: int) -> void:
+	if enemy != null and enemy.is_boss and not _turned \
+			and hp_before * 2 > enemy_max_hp and enemy_hp * 2 <= enemy_max_hp and enemy_hp > 0:
+		_turned = true
+		message.emit("LOG_BOSS_TURNS", [])
+		boss_turned.emit()
 
 func discard(selected: Array) -> void:
 	if phase != "player" or selected.is_empty() or discards_left <= 0:
@@ -499,12 +524,19 @@ func resolve_enemy_turn() -> void:
 		for e in pending:
 			var left: int = int(e[0]) - 1
 			if left <= 0:
+				var hp_was: int = enemy_hp
 				enemy_hp -= int(e[1])
 				_dmg_this_round += int(e[1])
 				fight_damage += int(e[1])
 				message.emit("LOG_SPREAD_LANDS", [int(e[1])])
+				if e.size() > 2 and enemy_hp <= 0:
+					# the hand that wrote this blow is the hand that struck it
+					killing_cards = (e[2] as Array).duplicate()
+					@warning_ignore("integer_division")
+					overkill_rtec = clampi(-enemy_hp / 50, 0, 5)
+				_check_boss_turn(hp_was)
 			else:
-				still.append([left, int(e[1])])
+				still.append([left, int(e[1]), e[2] if e.size() > 2 else []])
 		pending = still
 		if enemy_hp <= 0:
 			enemy_hp = 0

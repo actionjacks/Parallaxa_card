@@ -28,7 +28,8 @@ func _initialize() -> void:
 	fails += _expect("Spread: the cockpit and play() agree on what lands now", _spread_preview_honest())
 	fails += _expect("Spread: a Past play NEVER foretells a kill", _spread_no_false_lethal())
 	fails += _expect("Celtic Cross: freezing parks a card and refills the hand", _celtic_freeze())
-	fails += _expect("Celtic Cross: a recall is refused when the hand is full", _celtic_recall_guard())
+	fails += _expect("Celtic Cross: a frozen card COMES BACK and is playable", _celtic_recall_works())
+	fails += _expect("Spread: the Past banks linearly, never compounding", _spread_bank_linear())
 	fails += _expect("a Straight of five Aspects stays a STRAIGHT (upgrade-only)", _straight_not_demoted())
 	fails += _expect("Full Court: Page+Knight+Queen+King", _full_court_reads() == Poker.Hand.FULL_COURT)
 	fails += _expect("a scar adds permanent chips and survives a save round-trip", _scar_persists())
@@ -974,14 +975,33 @@ func _celtic_freeze() -> bool:
 	return ctrl.stash.size() == 1 and ctrl.stash[0] == parked \
 		and ctrl.hand.size() == n and not ctrl.hand.has(parked) and ctrl.discards_left == d - 1
 
-## NEGATIVE: the cross is a store, never a way to hold more cards than the duel allows.
-func _celtic_recall_guard() -> bool:
+## THE POSITIVE PATH, which nothing ever tested: a frozen card must be able to come BACK. freeze()
+## refills the hand to full by design, so a "only when there is room" guard made the cross a
+## one-way park -- full infrastructure, zero function in the direction it exists for.
+func _celtic_recall_works() -> bool:
 	var ctrl := _celtic_ctrl()
+	var parked: CardData = ctrl.hand[0]
 	ctrl.freeze([0])
 	if ctrl.stash.size() != 1 or ctrl.hand.size() != ctrl.hand_size():
 		return false
+	var before: int = ctrl.hand.size()
 	ctrl.recall(0)
-	return ctrl.stash.size() == 1        # refused: the hand is already full
+	# it left the cross, it is in the hand, and the hand is allowed to run over while you assemble
+	return ctrl.stash.is_empty() and ctrl.hand.has(parked) and ctrl.hand.size() == before + 1
+
+## The bank must be N*m, not m*(2^N-1): scoring already folds the bank into the Mult it returns,
+## so banking that total again compounds. Two Past plays of base Mult must bank exactly twice it.
+func _spread_bank_linear() -> bool:
+	var ctrl := _spread_ctrl()
+	ctrl.play([0])                       # PAST
+	var after_one: float = ctrl.spread_mult
+	ctrl.resolve_enemy_turn()
+	ctrl.play([0])                       # PRESENT
+	ctrl.resolve_enemy_turn()
+	ctrl.play([0])                       # FUTURE
+	ctrl.resolve_enemy_turn()
+	ctrl.play([0])                       # PAST again
+	return is_equal_approx(ctrl.spread_mult, after_one * 2.0)
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

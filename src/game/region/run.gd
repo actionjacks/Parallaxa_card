@@ -623,7 +623,7 @@ func _show_shop() -> void:
 		var srow := HBoxContainer.new()
 		srow.alignment = BoxContainer.ALIGNMENT_CENTER
 		srow.add_theme_constant_override("separation", 10)
-		var slabel := _label(tr("SHOP_STAR") % [tr(Poker.name_key(_shop_star)), lv + 1, lv + 2], 15, Color(0.95, 0.9, 0.6))
+		var slabel := _label(tr("SHOP_STAR") % [tr(Poker.name_key(_shop_star)) if Profile.hand_found(_shop_star) or (_shop_star != Poker.Hand.PENTAGRAM and _shop_star != Poker.Hand.FULL_COURT) else tr("HAND_UNDISCOVERED"), lv + 1, lv + 2], 15, Color(0.95, 0.9, 0.6))
 		srow.add_child(slabel)
 		var sdesc := _label("(+%d chips, +%d Mult)" % [int(up[0]), int(up[1])], 13, Color(0.7, 0.72, 0.6))
 		srow.add_child(sdesc)
@@ -695,6 +695,8 @@ func _invert_card() -> void:
 		var foes: Array = Aspects.foes(card.aspect)
 		if foes.is_empty():
 			return
+		if _allowed_aspects(foes).is_empty():
+			return
 		_open_aspect_picker(tr("PICK_INVERT_COLOR"), foes, func(chosen: int) -> void:
 			_apply_inversion(card, chosen))
 	_open_deck_picker(tr("PICK_INVERT"), cb)
@@ -729,6 +731,8 @@ func _splash_card() -> void:
 		var pals: Array = Aspects.allies(card.aspect)
 		if pals.is_empty():
 			return
+		if _allowed_aspects(pals).is_empty():
+			return
 		_open_aspect_picker(tr("PICK_SPLASH_COLOR"), pals, func(chosen: int) -> void:
 			card.splash = chosen
 			RunState.spend(_cost(SPLASH_COST))
@@ -752,7 +756,7 @@ func _warp_deck() -> void:
 		return
 	_open_aspect_picker(tr("PICK_WARP"), present, func(chosen: int) -> void:
 		var foes: Array = Aspects.foes(chosen)
-		if foes.is_empty():
+		if _allowed_aspects(foes).is_empty():
 			return
 		_open_aspect_picker(tr("PICK_WARP_INTO"), foes, func(into: int) -> void:
 			var n := 0
@@ -836,6 +840,18 @@ func _open_deck_picker(title: String, on_pick: Callable) -> void:
 ## the spot, which meant exactly ONE outcome existed per card -- and both worked examples in
 ## todo.md ("Zycie + Natura", "Chaos w Umysl") were unreachable in the shipped game. The wheel
 ## offers two of each; the player chooses which.
+## The colour Veil V removed is removed EVERYWHERE. filter_lost() closed the offer doors, but the
+## three carving buttons built their lists straight from Aspects.foes()/allies() -- so "Warp a whole
+## colour" happily moved eight cards INTO the Aspect the HUD was still calling gone.
+func _allowed_aspects(choices: Array) -> Array:
+	if RunState.lost_aspect < 0:
+		return choices
+	var out: Array = []
+	for a in choices:
+		if int(a) != RunState.lost_aspect:
+			out.append(int(a))
+	return out
+
 func _open_aspect_picker(title: String, choices: Array, on_pick: Callable) -> void:
 	var overlay := Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -856,7 +872,7 @@ func _open_aspect_picker(title: String, choices: Array, on_pick: Callable) -> vo
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 16)
 	col.add_child(row)
-	for a in choices:
+	for a in _allowed_aspects(choices):
 		var b := _button(tr(Aspects.name_key(int(a))), _close_overlay.bind(overlay, on_pick.bind(int(a))))
 		b.add_theme_color_override("font_color", Aspects.color(int(a)))
 		row.add_child(b)
@@ -869,6 +885,14 @@ func _on_picker_input(ev: InputEvent, card: CardData, overlay: Control, on_pick:
 		_close_overlay(overlay, on_pick.bind(card))
 
 func _close_overlay(overlay: Control, after := Callable()) -> void:
+	# Deaf the moment it starts fading. The 0.15 s fade used to stay fully interactive, so a
+	# double-click on a shop button fired `after` TWICE -- charging 6 Mercury twice for one
+	# reversal (and `spend()`'s false return was never checked, so the second could even be free).
+	if overlay.get_meta("closing", false):
+		return
+	overlay.set_meta("closing", true)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.propagate_call("set_mouse_filter", [Control.MOUSE_FILTER_IGNORE])
 	var tw := create_tween()
 	tw.tween_property(overlay, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(overlay.queue_free)

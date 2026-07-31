@@ -411,9 +411,19 @@ func load_profile() -> void:
 	astrologer = cf.get_value("meta", "astrologer", {})
 
 
-## A Daily Fate keeps only the BEST attempt, so the entry is a record to beat rather than a log.
+## A Daily Fate keeps only the FIRST attempt, so the entry is a record to beat rather than a log.
 ## Score is the run's total damage: the one number that rewards playing the seed well rather than
 ## merely surviving it.
+## Walking out of a Daily seals it too -- see overlays._abandon(). Kept separate from
+## _record_daily so an abandoned run is never mistaken for a played one in the Book.
+func record_daily_abandon() -> void:
+	if RunState.daily_tag == "" or not astrologer.get(RunState.daily_tag, {}).is_empty():
+		return
+	astrologer[RunState.daily_tag] = {
+		"score": RunState.stat_damage_total, "won": false, "fights": RunState.fights_won,
+	}
+	save_profile()
+
 func _record_daily(victory: bool) -> void:
 	if RunState.daily_tag == "":
 		return

@@ -480,8 +480,8 @@ VEIL_5,Veil V — True Night,Zasłona V — Prawdziwa Noc
 VEIL_1_DESC,Max HP 55 -> 48,Maks. HP 55 -> 48
 VEIL_2_DESC,"Rest heals 5, the road restores 25% of missing HP","Odpoczynek leczy 5, droga zwraca 25% brakującego HP"
 VEIL_3_DESC,"Enemies enrage faster, and the shop shows only TWO cards.","Wrogowie szaleją szybciej, a sklep pokazuje tylko DWIE karty."
-VEIL_4_DESC,"Shop prices +2, rewards -1, and the Keystone stops working: the last card no longer doubles.","Ceny +2, nagrody -1, a Klucz przestaje działać: ostatnia karta już nie liczy podwójnie."
-VEIL_5_DESC,"Boss HP +15%, heal pool 10, and ONE whole Aspect is missing from your deck.","HP bossów +15%, zapas leczenia 10, a JEDEN cały Aspekt znika z twojej talii."
+VEIL_4_DESC,"Shop prices +2, rewards -1, the Keystone stops working, and interest is paid only on cards in colours HOSTILE to your dominant Aspect.","Ceny +2, nagrody -1, Klucz przestaje działać, a odsetki naliczają się tylko od kart w kolorach WROGICH twojemu dominującemu Aspektowi."
+VEIL_5_DESC,"Boss HP +15%, heal pool 10, ONE whole Aspect is missing from your deck — and every boss reads the hand chart UPSIDE DOWN.","HP bossów +15%, zapas leczenia 10, JEDEN cały Aspekt znika z twojej talii — a każdy boss czyta tabelę układów DO GÓRY NOGAMI."
 COLLECTION_DECKS,Starter decks,Talie startowe
 COLLECTION_DECK_BUY,Unlock (%d Salt),Odblokuj (%d Soli)
 COLLECTION_DECK_OWNED,Owned,Posiadana
@@ -580,7 +580,7 @@ ENEMY_SPRAWIEDLIWOSC,Justice,Sprawiedliwość
 ENEMY_SAD,Judgement,Sąd
 ENEMY_GWIAZDA,The Star,Gwiazda
 RULE_CHARIOT,Chariot: his attack lands TWICE — block absorbs only the first strike,Rydwan: atak spada DWA razy — blok chroni tylko przed pierwszym
-RULE_STRENGTH,Strength: suppresses burst — takes 20% less from every play,Siła: tłumi burst — otrzymuje 20% mniej z każdego zagrania
+RULE_STRENGTH,"Restraint: takes 20% less from every play — except the Pentagram, which breaks any armour.","Powściągliwość: otrzymuje 20% mniej z każdego zagrania — poza Pentagramem, który przełamuje każdy pancerz."
 RULE_HANGED,The Hanged Man: suspension — your discards are capped at 1 per turn,Wisielec: zawieszenie — odrzuty ograniczone do 1 na turę
 RULE_JUSTICE,"Justice: a play of 40+ damage draws an exact riposte (dmg/40, max 8)","Sprawiedliwość: zagranie za 40+ ściąga dokładną ripostę (obr/40, maks 8)"
 RULE_JUDGEMENT,Judgement: the deck is judged — each played card of rank 3 or less costs 1 HP,Sąd: talia osądzona — każda zagrana karta rangi 3 lub niższej kosztuje 1 HP
@@ -857,3 +857,6 @@ LOG_SPREAD_PAST,The Past keeps its Mult: +%.1f for the whole duel.,Przeszłość
 LOG_SPREAD_FUTURE,Written into the Future: %d turns from now — %d.,Zapisane w Przyszłości: za %d tury — %d.
 LOG_SPREAD_LANDS,What was foretold arrives: %d.,Co przepowiedziane — nadchodzi: %d.
 LOG_CELTIC_FREEZE,Frozen in the cross (%d/4).,Zamrożone w krzyżu (%d/4).
+SPREAD_TO_PAST,-> the Past keeps +%.1f Mult for the whole duel,-> Przeszłość zatrzymuje +%.1f Mult na cały pojedynek
+SPREAD_TO_FUTURE,-> the Future: %d turns from now it strikes for %d,-> Przyszłość: za %d tury uderzy za %d
+ARCANUM_UMIARKOWANIA,Arcanum of Temperance,Arkanum Umiarkowania

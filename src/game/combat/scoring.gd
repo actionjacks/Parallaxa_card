@@ -212,9 +212,6 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 			ArcanumData.Effect.HEAL_ON_PLAY:
 				heal += relic.effect_value
 
-	# The Past seat's banked Mult (THREE_SPREAD): a play spent on the Past pays every later play.
-	mult += float(ctx.get("spread_mult", 0.0))
-
 	mult *= poly
 
 	# --- BIOME LAW: the field itself scores, one deterministic rule per biome (RegionData.Law).
@@ -235,6 +232,12 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 
 	# Curse multiplies the SCORED damage (Spalenie stays flat, outside the engine); this play's
 	# own Klatwa cards stack the debuff for FUTURE plays (returned, applied by the controller).
+	# The Past seat's bank (THREE_SPREAD) is added LAST, after Polychrome and the biome law, so it
+	# is never re-multiplied by them -- and mult_own is what THIS play earned on its own, which is
+	# the only honest thing to bank (banking the total compounded: two plays of 1.0 gave 3.0).
+	var mult_own: float = mult
+	mult += float(ctx.get("spread_mult", 0.0))
+
 	var damage: int = int(round(chips * mult * (1.0 + klatwa / 100.0))) + flat
 	var klatwa_add: int = 0
 	var leech: int = 0
@@ -263,6 +266,7 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 		"hand": hand,
 		"chips": chips,
 		"mult": mult,
+		"mult_own": mult_own,
 		"damage": damage,
 		"block": block,
 		"heal": heal,

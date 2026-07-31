@@ -90,6 +90,12 @@ func _abandon() -> void:
 	if run_active and rs != null and rs.region != null:
 		rs.save_run("")
 	var prof := get_node_or_null("/root/Profile")
+	# A Daily walked away from is still today's reading. Without this the player could restart the
+	# same fate until it went well and only THEN let it be recorded -- exactly the farming the
+	# first-attempt rule exists to stop (death was recorded, quitting was not).
+	if prof != null and rs != null and run_active and String(rs.daily_tag) != "" \
+			and prof.has_method("record_daily_abandon"):
+		prof.call("record_daily_abandon")
 	if prof != null and prof.has_method("save_profile"):
 		prof.call("save_profile")
 	run_active = false
@@ -146,7 +152,11 @@ func _open_overview() -> void:
 	for hand in _ordered:
 		var lv := int(RunState.hand_levels.get(hand, 0))
 		var base: Array = Poker.leveled_base(hand, lv)
-		var row := "%s  %d x %s" % [tr(Poker.name_key(hand)), int(base[0]), String.num(float(base[1]), 1)]
+		# Same secrecy as the in-combat chart: naming a secret spread here was a full leak of it.
+		var secret: bool = hand == Poker.Hand.PENTAGRAM or hand == Poker.Hand.FULL_COURT
+		var nm: String = tr("HAND_UNDISCOVERED") if (secret and not Profile.hand_found(hand)) \
+			else tr(Poker.name_key(hand))
+		var row := "%s  %d x %s" % [nm, int(base[0]), String.num(float(base[1]), 1)]
 		if lv > 0:
 			row += "  (Lv%d)" % (lv + 1)
 		right.add_child(_lbl(row, 13, Color(0.95, 0.9, 0.6) if lv > 0 else Color(0.72, 0.74, 0.82)))

@@ -43,7 +43,7 @@ var growth: int = 0
 
 ## Runtime wear from the PRZECIAZENIE keyword: plays survived. Persisted in the RUN save (not the
 ## .tres) -- the glass cracks across fights within one run. durability left = keyword_value - wear.
-var wear: int = 0
+@export var wear: int = 0
 
 ## Runtime ramp from the KORZENIE keyword: accumulated bonus BLOCK (separate from `growth`,
 ## which feeds chips -- roots must not double-dip into chip value). Transient like growth.
@@ -59,7 +59,7 @@ var bloom: int = 0
 ## was CHANGED IN PLACE at that moment to its enemy on the pentagram, so nothing downstream has
 ## to know -- a reversed card simply IS the other colour, and flushes, Symbioza and the sigil all
 ## keep working unchanged. This flag only drives the payoff multiplier and the inverted art.
-var inverted: bool = false
+@export var inverted: bool = false
 
 ## CRACKED (docs/todo.md par.5, "Trauma po Wiezy"): a card the Tower shattered and you won back
 ## anyway. It lost a third of its chip base for good, but it survived something -- so any
