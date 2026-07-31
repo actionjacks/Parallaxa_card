@@ -1132,9 +1132,15 @@ func _on_card_input(event: InputEvent, card: CardData) -> void:
 			_drag_panel = null
 			_drag_active = false
 			if was_drag:
+				# Drag USED to be a strictly worse click: it could only ever add a card, and
+				# dropping anywhere else silently ate the click. Now it works both ways -- up to
+				# the arena stages a card, back down into the fan takes it off the table.
 				if dropped_on_arena and not _selected.has(card) and _selected.size() < 5:
 					_selected.append(card)
 					Sfx.play(&"card_select", -8.0)
+				elif not dropped_on_arena and _selected.has(card):
+					_selected.erase(card)
+					Sfx.play(&"card_select", -8.0, 0.85)
 				_refresh_card_styles()
 				_update_selection_ui()
 				_maybe_teach_keystone()

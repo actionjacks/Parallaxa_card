@@ -23,6 +23,7 @@ const VAMPIRE_THRESHOLD: int = 90    ## ...i.e. under this much damage between i
 ## engine recycles the grave unconditionally anyway, so "raise the dead" changed nothing but a log
 ## line. todo.md's closing paragraph asks for the grave to return in a MIGHTIER form -- this is it.
 const RAISE_CHIPS: int = 6
+const HEAL_TRICKLE: int = 3          ## heal budget returned at the start of each of your turns
 const SPREAD_DELAY: int = 2          ## turns a Future-seat blow waits before it lands
 const CELTIC_SLOTS: int = 4          ## cards the Celtic Cross can hold beside the hand
 
@@ -613,6 +614,12 @@ func resolve_enemy_turn() -> void:
 		_finish(false)
 		return
 	turn += 1
+	# THE POOL TRICKLES BACK. A flat 15 HP per fight made every healing source identical after four
+	# plays: Pijawka 15 (RARE) and Pijawka 20 (LEGENDARY) healed exactly the same, and so did all
+	# three healing relics. Returning a little each turn means a long fight rewards the bigger
+	# source -- the number on the card finally means something -- while a short one still cannot be
+	# out-sustained.
+	heal_used = maxi(0, heal_used - HEAL_TRICKLE)
 	discards_left = START_DISCARDS + _bonus_discards() + _banked_discards
 	_banked_discards = 0
 	if enemy.rule == EnemyData.Rule.HANGED_CAP:
@@ -680,6 +687,9 @@ func _ctx() -> Dictionary:
 		# Veil IV -- the Cracked Mirror: the Keystone stops working, so the ordering game the
 		# player has learned is taken away and they have to score on the hand alone.
 		"keystone": veil < 4,
+		# A shorter play pays a tighter multiplier -- see Scoring.PRECISION_STEP. Always on in a
+		# real duel; the pure scorer defaults it off so the canonical tests stay canonical.
+		"precision": true,
 		# VEIL V REWRITES THE RULES (docs/todo.md par.6, verbatim example: "every boss starts with
 		# an inverted field rule"). The mirror stops being the Moon's private trick: at the deepest
 		# Veil every Major Arcanum reads the chart upside down. The machinery (Poker.base_for + this

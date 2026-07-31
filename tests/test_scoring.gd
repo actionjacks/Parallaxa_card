@@ -4,6 +4,7 @@ extends SceneTree
 
 func _initialize() -> void:
 	var failures: int = 0
+	failures += _check_precision()
 	failures += _check_pair_death()
 	failures += _check_four_of_a_kind()
 	failures += _check_flush_detect()
@@ -53,6 +54,22 @@ func _tower_arcanum() -> ArcanumData:
 	a.effect_aspect = Aspects.Id.CHAOS
 	a.effect_mult = 1.4
 	return a
+
+## THE PRECISION BONUS, both directions. Measured before it was written: in 0.00% of 4000 hands
+## did a play of fewer than five cards beat the best five-card play, so "how many cards" was not a
+## decision at all. A three-card play now pays x1.24 on top of its own Mult -- and a FIVE-card play
+## must gain nothing, or the bonus would simply be a global damage buff.
+func _check_precision() -> int:
+	var three: Array = [_c(7, Aspects.Id.DEATH), _c(7, Aspects.Id.LIFE), _c(2, Aspects.Id.MIND)]
+	var off: Dictionary = Scoring.score(three, [])
+	var on: Dictionary = Scoring.score(three, [], {"precision": true})
+	var five: Array = [_c(7, Aspects.Id.DEATH), _c(7, Aspects.Id.LIFE), _c(2, Aspects.Id.MIND),
+		_c(4, Aspects.Id.CHAOS), _c(9, Aspects.Id.NATURE)]
+	var f_off: Dictionary = Scoring.score(five, [])
+	var f_on: Dictionary = Scoring.score(five, [], {"precision": true})
+	return _expect("precision: 3 cards x1.24, 5 cards untouched",
+		is_equal_approx(float(on["mult"]), float(off["mult"]) * 1.24)
+		and is_equal_approx(float(f_on["mult"]), float(f_off["mult"])))
 
 func _expect(label: String, ok: bool) -> int:
 	if ok:

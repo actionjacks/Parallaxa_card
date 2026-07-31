@@ -93,6 +93,7 @@ func _decision_spread() -> Array:
 	var vals: Array = []
 	var types: Dictionary = {}
 	var best: int = 0
+	var best_n: int = 0            ## how many cards the BEST play uses -- is "how many" a decision?
 	for mask in range(1, 1 << n):
 		var idx: Array = []
 		for i in n:
@@ -106,7 +107,9 @@ func _decision_spread() -> Array:
 			d = _ctrl.spread_now(d)
 		vals.append(d)
 		types[int(r["hand"])] = true
-		best = maxi(best, d)
+		if d > best:
+			best = d
+			best_n = idx.size()
 	# the naive play: the five highest-ranked cards, which is what a new player reaches for
 	var order: Array = []
 	for i in n:
@@ -119,7 +122,7 @@ func _decision_spread() -> Array:
 		naive = _ctrl.spread_now(naive)
 	vals.sort()
 	var med: int = int(vals[vals.size() / 2]) if not vals.is_empty() else 0
-	return [best, naive, med, types.size(), vals.size()]
+	return [best, naive, med, types.size(), vals.size(), best_n]
 
 func _go() -> void:
 	await _frames(2)
@@ -150,8 +153,8 @@ func _go() -> void:
 			% [tr(Poker.name_key(int(br["hand"]))), int(br["chips"]), float(br["mult"]), names])
 		var s: Array = _decision_spread()
 		var gain: float = (float(s[0]) / maxf(1.0, float(s[1])) - 1.0) * 100.0
-		_log("[tac] tura %d: legalnych zagran=%d, typow ukladu=%d | najlepsze=%d naiwne=%d mediana=%d | zysk z myslenia +%.0f%%"
-			% [_ctrl.turn, s[4], s[3], s[0], s[1], s[2], gain])
+		_log("[tac] tura %d: zagran=%d typow=%d | najlepsze=%d (%d kart) naiwne=%d mediana=%d | zysk +%.0f%%"
+			% [_ctrl.turn, s[4], s[3], s[0], s[5], s[1], s[2], gain])
 		# play the BEST five-card set so the fight advances like a competent player's would
 		var bi: Array = _best_indices()
 		_scene.call("_selected_clear_for_test") if _scene.has_method("_selected_clear_for_test") else null

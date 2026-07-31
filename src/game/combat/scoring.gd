@@ -18,6 +18,11 @@ class_name Scoring
 ## game. Flat chips make one reversal felt without the stack detonating.
 const INVERT_CHIPS: int = 20
 
+## Mult gained per card LEFT OUT of a play (see the precision bonus below). Deliberately modest:
+## four cards x1.12, three x1.24, two x1.36, one x1.48. Enough to make pruning a real option on a
+## poor hand, never enough to beat a made five-card hand.
+const PRECISION_STEP: float = 0.12
+
 static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictionary:
 	var grave: int = int(ctx.get("grave", 0))
 	var plays: int = int(ctx.get("plays", 0))
@@ -232,6 +237,20 @@ static func score(cards: Array, relics: Array, ctx: Dictionary = {}) -> Dictiona
 
 	# Curse multiplies the SCORED damage (Spalenie stays flat, outside the engine); this play's
 	# own Klatwa cards stack the debuff for FUTURE plays (returned, applied by the controller).
+	# THE PRECISION BONUS. Measured: in 0.00% of 4000 hands did playing fewer than five cards beat
+	# the best five-card play, because every card only ADDS chips and evaluate() never demotes a
+	# hand. "How many cards" was not a decision, it was a formality -- and three separate rules
+	# (Bark, the Empress, the Burnt Field's law) punished a nibble nobody had any reason to make.
+	# A shorter play now pays a tighter multiplier: fewer chips, more focus. It matters most on the
+	# weak hands, which is exactly where the choice should live -- a Flush still wants all five,
+	# but a fistful of junk is now worth pruning, and the anti-nibble rules finally have something
+	# to push against.
+	# Off by default (ctx carries no "precision"), exactly like the Keystone: Scoring stays a pure
+	# function whose defaults never move, so every existing assertion keeps asserting the numbers
+	# it always did, and the DUEL is what turns the rule on.
+	if cards.size() < 5 and bool(ctx.get("precision", false)):
+		mult *= 1.0 + PRECISION_STEP * float(5 - cards.size())
+
 	# The Past seat's bank (THREE_SPREAD) is added LAST, after Polychrome and the biome law, so it
 	# is never re-multiplied by them -- and mult_own is what THIS play earned on its own, which is
 	# the only honest thing to bank (banking the total compounded: two plays of 1.0 gave 3.0).
