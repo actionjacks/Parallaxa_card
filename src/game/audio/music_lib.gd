@@ -7,10 +7,29 @@ class_name MusicLib
 const TRACKS := {
 	&"music_menu": "res://assets/audio/music/menu_drone.wav",
 	&"music_combat": "res://assets/audio/music/combat_loop.wav",
+	# One battle theme played under every fight in the game, which is the cheapest way to make a
+	# long session feel repetitive. Each Aspect now has its own key and colour -- same synthesis,
+	# five themes (tools/gen/gen_music.py BIOME_KEYS).
+	&"music_combat_life": "res://assets/audio/music/combat_life.wav",
+	&"music_combat_mind": "res://assets/audio/music/combat_mind.wav",
+	&"music_combat_death": "res://assets/audio/music/combat_death.wav",
+	&"music_combat_chaos": "res://assets/audio/music/combat_chaos.wav",
+	&"music_combat_nature": "res://assets/audio/music/combat_nature.wav",
 	&"music_boss": "res://assets/audio/music/boss_loop.wav",
 	&"music_heartbeat": "res://assets/audio/music/heartbeat_loop.wav",
 }
 static var _registered := false
+
+## The battle theme of an Aspect (Aspects.Id order), falling back to the original when the biome
+## is unknown -- a missing key must never silence a fight.
+static func combat_for(aspect: int) -> StringName:
+	match aspect:
+		0: return &"music_combat_life"
+		1: return &"music_combat_mind"
+		2: return &"music_combat_death"
+		3: return &"music_combat_chaos"
+		4: return &"music_combat_nature"
+	return &"music_combat"
 
 static func play(key: StringName, fade: float = 1.0) -> void:
 	var am := _audio_manager()

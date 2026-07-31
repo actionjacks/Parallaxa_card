@@ -284,7 +284,21 @@ def render_menu():
 # 3.3 combat_loop.wav -- the duel (96 BPM, 4/4, 8 bars, D Phrygian)
 # ---------------------------------------------------------------------------
 
-def render_combat():
+BIOME_KEYS = {
+    # name, semitone shift from the D-minor original, brightness (major third instead of minor)
+    "life":   (+5, True),    # up a fourth, major -- the Orchard is the one place you survive in
+    "mind":   (+2, False),   # up a tone, minor -- cold and exact
+    "death":  (-3, False),   # down a minor third -- heavy, low, patient
+    "chaos":  (+7, False),   # up a fifth -- bright and unstable
+    "nature": (0, True),     # home key, major -- growth on familiar ground
+}
+
+
+def _shift(f, semis):
+    return f * (2.0 ** (semis / 12.0))
+
+
+def render_combat(semis=0, bright=False):
     loop = 20.0
     n = int((loop + XFADE_S) * SR)
     buf = zeros(n)
@@ -293,10 +307,22 @@ def render_combat():
 
     # Progression, 2 bars each: Dm | Eb | Dm | Cm.
     # arp = chord tones at octave 4: [root, third, fifth, root+12].
-    dm = {"r2": D2, "r3": D3, "arp": (D4, F4, A4, D5), "pad": (D3, F3, A3)}
-    eb = {"r2": EB2, "r3": EB3, "arp": (EB4, G4, BB4, EB5),
-          "pad": (EB3, G3, BB3)}
-    cm = {"r2": C2, "r3": C3, "arp": (C4, EB4, G4, C5), "pad": (C3, EB3, G3)}
+    # A major third is 4 semitones over the root, a minor third 3 -- that one semitone is the whole
+    # difference between the Orchard and the Catacombs, and it costs a single number.
+    th = 4.0 / 3.0 if bright else 1.0
+    def k(f):
+        return _shift(f, semis)
+    def kt(f, root):
+        return _shift(f, semis) * (th if bright else 1.0) if False else _shift(f, semis)
+    dm = {"r2": k(D2), "r3": k(D3),
+          "arp": (k(D4), _shift(F4, semis + (1 if bright else 0)), k(A4), k(D5)),
+          "pad": (k(D3), _shift(F3, semis + (1 if bright else 0)), k(A3))}
+    eb = {"r2": k(EB2), "r3": k(EB3),
+          "arp": (k(EB4), _shift(G4, semis + (1 if bright else 0)), k(BB4), k(EB5)),
+          "pad": (k(EB3), _shift(G3, semis + (1 if bright else 0)), k(BB3))}
+    cm = {"r2": k(C2), "r3": k(C3),
+          "arp": (k(C4), _shift(EB4, semis + (1 if bright else 0)), k(G4), k(C5)),
+          "pad": (k(C3), _shift(EB3, semis + (1 if bright else 0)), k(G3))}
     prog = [dm, eb, dm, cm]
 
     env_bass = adsr_env(0.005, 0.10, 0.6, 0.15, 0.3125)   # note = one eighth
@@ -470,6 +496,9 @@ def main():
         ("boss_loop.wav", render_boss),
         ("heartbeat_loop.wav", render_heartbeat),
     ]
+    for bname, (semis, bright) in sorted(BIOME_KEYS.items()):
+        tracks.append(("combat_%s.wav" % bname,
+                       (lambda sm, br: (lambda: render_combat(sm, br)))(semis, bright)))
     for name, render in tracks:
         buf, loop_n = render()
         pcm = finalize(buf, loop_n)

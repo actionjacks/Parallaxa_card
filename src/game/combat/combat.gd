@@ -105,7 +105,13 @@ func _ready() -> void:
 		_relics = [load(DEF_ARCANUM_PATH)]
 		_deck = DeckLibrary.starter_deck()
 	_build_ui()
-	MusicLib.play(&"music_boss" if _enemy.is_boss else &"music_combat", 0.8)
+	# The fight wears the colour of the place it happens in: a boss keeps its own theme, an
+	# ordinary duel takes the biome's. Falls back to the original track when there is no region
+	# (standalone scene, tests), so a fight is never silent.
+	var track: StringName = &"music_boss"
+	if not _enemy.is_boss:
+		track = MusicLib.combat_for(RunState.region.seal_aspect) if (not standalone and RunState.region != null) else &"music_combat"
+	MusicLib.play(track, 0.8)
 	controller = CombatController.new()
 	controller.state_changed.connect(_render)
 	controller.message.connect(_on_message)

@@ -194,4 +194,7 @@ nieskonczonej (5 kontra 0) do jednej walki.
 
 1. **Pula 6 odrzutow na pojedynek to duza zmiana, ktorej nie tykal czlowiek.** Bot ja przeszedl;
    to nie to samo. Pierwsza rzecz do przetestowania rekami.
-2. **Warstwa wydawnicza poza eksportem**: Steamworks, muzyka (80 s), lokalizacje (2), capsule.
+2. **Warstwa wydawnicza poza eksportem**: Steamworks, lokalizacje (2), capsule i trailer.
+   MUZYKA DOMKNIETA: piec motywow bojowych zamiast jednego, po jednym na Aspekt (ta sama synteza,
+   inna tonacja i barwa — `BIOME_KEYS` w tools/gen/gen_music.py). Walka nosi teraz kolor miejsca,
+   w ktorym sie toczy; boss zachowuje wlasny temat. Pakiet urosl o 1 MB (254 -> 255 MB).
