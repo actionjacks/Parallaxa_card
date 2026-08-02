@@ -868,7 +868,8 @@ func _rotbound_seals() -> bool:
 	ctrl.enemy_gnicie = 0
 	ctrl.phase = "enemy"
 	ctrl.resolve_enemy_turn()
-	return ctrl.enemy_hp == ctrl.enemy_max_hp
+	# it seals MOST of the wound, never all of it -- a fight nobody can win is a soft-lock, not a rule
+	return ctrl.enemy_hp > 200 and ctrl.enemy_hp < ctrl.enemy_max_hp
 
 func _rotbound_rot_holds() -> bool:
 	var ctrl := _second_axis_foe(EnemyData.Rule.ROT_BOUND)

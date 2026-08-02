@@ -613,8 +613,13 @@ func resolve_enemy_turn() -> void:
 		message.emit("LOG_MOON_MEND", [MOON_MEND_HEAL])
 	# THE ROT-BOUND: it seals itself completely unless the rot is in it. No amount of damage
 	# finishes this one -- only Gnicie does, and the player has to keep it applied.
+	# IT SEALS, BUT NOT PERFECTLY. Healing to FULL made the fight literally unwinnable for a deck
+	# with no rot in it -- and an unwinnable fight is not a puzzle, it is a soft-lock: the duel ran
+	# forever and took the automated harnesses down with it. Sealing SEVEN TENTHS of the wound
+	# keeps the lesson ("rot is the way through this one") while leaving a slow, punishing path for
+	# a player who simply refuses to learn it.
 	if enemy.rule == EnemyData.Rule.ROT_BOUND and enemy_gnicie <= 0 and enemy_hp > 0:
-		enemy_hp = enemy_max_hp
+		enemy_hp = mini(enemy_max_hp, enemy_hp + int((enemy_max_hp - enemy_hp) * 0.7))
 		message.emit("LOG_ROTBOUND", [])
 	# The Star's hope: a flat self-heal every turn -- outdamage it or watch the fight undo itself.
 	if enemy.rule == EnemyData.Rule.STAR_REGEN:
