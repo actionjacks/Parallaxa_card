@@ -7,7 +7,9 @@ const BG := Color(0.09, 0.09, 0.13)
 const BG_SEL := Color(0.18, 0.18, 0.26)
 ## Hand cards are read at a glance while the player counts a poker hand -- 80x112 was too small
 ## to tell rank and suit apart without hovering, which turned every turn into a hover-hunt.
-const CARD_SIZE := Vector2(108, 151)
+## Bigger. At 108x151 the art was a thumbnail and every label sat on top of it; the extra 12x17
+## goes entirely to the illustration, which is the part the player is meant to fall in love with.
+const CARD_SIZE := Vector2(120, 168)
 const SPINE_W := 7.0             ## width of the Aspect colour bar down the card's left edge
 
 ## RWS 1909 Minor Arcana illustrations. Four Aspects map onto the historical suits
@@ -81,6 +83,27 @@ static func build(card: CardData) -> PanelContainer:
 		crack.rotation_degrees = 4.0
 		crack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		panel.add_child(crack)
+	# INNER BEVEL: one hairline of light just inside the frame. A border alone is a line; a border
+	# with a lit inner edge is an EDGE, and that single pixel is most of what separates a card that
+	# looks printed from one that looks drawn in a debug view.
+	var inner := Control.new()
+	inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var isb := StyleBoxFlat.new()
+	isb.bg_color = Color(0, 0, 0, 0)
+	isb.set_border_width_all(1)
+	isb.border_color = Color(1, 1, 1, 0.13)
+	isb.set_corner_radius_all(3)
+	var ip := PanelContainer.new()
+	ip.add_theme_stylebox_override("panel", isb)
+	ip.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ip.offset_left = 2.0
+	ip.offset_top = 2.0
+	ip.offset_right = -2.0
+	ip.offset_bottom = -2.0
+	ip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(ip)
+	panel.add_child(inner)
 	panel.set_meta("border", sb.border_color)
 	panel.mouse_entered.connect(_on_hover.bind(panel, true))
 	panel.mouse_exited.connect(_on_hover.bind(panel, false))
@@ -164,6 +187,34 @@ static func _build_art_face(panel: PanelContainer, card: CardData, art: Texture2
 	t.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layers.add_child(t)
+	# THE SCRIM. Rank, keyword and durability were printed straight onto the engraving, so on a
+	# bright plate they vanished and on a dark one the plate did. A gradient rising from the foot
+	# gives every label a base to stand on without hiding the art -- the oldest trick in card
+	# design, and the reason a real card is readable at a glance.
+	var foot_g := Gradient.new()
+	foot_g.set_color(0, Color(0.02, 0.015, 0.03, 0.0))
+	foot_g.set_color(1, Color(0.02, 0.015, 0.03, 0.88))
+	var foot_t := GradientTexture2D.new()
+	foot_t.gradient = foot_g
+	foot_t.fill_from = Vector2(0.5, 0.42)
+	foot_t.fill_to = Vector2(0.5, 1.0)
+	foot_t.width = 4
+	foot_t.height = 64
+	var foot := TextureRect.new()
+	foot.texture = foot_t
+	foot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	foot.stretch_mode = TextureRect.STRETCH_SCALE
+	foot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	foot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(foot)
+	# A HEADER BAND under the rank, so the top corner reads as printed on the card rather than
+	# floating over whatever the engraving happens to show there.
+	var band := ColorRect.new()
+	band.color = Color(0.03, 0.025, 0.04, 0.72)
+	band.anchor_right = 1.0
+	band.offset_bottom = 21.0
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layers.add_child(band)
 	# COLOUR SPINE: a full-height bar of the Aspect colour down the left edge. A 2 px frame is
 	# invisible once eight cards overlap in a fan -- the spine is the part that stays on screen
 	# when a card is half-covered, so suit is countable without fanning the hand out.
