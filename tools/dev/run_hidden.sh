@@ -87,13 +87,22 @@ if [ -n "${VK_ICD_FILENAMES:-}" ] || [ ! -f "${LVP}" ]; then
 	exit $?
 fi
 
-WY="$(mktemp)"
-trap 'rm -f "${WY}"' EXIT
-_uruchom "$@" 2>&1 | tee "${WY}"
-KOD=${PIPESTATUS[0]}
-if grep -q "Couldn't create Vulkan device\|Unable to create DisplayServer" "${WY}"; then
-	echo "w_tle: sprzetowy Vulkan odmowil na ${EKRAN} (Xvfb bez DRI3) -> powtarzam na LAVAPIPE" >&2
-	VK_ICD_FILENAMES="${LVP}" _uruchom "$@"
-	KOD=$?
-fi
-exit "${KOD}"
+# LAVAPIPE OD RAZU, bez proby sprzetowej. Probowanie GPU najpierw bylo sluszne, dopoki nieudana
+# proba KONCZYLA SIE bledem: sterownik odmawial, skrypt czytal komunikat i powtarzal programowo.
+# Teraz ta pierwsza proba nie pada, tylko WISI -- a `tee` czeka na nia w nieskonczonosc, wiec KAZDY
+# harness zawieszal sie przed wypisaniem pierwszej linii. Zdiagnozowane trzylinijkowa sonda
+# (tools/dev/probe_boot.gd), ktora tez wisiala: dowod, ze wina nigdy nie lezala w kodzie gry.
+# Na tej maszynie Xvfb nie ma DRI3, wiec sprzetowa sciezka i tak nigdy nie dzialala.
+# OPENGL, NIE VULKAN. Historia tego miejsca: sprzetowy Vulkan nie ma na Xvfb DRI3 i odmawia
+# (VkResult -3), wiec skrypt schodzil na lavapipe -- i to dzialalo miesiacami. Programowy Vulkan
+# na tej maszynie przestal padac i zaczal WISIEC przy inicjalizacji renderera, a `tee` czekalo na
+# niego bez konca: KAZDY harness zawieszal sie, zanim wypisal pierwsza linie.
+#
+# Zdiagnozowane trzylinijkowa sonda (tools/dev/probe_boot.gd), ktora tez wisiala, a w zwyklym
+# --headless konczyla sie natychmiast -- dowod, ze wina nie lezala ani w grze, ani w harnessach.
+# Osiem hipotez po stronie kodu bylo obalonych zanim to wyszlo; sonda kosztowala trzy linie.
+#
+# opengl3 na llvmpipe startuje w kilka sekund i konczy czysto. Vulkan zostaje udokumentowany, bo
+# gdy DRI3 wroci, sprzetowa sciezka bedzie znowu szybsza.
+_uruchom --rendering-driver opengl3 "$@"
+exit $?

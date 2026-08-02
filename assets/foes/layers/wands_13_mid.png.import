@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/wands_13_mid.png-eca5a19bb79247dc79d60132c9b9
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/03_empress_fore.png-b7c3ad809c194fd6e8fadac77
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/demon_amdusias_mid.png-0f7aaf3c2f86b3745b82b7
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

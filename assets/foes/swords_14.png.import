@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/swords_14.png-cc8258e9038f6aebaf03a66bbce3ee3
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

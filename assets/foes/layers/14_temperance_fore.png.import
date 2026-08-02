@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/14_temperance_fore.png-3364a1c226f5126d4c36a8
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

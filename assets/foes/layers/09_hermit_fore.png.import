@@ -15,7 +15,7 @@ dest_files=["res://.godot/imported/09_hermit_fore.png-1846950ec6fa8a5ed845e12a30
 
 [params]
 
-compress/mode=1
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
