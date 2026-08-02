@@ -156,7 +156,7 @@ func _go() -> void:
 
 	# --- play the WHOLE fight with real clicks until we win ---
 	var guard := 0
-	while guard < 90:
+	while guard < 40:
 		guard += 1
 		if not is_instance_valid(combat):
 			break
@@ -173,7 +173,10 @@ func _go() -> void:
 		var play = _button_with("COMBAT_PLAY")
 		if play != null and not play.disabled:
 			await _click(_center(play))
-		await _frames(45)   # fly-out + paused enemy turn
+		# 45 frames x 90 iterations is 4050 frames of waiting -- fine when a fight was two turns,
+		# far too generous now that it is four or five. The loop already re-checks the phase every
+		# pass, so a shorter wait costs nothing but finishes inside a sane timeout.
+		await _frames(18)   # fly-out + paused enemy turn
 	print("[in] fight1 finished (combat freed = won): valid=%s" % str(is_instance_valid(combat)))
 
 	# --- the win should transition to the reward screen ---

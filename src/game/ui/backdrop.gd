@@ -69,7 +69,7 @@ static func _haze(accent: Color) -> TextureRect:
 ## Motes rising through the frame. Two layers at different speeds and sizes = parallax.
 static func _motes(accent: Color, layer: int) -> CPUParticles2D:
 	var p := CPUParticles2D.new()
-	p.amount = 18 if layer == 0 else 11
+	p.amount = 10 if layer == 0 else 6
 	p.lifetime = 13.0 if layer == 0 else 8.0
 	p.preprocess = 0.0
 	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
