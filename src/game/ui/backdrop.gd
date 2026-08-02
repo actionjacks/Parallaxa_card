@@ -61,7 +61,7 @@ static func _haze(accent: Color) -> TextureRect:
 	n.seamless = true
 	var r := _rect(n)
 	r.name = "Haze"
-	r.stretch_mode = TextureRect.STRETCH_TILE
+	r.stretch_mode = TextureRect.STRETCH_SCALE
 	var tint: Color = accent if accent.a > 0.0 else Color(0.5, 0.4, 0.45)
 	r.modulate = Color(tint.r, tint.g, tint.b, 0.075)
 	return r
@@ -69,9 +69,9 @@ static func _haze(accent: Color) -> TextureRect:
 ## Motes rising through the frame. Two layers at different speeds and sizes = parallax.
 static func _motes(accent: Color, layer: int) -> CPUParticles2D:
 	var p := CPUParticles2D.new()
-	p.amount = 26 if layer == 0 else 16
+	p.amount = 18 if layer == 0 else 11
 	p.lifetime = 13.0 if layer == 0 else 8.0
-	p.preprocess = 8.0
+	p.preprocess = 0.0
 	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 	p.emission_rect_extents = Vector2(660, 20)
 	p.position = Vector2(640, 760)

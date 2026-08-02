@@ -16,11 +16,10 @@ func _process(delta: float) -> void:
 	if Juice.reduce_motion():
 		return
 	_t += delta
-	var haze := get_node_or_null("Haze") as TextureRect
-	if haze != null:
-		# scrolls by moving the tile origin: no shader, no per-pixel work
-		haze.position = Vector2(fmod(_t * 5.0, 320.0) - 320.0, fmod(_t * 2.0, 180.0) - 180.0)
-		haze.size = size + Vector2(320, 180)
+	# THE HAZE NO LONGER MOVES. Scrolling it meant setting position and size on a FULL_RECT child
+	# every frame, and the anchors fought that assignment right back -- the layout never settled and
+	# the whole game hung. It stays as a static layer of air; the motes and the pulse carry the
+	# motion, and neither of them touches layout.
 	var pulse := get_node_or_null("Pulse") as TextureRect
 	if pulse != null:
 		pulse.modulate.a = 0.75 + sin(_t * 0.42) * 0.25
