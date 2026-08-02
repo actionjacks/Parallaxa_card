@@ -196,29 +196,28 @@ func _build_ui() -> void:
 	ev.add_child(_enrage_label)
 
 	# --- middle: relics + enemy emblem + score readout ---
-	# THE TABLE, LAID OUT PROPERLY. The score readout used to run down the SCREEN'S SPINE, which
-	# is the one column the opponent also occupies -- so every number was printed across its chest
-	# and three rounds of reframing only moved the collision around. The fix is not a better
-	# number, it is a different axis: the centre belongs to the opponent and the cards, and the
-	# running totals move to the right edge where they can be read without competing with anything.
-	# (The paytable already floats on the left, so the frame reads left-chart / centre-fight /
-	# right-maths.)
-	var midrow := HBoxContainer.new()
+	# THE TABLE, REDESIGNED -- not nudged again. Three earlier passes moved the readout around the
+	# frame (centre spine, then right column) and each time it competed with the opponent for the
+	# eye, because a COLUMN of numbers is a second focal point no matter where you put it.
+	#
+	# The frame now has three bands and one focus:
+	#   TOP     the enemy's name, health and intent -- what is coming
+	#   MIDDLE  nothing but the opponent. The arena owns it outright.
+	#   STRIP   one horizontal line of maths directly under the arena: hand, damage, cockpit.
+	#           A strip reads in a single sweep and cannot become a rival focal point.
+	# The paytable stays a drawer (toggled), not furniture -- it is reference, not gameplay.
+	var midrow := VBoxContainer.new()
 	midrow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	midrow.add_theme_constant_override("separation", 0)
 	root.add_child(midrow)
 	var arena_gap := Control.new()
-	arena_gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	arena_gap.size_flags_stretch_ratio = 2.5
+	arena_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	arena_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	midrow.add_child(arena_gap)
-	var mid := VBoxContainer.new()
-	# Breathing room: seven readouts at separation 6 read as one block of noise. The 3D room
-	# behind them gives the space back, so spend it.
-	mid.add_theme_constant_override("separation", 11)
-	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var mid := HBoxContainer.new()
+	mid.add_theme_constant_override("separation", 22)
+	mid.alignment = BoxContainer.ALIGNMENT_CENTER
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mid.custom_minimum_size = Vector2(352, 0)
 	midrow.add_child(mid)
 	_relic_row = HBoxContainer.new()
 	_relic_row.alignment = BoxContainer.ALIGNMENT_BEGIN
@@ -230,13 +229,10 @@ func _build_ui() -> void:
 	# sits BELOW the figure, in the band between its feet and the hand, so both can be read.
 	var gap := Control.new()
 	gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	gap.size_flags_stretch_ratio = 4.5
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mid.add_child(gap)
 	_preview_label = _inked(_label("", 21, Color(0.98, 0.95, 0.8)))
-	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_preview_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_preview_label.custom_minimum_size = Vector2(344, 0)
+	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mid.add_child(_preview_label)
 	_preview_extra = _inked(_label("", 16, Color(0.7, 0.85, 0.95)))
 	_preview_extra.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -256,7 +252,7 @@ func _build_ui() -> void:
 	if st_log != null and st_log.has_method("get_value"):
 		_log_shown = bool(st_log.call("get_value", "gameplay", "combat_log", true))
 		_log_label.visible = _log_shown
-	_log_label.custom_minimum_size = Vector2(344, 0)
+	_log_label.custom_minimum_size = Vector2(300, 0)
 	_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mid.add_child(_log_label)
 
@@ -749,10 +745,14 @@ func _build_paytable() -> void:
 		_paytable_rows[hand] = row
 	add_child(_paytable)
 	_refresh_paytable_values()
-	var on := true
+	# THE CHART IS A DRAWER, NOT FURNITURE. It is reference material -- a player consults it while
+	# learning and then never again -- but it sat open over the arena for every second of every
+	# fight, occupying the whole left third. Closed by default, one click from the "Uklady" button
+	# when it is wanted. The setting still wins for anyone who prefers it pinned.
+	var on := false
 	var st := get_node_or_null("/root/Settings")
 	if st != null and st.has_method("get_value"):
-		on = bool(st.call("get_value", "gameplay", "paytable", true))
+		on = bool(st.call("get_value", "gameplay", "paytable", false))
 	_paytable.visible = on
 
 func _refresh_paytable_values() -> void:
